@@ -1,0 +1,1 @@
+require('./src/hubot-junkyard')
