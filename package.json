@@ -28,6 +28,9 @@
     "url": "https://github.com/gfax/hubot-junkyard/issues"
   },
   "homepage": "https://github.com/gfax/hubot-junkyard#readme",
+  "dependencies": {
+    "lodash": "^4.17.4"
+  },
   "devDependencies": {
     "ava": "^0.22.0",
     "coveralls": "^2.13.1",
