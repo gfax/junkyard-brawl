@@ -4,6 +4,7 @@
   "description": "hubot script for playing junkyard brawl",
   "main": "index.js",
   "scripts": {
+    "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "eslint": "eslint .",
     "eslint:fix": "npm run eslint -- --fix",
     "nyc": "nyc ava '**/*.spec.js'",
@@ -29,6 +30,7 @@
   "homepage": "https://github.com/gfax/hubot-junkyard#readme",
   "devDependencies": {
     "ava": "^0.22.0",
+    "coveralls": "^2.13.1",
     "eslint": "^4.6.1",
     "eslint-plugin-unicorn": "^2.1.2",
     "nyc": "^11.2.1"
