@@ -5,13 +5,6 @@ env:
   es6: true
   node: true
   mocha: true
-globals:
-  angular: true
-  assert: true
-  quotes: true
-  stxx: true
-  DEFINED_APP_VERSION: true
-  DEFINED_GIT_REVISION: true
 parserOptions:
   ecmaVersion: 6
   sourceType: module
@@ -22,7 +15,7 @@ rules:
   array-bracket-spacing:
     - error
     - never
-  #array-callback-return: error
+  array-callback-return: error
   arrow-body-style:
     - off
     - as-needed
@@ -32,16 +25,16 @@ rules:
     - as-needed
     - requireForBlockBody: true
   arrow-spacing: error
-  #block-scoped-var: error
+  block-scoped-var: error
   block-spacing:
     - error
     - always
   brace-style: error
-  #callback-return: error
+  callback-return: off
   camelcase:
     - error
     - properties: never
-  #class-methods-use-this: error
+  class-methods-use-this: error
   comma-dangle:
     - error
     - never
@@ -58,9 +51,9 @@ rules:
   computed-property-spacing:
     - error
     - never
-  #consistent-this: ??
-  #consistent-return: ??
-  #constructor-super: ??
+  consistent-this: error
+  consistent-return: error
+  constructor-super: error
   curly:
     - error
     - multi-line
@@ -73,28 +66,38 @@ rules:
     - error
     - unix
   eqeqeq: off
-  #func-name-matching: error
-  #func-names: warn
-  #func-style: ??
+  func-name-matching: error
+  func-names: error
+  func-style:
+    - error
+    - declaration
+    - allowArrowFunctions: true
   generator-star-spacing:
     - error
     - after: true
       before: false
   global-require: off
-  #guard-for-in: error
-  #handle-callback-err: ??
-  #id-blacklist:
-    #- error
-    #- cb
-    #- e
-  #id-length: 2
+  guard-for-in: error
+  handle-callback-err: error
+  id-blacklist:
+    - error
+    - cb
+    - data
+    - e
+  id-length:
+    - error
+    - min: 2
+      max: 24
+      exceptions:
+      - _
+      - t
   id-match: off
   indent:
     - error
     - 2
     - SwitchCase: 1
       VariableDeclarator: 1
-  #init-declarations: error
+  init-declarations: error
   jsx-quotes: off
   key-spacing:
     - error
@@ -102,52 +105,53 @@ rules:
       beforeColon: false
       mode: minimum
   keyword-spacing: error
-  #line-comment-position: error
+  line-comment-position: error
   linebreak-style:
     - error
     - unix
-  #lines-around-comment: ??
-  #lines-around-directive: error
+  lines-around-comment: off
+  lines-around-directive:
+    - error
+    - always
   max-depth:
     - error
     - 5
   max-len:
     - error
-    - 150
-  #max-lines:
-    #- error
-    #- 400
-  #max-nested-callbacks: ??
-  #max-params: ??
-  #max-statements-per-line: ??
-  #max-statements: ??
-  #multiline-ternary:
-    #- error
-    #- never
-  #new-cap:
-    #- error
-    #- capIsNew: false
-      #newIsCap: false
-      #properties: true
-  #new-cap: 0
+    - 100
+  max-lines:
+    - error
+    - 400
+  max-nested-callbacks: error
+  max-params:
+    - error
+    - 5
+  max-statements-per-line: error
+  max-statements:
+    - error
+    - 30
+  multiline-ternary:
+    - error
+    - never
+  new-cap: error
   new-parens: error
-  #newline-before-return: ??
-  #newline-per-chained-call: ??
-  #no-alert: error
+  newline-before-return: off
+  newline-per-chained-call: error
+  no-alert: error
   no-array-constructor: error
   no-bitwise: error
   no-caller: error
   no-case-declarations: error
   no-catch-shadow: error
-  #no-class-assign: ??
+  no-class-assign: error
   no-cond-assign:
     - error
     - always
   no-confusing-arrow: error
-  #no-console: error
-  #no-const-assign: ??
+  #no-console: warn
+  no-const-assign: error
   no-constant-condition: error
-  #no-continue: ??
+  no-continue: error
   no-control-regex: error
   no-debugger: error
   no-delete-var: error
@@ -165,6 +169,7 @@ rules:
   no-empty-function:
     - error
     - allow:
+      - arrowFunctions
       - functions
   no-empty-pattern: error
   no-eq-null: error
@@ -183,16 +188,16 @@ rules:
   no-floating-decimal: error
   no-func-assign: error
   no-global-assign: error
-  #no-inline-comments: ??
+  no-inline-comments: error
   no-implicit-coercion:
     - error
     - allow:
       - '!!'
   no-implicit-globals: error
   no-implied-eval: error
-  #no-inner-declarations: error
+  no-inner-declarations: error
   no-invalid-regexp: error
-  #no-invalid-this: off
+  no-invalid-this: error
   no-irregular-whitespace: error
   no-iterator: error
   no-label-var: error
@@ -216,56 +221,58 @@ rules:
     - max: 2
       maxBOF: 0
       maxEOF: 0
-  #no-negated-condition: error
+  no-negated-condition: error
   no-negated-in-lhs: error
   no-nested-ternary: error
-  #no-new: error
-  #no-new-func: error
-  #no-new-object: error
-  #no-new-require: ??
-  #no-new-symbol: ??
+  no-new: off
+  no-new-func: error
+  no-new-object: error
+  no-new-require: error
+  no-new-symbol: error
   no-new-wrappers: error
   no-obj-calls: error
   no-octal: error
   no-octal-escape: error
-  #no-params-reassign: off
+  no-param-reassign: error
   no-path-concat: error
-  #no-plusplus: ??
-  #no-process-env: ??
-  #no-process-exit: error
+  no-plusplus: error
+  no-process-env: warn
+  no-process-exit: error
   no-proto: error
-  #no-redeclare: error
+  no-redeclare: error
   no-regex-spaces: error
   no-restricted-globals: error
-  #no-restricted-imports: ??
-  #no-restricted-modules: ??
+  no-restricted-imports: off
+  no-restricted-modules: off
   no-restricted-properties: error
-  #no-restricted-syntax: ??
-  #no-return-assign: error
+  no-restricted-syntax: error
+  no-return-assign: error
   no-return-await: error
-  #no-script-url: error
+  no-script-url: error
   no-self-assign: error
   no-self-compare: error
-  #no-sequences: error
-  #no-shadow: ??
-  #no-shadow-restricted-names: error
-  #no-spaced-func: error
+  no-sequences: error
+  no-shadow: error
+  no-shadow-restricted-names: error
+  no-spaced-func: error
   no-sparse-arrays: error
-  #no-sync: ??
+  no-sync:
+    - error
+    - allowAtRootLevel: true
   no-tabs: error
-  #no-ternary: ??
-  #no-this-before-super: ??
+  no-ternary: off
+  no-this-before-super: error
   no-throw-literal: error
   no-trailing-spaces: error
   no-undef:
     - error
     - typeof: false
   no-undef-init: error
-  #no-undefined: error
-  #no-underscore-dangle: off
-  #no-unexpected-multiline: error
+  no-undefined: error
+  no-underscore-dangle: error
+  no-unexpected-multiline: error
   no-unmodified-loop-condition: error
-  #no-unneeded-ternary: ??
+  no-unneeded-ternary: error
   no-unreachable: error
   no-unsafe-negation: error
   no-unused-expressions:
@@ -288,10 +295,10 @@ rules:
       ignoreImport: false
       ignoreExport: false
   no-useless-return: error
-  #no-var: ??
+  no-var: error
   no-void: error
-  #no-warning-comments: error
-  #no-with: error
+  no-warning-comments: error
+  no-with: error
   no-whitespace-before-property: error
   object-curly-newline:
     - error
@@ -300,47 +307,57 @@ rules:
   object-curly-spacing:
     - error
     - always
-  #object-property-newline: ??
-  #object-shorthand: ??
-  #one-var-declaration-per-line: ??
-  #one-var: ??
-  #operator-assignment: ??
-  #operator-linebreak: ??
-  #padded-blocks: ??
-  #padding-line-between-statements:
-    #- error
-    #-
-      #- blankLine: never
-        #next: *
-        #prev: break
-      #- blankLine: never
-        #next: *
-        #prev: if
-      #- blankLine: never
-        #next: *
-        #prev: switch
-      #- blankLine: never
-        #next: *
-        #prev: try
-      #- blankLine: never
-        #next: *
-        #prev: while
-  #prefer-arrow-callback: error
+  object-property-newline: error
+  object-shorthand:
+    - error
+    - always
+  one-var-declaration-per-line: error
+  one-var:
+    - error
+    - never
+  operator-assignment: off
+  operator-linebreak:
+    - error
+    - after
+  padded-blocks: off
+  padding-line-between-statements:
+    - error
+    - blankLine: never
+      next: '*'
+      prev: break
+    - blankLine: always
+      next: '*'
+      prev: switch
+    - blankLine: always
+      next: '*'
+      prev: try
+    - blankLine: always
+      next: '*'
+      prev: while
+  prefer-arrow-callback: error
   prefer-const: error
-  #prefer-destructuring: error
+  prefer-destructuring: error
   prefer-promise-reject-errors: error
-  #prefer-rest-params: ??
+  prefer-rest-params: error
   prefer-spread: error
-  #prefer-template: ??
-  #quote-props: ??
-  #quotes: off
+  prefer-template: error
+  quote-props:
+    - error
+    - as-needed
+  quotes:
+    - error
+    - single
+    - allowTemplateLiterals: true
+      avoidEscape: true
   radix:
     - error
     - as-needed
   require-await: error
-  #require-jsdoc: ??
-  #require-yield: ??
-  #rest-spread-spacing: ??
+  require-jsdoc: off
+  require-yield: error
+  rest-spread-spacing:
+    - error
+    - never
   semi-spacing:
     - error
     - after: true
@@ -348,45 +365,45 @@ rules:
   semi:
     - error
     - never
-  #soft-vars: ??
   sort-keys: off
-  #sort-imports: ??
+  sort-imports: off
+  sort-vars: error
   space-before-blocks: error
   space-before-function-paren:
     - error
     - anonymous: never
       named: never
       asyncArrow: always
-  #space-in-parens: ??
+  space-in-parens:
+    - error
+    - never
   space-infix-ops: off
   space-unary-ops: off
-  #spaced-comment: ??
-  #symbol-description: error
+  spaced-comment: error
+  symbol-description: error
   strict: error
-  #template-curly-spacing: ??
+  template-curly-spacing: error
   template-tag-spacing: error
-  #unicode-bom:
-    #- error
-    #- always
-  #unicorn/catch-error-name:
-    #- error
-    #- name: err
-  #unicorn/explicit-length-check: error
-  #unicorn/filename-case:
-    #- error
-    #- case: kebabCase
-  #unicorn/no-abusive-eslint-disable: error
-  #unicorn/no-process-exit: error
-  #unicorn/throw-new-error: error
-  #unicorn/number-literal-case: error
-  #unicorn/escape-case: error
-  #unicorn/no-array-instanceof: error
-  #unicorn/no-new-buffer: error
-  #unicorn/no-hex-escape: error
-  #unicorn/custom-error-definition: error
+  unicode-bom: error
+  unicorn/catch-error-name:
+    - error
+    - name: err
+  unicorn/explicit-length-check: off
+  unicorn/filename-case:
+    - error
+    - case: kebabCase
+  unicorn/no-abusive-eslint-disable: error
+  unicorn/no-process-exit: error
+  unicorn/throw-new-error: error
+  unicorn/number-literal-case: error
+  unicorn/escape-case: error
+  unicorn/no-array-instanceof: error
+  unicorn/no-new-buffer: error
+  unicorn/no-hex-escape: error
+  unicorn/custom-error-definition: error
   use-isnan: error
   valid-jsdoc:
-    - off
+    - error
     -
       prefer:
         arg: param
@@ -394,7 +411,7 @@ rules:
         class: constructor
         return: return
         virtual: abstract
-      #matchDescription: '.+' # match any text
+      matchDescription: '.+' # match any text
       preferType:
         array: array
         object: object
@@ -405,6 +422,6 @@ rules:
   valid-typeof: error
   vars-on-top: off
   wrap-iife: error
-  #wrap-regex: ??
-  #yield-star-spacing: ??
+  wrap-regex: error
+  yield-star-spacing: error
   yoda: error

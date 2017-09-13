@@ -6,13 +6,19 @@ module.exports = class Player {
       throw new Error('No player ID provided')
     }
     if (typeof name !== 'string') {
-      throw new Error('Invalid player name provided: ' + name)
+      throw new Error(`Invalid player name provided: ${name}`)
     }
-    this.hand = [] // Cards in hand
-    this.handMax = 5 // Max number of cards to deal up to
-    this.hp = maxHp // Starting health
-    this.id = id // Unique player ID
-    this.name = name // Display name
-    this.turns = 0 // Turns spent playing this game
+    // Cards in hand
+    this.hand = []
+    // Max number of cards to deal up to
+    this.handMax = 5
+    // Starting health
+    this.hp = maxHp
+    // Unique player ID
+    this.id = id
+    // Display name
+    this.name = name
+    // Turns spent playing this game
+    this.turns = 0
   }
 }

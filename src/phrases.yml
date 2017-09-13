@@ -1,0 +1,3 @@
+---
+game:created:
+  en: A new game of <%= title %> has been created by <%= manager %>.
