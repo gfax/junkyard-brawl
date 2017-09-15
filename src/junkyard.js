@@ -26,6 +26,8 @@ module.exports = class Junkyard {
     this.announceCallback = announceCallback
     // Freshly shuffled cards
     this.deck = Deck.generate()
+    // Cards that were discarded
+    this.discard = []
     // Players not allowed to rejoin
     this.dropouts = []
     // Language to announce things in
@@ -64,12 +66,57 @@ module.exports = class Junkyard {
     this.announceCallback(code, phrase)
   }
 
+  whisper(player, code, extraWords = {}) {
+    const phrase = Phrases.getPhrase(code, this.language)(_.assign({
+      manager: this.manager.name,
+      player: this.players[0].name,
+      title: gameTitle
+    }, extraWords))
+    this.whisperCallback(player.id, code, phrase)
+  }
+
   getDropout(id) {
     return _.find(this.dropouts, { id })
   }
 
   getPlayer(id) {
     return _.find(this.players, { id })
+  }
+
+  start() {
+    if (this.started) {
+      this.announce('game:invalid-start')
+      return
+    }
+    if (this.players.length < 2) {
+      this.announce('game:invalid-number-of-players')
+      return
+    }
+    this.started = new Date()
+    this.players.forEach(player => this.deal(player))
+  }
+
+  deal(player) {
+    const numberToDeal = player.handMax - player.hand.length
+    if (numberToDeal > 0) {
+      _.times(numberToDeal, () => {
+        if (this.deck.length < 1) {
+          this.shuffleDeck()
+        }
+        player.hand.push(this.deck.pop())
+      })
+    }
+  }
+
+  shuffleDeck() {
+    if (!this.discard.length) {
+      this.deck.concat(Deck.generate())
+      this.announce('deck:increased')
+      return
+    }
+    this.deck.concat(_.shuffle(this.discard))
+    this.discard = []
+    this.announce('deck:shuffle')
   }
 
 }

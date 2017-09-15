@@ -1,6 +1,6 @@
-# Hubot Junkyard Brawl
+# Junkyard Brawl
 
-[![Build Status](https://travis-ci.org/gfax/hubot-junkyard.svg?branch=master)](https://travis-ci.org/gfax/hubot-junkyard)
-[![Coverage Status](https://coveralls.io/repos/github/gfax/hubot-junkyard/badge.svg?branch=master)](https://coveralls.io/github/gfax/hubot-junkyard?branch=master)
+[![Build Status](https://travis-ci.org/gfax/node-junkyard.svg?branch=master)](https://travis-ci.org/gfax/node-junkyard)
+[![Coverage Status](https://coveralls.io/repos/github/gfax/node-junkyard/badge.svg?branch=master)](https://coveralls.io/github/gfax/node-junkyard?branch=master)
 
-A hubot implementation of the card game Junkyard Brawl.
+A nodejs implementation of the card game Junkyard Brawl.

@@ -1,3 +1,11 @@
 ---
 game:created:
   en: A new game of <%= title %> has been created by <%= manager %>.
+game:invalid-start:
+  en: <%= title %> has already been started.
+game:invalid-number-of-players:
+  en: More players need to join before the game can start.
+deck:increased:
+  en: An extra deck has been shuffle into the game!
+deck:shuffle:
+  en: Shuffling deck...
