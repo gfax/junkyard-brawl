@@ -18,6 +18,16 @@
     "type": "git",
     "url": "git+ssh://git@github.com/gfax/hubot-junkyard.git"
   },
+  "nyc": {
+    "exclude": [
+      "**/*.spec.js"
+    ],
+    "report-dir": "./coverage",
+    "reporter": [
+      "text",
+      "html"
+    ]
+  },
   "keywords": [
     "hubot",
     "hubot-script",
