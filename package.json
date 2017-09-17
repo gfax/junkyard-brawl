@@ -1,7 +1,7 @@
 {
-  "name": "hubot-junkyard",
+  "name": "node-junkyard",
   "version": "0.1.0",
-  "description": "hubot script for playing junkyard brawl",
+  "description": "NodeJS implementation of the card game Junkyard Brawl",
   "main": "index.js",
   "engines": {
     "node": ">=6.5"
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/gfax/hubot-junkyard.git"
+    "url": "git+ssh://git@github.com/gfax/node-junkyard.git"
   },
   "nyc": {
     "exclude": [
@@ -29,18 +29,19 @@
     ]
   },
   "keywords": [
-    "hubot",
-    "hubot-script",
-    "junkyard",
     "brawl",
-    "game"
+    "cards",
+    "card-game",
+    "game",
+    "junkyard",
+    "junkyard-brawl"
   ],
   "author": "Jay Thomas <jay@gfax.ch>",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/gfax/hubot-junkyard/issues"
+    "url": "https://github.com/gfax/node-junkyard/issues"
   },
-  "homepage": "https://github.com/gfax/hubot-junkyard#readme",
+  "homepage": "https://github.com/gfax/node-junkyard#readme",
   "dependencies": {
     "js-yaml": "^3.10.0",
     "lodash": "^4.17.4"

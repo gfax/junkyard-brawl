@@ -1,21 +1,30 @@
 const _ = require('lodash')
 
 module.exports = {
-  generate
+  generate,
+  getCard
 }
 
-const cards = {
+const deck = {
   gutPunch: {
+    id: 'gut-punch',
     type: 'attack',
-    onContact: (announce, target) => {
-      target.health -= 2
-      announce('card:gut-punch:on-contact')
+    onContact: (player, target, game) => {
+      target.hp -= 2
+      game.announce('card:gut-punch:on-contact', {
+        player,
+        target
+      })
     }
   }
 }
 
 function generate() {
   return _.shuffle([
-    cards.gutPunch
+    deck.gutPunch
   ])
+}
+
+function getCard(id) {
+  return _.find(deck, { id })
 }

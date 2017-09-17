@@ -1,6 +1,8 @@
 const Ava = require('ava')
 const Sinon = require('sinon')
+const Deck = require('./deck')
 const Junkyard = require('./junkyard')
+const Player = require('./player')
 
 Ava.test('Should allow instantiation', (t) => {
   const game = new Junkyard('player1', 'Jay')
@@ -41,4 +43,27 @@ Ava.test('Should start a game', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   t.true(game.started instanceof Date)
+  t.true(game.players[0] instanceof Player)
+  t.true(game.players[1] instanceof Player)
+  t.true(announceCallback.calledWith('game:turn'))
+})
+
+Ava.test('Should remove a player', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  const player = game.addPlayer('player2', 'Kevin')
+  game.removePlayer('player2')
+  t.true(announceCallback.calledWith('player:dropped'))
+  t.is(game.dropouts[0], player)
+})
+
+Ava.test('Gut Punch should work', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player, target] = game.players
+  const card = Deck.getCard('gut-punch')
+  player.hand.push(card)
+  game.play(player.id, target.id, [card])
+  t.is(target.hp, 8)
 })

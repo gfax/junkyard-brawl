@@ -1,11 +1,27 @@
 ---
-game:created:
-  en: A new game of <%= title %> has been created by <%= manager %>.
-game:invalid-start:
-  en: <%= title %> has already been started.
-game:invalid-number-of-players:
-  en: More players need to join before the game can start.
+card:gut-punch:
+  en: Gut Punch
+card:gut-punch:on-contact:
+  en: <%= player.name %> punches <%= target.name %> in the guts.
+card:neck-punch:
+  en: Neck Punch
 deck:increased:
   en: An extra deck has been shuffle into the game!
 deck:shuffle:
   en: Shuffling deck...
+game:created:
+  en: A new game of <%= game.title %> has been created by <%= game.manager.name %>.
+game:invalid-start:
+  en: <%= game.title %> has already been started.
+game:invalid-number-of-players:
+  en: More players need to join before the game can start.
+game:turn:
+  en: <%= player.name %>'s turn.
+player:dropped:
+  en: <%= player.name %> has been removed from the game.
+player:invalid-target:
+  en: Invalid target.
+player:joined:
+  en: <%= player.name %> has entered the game!
+player:not-turn:
+  en: It's not your turn, <%= player.name %>.
