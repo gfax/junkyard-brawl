@@ -33,6 +33,8 @@ module.exports = class Junkyard {
     this.slots = []
     // Time the game started
     this.started = false
+    // Time the game ended
+    this.stopped = false
     // Player currently being attacked
     this.target = null
     // Name of the game
@@ -45,6 +47,9 @@ module.exports = class Junkyard {
   }
 
   addPlayer(id, name) {
+    if (this.stopped) {
+      return
+    }
     const player = new Player(id, name)
     this.players.push(player)
     this.announce('player:joined', { player })
@@ -55,14 +60,22 @@ module.exports = class Junkyard {
     // We gotta pass some variables in to build the phrases
     // the extra words are to identify current things like
     // the target or stats.
-    this.announceCallback(code, this.getPhrase(code, extraWords))
+    this.announceCallback(
+      code,
+      this.getPhrase(code, extraWords),
+      _.merge(extraWords, { game: this })
+    )
   }
 
   announceStats() {
     const stats = this.players.map((player) => {
       return `${player.name} (${player.hp})`
     })
-    this.announceCallback('player:stats', stats.join(', '))
+    this.announceCallback(
+      'player:stats',
+      stats.join(', '),
+      { game: this }
+    )
   }
 
   deal(player) {
@@ -104,18 +117,12 @@ module.exports = class Junkyard {
     })
   }
 
-  performTurn(player, target, cards) {
-    _.remove(player.hand, cards)
-    player.discard = cards
-    this.target = target
-    player.discard.forEach((card) => {
-      card.onContact(player, target, this)
-    })
-  }
-
   // This simply processes requests and
   // passes it to the appropriate method.
   play(playerId, targetId, cards) {
+    if (this.stopped) {
+      return
+    }
     const player = this.getPlayer(playerId)
     const target = this.getPlayer(targetId)
     // This person is not playing the game
@@ -133,15 +140,44 @@ module.exports = class Junkyard {
       this.announce('player:invalid-target')
       return
     }
-    this.performTurn(player, target, cards)
+    _.remove(player.hand, cards)
+    player.discard = cards
+    this.target = target
+    player.discard.forEach((card) => {
+      card.onContact(player, target, this)
+    })
+    this.incrementTurn()
+  }
+
+  whisperStats(playerId) {
+    const player = this.getPlayer(playerId)
+    if (player) {
+      this.whisper(
+        player,
+        'player:stats',
+        {
+          cards: Language.printCards(player.hand, this.language),
+          player
+        }
+      )
+    }
   }
 
   removePlayer(id) {
-    const index = _.findIndex(this.players, { id })
-    const player = this.players.pop(index)
+    if (this.stopped) {
+      return
+    }
+    const player = this.getPlayer(id)
+    _.remove(this.players, { id })
     this.dropouts.push(player)
     this.announce('player:dropped', { player })
-    return player
+    if (!this.players.length) {
+      this.stop()
+      return
+    }
+    if (this.manager === player) {
+      this.transferManagement()
+    }
   }
 
   shuffleDeck() {
@@ -156,6 +192,9 @@ module.exports = class Junkyard {
   }
 
   start() {
+    if (this.stopped) {
+      return
+    }
     if (this.started) {
       this.announce('game:invalid-start')
       return
@@ -170,8 +209,35 @@ module.exports = class Junkyard {
     this.started = new Date()
   }
 
+  stop() {
+    if (this.stopped) {
+      return
+    }
+    this.stopped = new Date()
+    this.announce('game:stopped')
+  }
+
+  transferManagement(playerId) {
+    if (this.stopped) {
+      return
+    }
+    const oldManager = _.clone(this.manager)
+    const newManager = this.getPlayer(playerId)
+    if (newManager) {
+      this.manager = newManager
+    } else {
+      [this.manager] = this.players
+    }
+    this.announce('game:transferred', { player: oldManager })
+  }
+
   whisper(player, code, extraWords = {}) {
-    this.whisperCallback(player.id, code, this.getPhrase(code, extraWords))
+    this.whisperCallback(
+      player.id,
+      code,
+      this.getPhrase(code, extraWords),
+      _.merge(extraWords, { game: this })
+    )
   }
 
 }

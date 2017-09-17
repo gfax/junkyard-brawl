@@ -49,7 +49,7 @@ rules:
     - error
     - never
   consistent-this: error
-  consistent-return: error
+  consistent-return: off
   constructor-super: error
   curly:
     - error

@@ -17,9 +17,15 @@ Ava.test('Should render a phrase from the template function', (t) => {
   t.is(phrase, 'A new game of Junkyard Brawl has been created by Jay.')
 })
 
-Ava.test('Language should throw errors without adequate word key', (t) => {
+Ava.test('Should throw errors without adequate word key', (t) => {
   t.throws(() => {
     Language.getPhrase('game:created', 'en')()
+  })
+})
+
+Ava.test('Should throw errors when given an invalid code', (t) => {
+  t.throws(() => {
+    Language.getPhrase('foobar', 'en')({})
   })
 })
 

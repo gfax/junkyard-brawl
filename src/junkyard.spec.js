@@ -23,7 +23,8 @@ Ava.test('Should announce when a game is created', (t) => {
   t.true(announceCallback.calledOnce)
   t.true(announceCallback.alwaysCalledWithExactly(
     'game:created',
-    Sinon.match.string
+    Sinon.match.string,
+    Sinon.match.object
   ))
 })
 
@@ -41,11 +42,28 @@ Ava.test('Should start a game', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
+  t.false(game.started)
   game.start()
   t.true(game.started instanceof Date)
   t.true(game.players[0] instanceof Player)
   t.true(game.players[1] instanceof Player)
   t.true(announceCallback.calledWith('game:turn'))
+})
+
+Ava.test('Should stop a game', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay')
+  game.stop()
+  t.true(game.stopped instanceof Date)
+  // You shouldn't be able to do anything else after a game has stopped
+  const { callCount } = announceCallback
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  game.transferManagement('player2')
+  game.play('player1', 'player2', [Deck.getCard('gut-punch')])
+  game.removePlayer('player2')
+  t.false(game.started)
+  t.is(announceCallback.callCount, callCount)
 })
 
 Ava.test('Should remove a player', (t) => {
@@ -55,6 +73,24 @@ Ava.test('Should remove a player', (t) => {
   game.removePlayer('player2')
   t.true(announceCallback.calledWith('player:dropped'))
   t.is(game.dropouts[0], player)
+})
+
+Ava.test('Should transfer game management', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  const player = game.addPlayer('player2', 'Kevin')
+  game.transferManagement(player.id)
+  t.true(announceCallback.calledWith('game:transferred'))
+  t.is(game.manager, player)
+})
+
+Ava.test('Should transfer game management when removing the manager', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  const player = game.addPlayer('player2', 'Kevin')
+  game.removePlayer('player1')
+  t.true(announceCallback.calledWith('game:transferred'))
+  t.is(game.manager, player)
 })
 
 Ava.test('Gut Punch should work', (t) => {

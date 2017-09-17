@@ -15,6 +15,10 @@ game:invalid-start:
   en: <%= game.title %> has already been started.
 game:invalid-number-of-players:
   en: More players need to join before the game can start.
+game:stopped:
+  en: <%= game.title %> stopped.
+game:transferred:
+  en: Game manager has changed from <%= player.name %> to <%= game.manager.name %>.
 game:turn:
   en: <%= player.name %>'s turn.
 player:dropped:
@@ -25,3 +29,5 @@ player:joined:
   en: <%= player.name %> has entered the game!
 player:not-turn:
   en: It's not your turn, <%= player.name %>.
+player:stats:
+  en: '<%= player.name %> (<%= player.hp %>): <%= cards %>'

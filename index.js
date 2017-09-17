@@ -1,1 +1,1 @@
-require('./src/hubot-junkyard')
+require('./junkyard')

@@ -5,9 +5,10 @@ module.exports = {
   getCard
 }
 
-const deck = {
-  gutPunch: {
+const deck = [
+  {
     id: 'gut-punch',
+    copies: 10,
     type: 'attack',
     onContact: (player, target, game) => {
       target.hp -= 2
@@ -17,12 +18,13 @@ const deck = {
       })
     }
   }
-}
+]
 
 function generate() {
-  return _.shuffle([
-    deck.gutPunch
-  ])
+  return _.shuffle(deck.reduce((acc, card) => {
+    _.times(card.copies, () => acc.push(card))
+    return acc
+  }, []))
 }
 
 function getCard(id) {
