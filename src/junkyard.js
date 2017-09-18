@@ -117,50 +117,63 @@ module.exports = class Junkyard {
     })
   }
 
+  pass(playerId) {
+    const player = this.getPlayer(playerId)
+    if (!this.target && playerId === this.players[0].id) {
+      this.whisper(player, 'player:no-passing')
+    }
+    if (player === this.target) {
+      this.players[0].discard.forEach((card) => {
+        card.onContact(this.players[0], player, this)
+      })
+      this.incrementTurn()
+    }
+  }
+
   // This simply processes requests and
   // passes it to the appropriate method.
-  play(playerId, targetId, cards) {
+  play(playerId, cards, targetId) {
     if (this.stopped) {
       return
     }
     const player = this.getPlayer(playerId)
-    const target = this.getPlayer(targetId)
     // This person is not playing the game
     if (!player) {
       return
     }
+    // Already played some cards; waiting for target to respond
+    if (player.discard.length) {
+      return
+    }
+    let target = null
+    // Assume the target is the only other player
+    if (this.players.length === 2) {
+      [, target] = this.players
+    } else {
+      target = this.getPlayer(targetId)
+    }
+    if (!this.started) {
+      this.whisper(player, 'player:not-started')
+    }
     if (this.players[0].id !== playerId) {
-      this.announce('player:not-turn', { player })
+      this.whisper(player, 'player:not-turn')
       return
     }
     if (this.target) {
       return
     }
     if (!target) {
-      this.announce('player:invalid-target')
+      this.whisper(player, 'player:invalid-target')
       return
     }
     _.remove(player.hand, cards)
     player.discard = cards
     this.target = target
-    player.discard.forEach((card) => {
-      card.onContact(player, target, this)
+    this.announce('player:played', {
+      card: Language.printCards(player.discard[0], 'en'),
+      player,
+      target: this.target
     })
-    this.incrementTurn()
-  }
-
-  whisperStats(playerId) {
-    const player = this.getPlayer(playerId)
-    if (player) {
-      this.whisper(
-        player,
-        'player:stats',
-        {
-          cards: Language.printCards(player.hand, this.language),
-          player
-        }
-      )
-    }
   }
 
   removePlayer(id) {
@@ -232,12 +245,29 @@ module.exports = class Junkyard {
   }
 
   whisper(player, code, extraWords = {}) {
+    const words = _.merge({
+      game: this,
+      player
+    }, extraWords)
     this.whisperCallback(
       player.id,
       code,
-      this.getPhrase(code, extraWords),
-      _.merge(extraWords, { game: this })
+      this.getPhrase(code, words),
+      _.merge(words)
     )
+  }
+
+  whisperStats(playerId) {
+    const player = this.getPlayer(playerId)
+    if (player) {
+      this.whisper(
+        player,
+        'player:stats',
+        {
+          cards: Language.printCards(player.hand, this.language)
+        }
+      )
+    }
   }
 
 }

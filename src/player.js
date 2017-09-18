@@ -8,6 +8,8 @@ module.exports = class Player {
     if (typeof name !== 'string') {
       throw new Error(`Invalid player name provided: ${name}`)
     }
+    // Cards in play
+    this.discard = []
     // Cards in hand
     this.hand = []
     // Max number of cards to deal up to

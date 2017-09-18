@@ -7,6 +7,6 @@ const game = new Junkyard('user1', 'Jay', announceCallback, whisperCallback)
 game.addPlayer('user2', 'Kevin')
 game.start()
 game.transferManagement('user2')
-const [player1, player2] = game.players
+const [player1] = game.players
 game.whisperStats(player1.id)
-game.play(player1.id, player2.id, [game.players[0].hand[0]])
+game.play(player1.id, [game.players[0].hand[0]])

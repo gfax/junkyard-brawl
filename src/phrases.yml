@@ -1,10 +1,88 @@
 ---
+card:a-gun:
+  en: A Gun
+card:acid-coffee:
+  en: Acid Coffee
+card:armor:
+  en: Armor
+card:avalanche:
+  en: Attack
+card:block:
+  en: Block
+card:bulldozer:
+  en: Bulldozer
+card:cheap-shot:
+  en: Cheap Shot
+card:crane:
+  en: Crane
+card:deflector:
+  en: Deflector
+card:dodge:
+  en: Dodge
+card:earthquake:
+  en: Earthquake
+card:energy-drink:
+  en: Energy Drink
+card:gamblin-man:
+  en: Gamblin Man
+card:gas-spill:
+  en: Gas Spill
+card:grab:
+  en: Grab
+card:grab:on-contact:
+  en: <%= player.name %> grabs <%= target.name %>. Respond or pass, <%= target.name %>.
+card:grease-bucket:
+  en: Grease Bucket
+card:guard-dog:
+  en: Guard Dog
 card:gut-punch:
   en: Gut Punch
 card:gut-punch:on-contact:
   en: <%= player.name %> punches <%= target.name %> in the guts.
+card:insurance:
+  en: Insurance
+card:its-getting-windy:
+  en: It's Getting Windy
+card:magnet:
+  en: Magnet
+card:mattress:
+  en: Mattress
+card:meal-steal:
+  en: Meal Steal
+card:mirror:
+  en: Mirror
 card:neck-punch:
   en: Neck Punch
+card:propeller:
+  en: Propeller
+card:reverse:
+  en: Reverse
+card:sleep:
+  en: Sleep
+card:siphon:
+  en: Siphon
+card:soup:
+  en: Soup
+card:spare-bolts:
+  en: Spare Bolts
+card:sub:
+  en: Sub
+card:surgery:
+  en: Surgery
+card:the-bees:
+  en: THE BEES
+card:tire:
+  en: Tire
+card:tire-iron:
+  en: Tire Iron
+card:toolbox:
+  en: Toolbox
+card:uppercut:
+  en: Uppercut
+card:whirlwind:
+  en: Whirlwind
+card:wrench:
+  en: Wrench
 deck:increased:
   en: An extra deck has been shuffle into the game!
 deck:shuffle:
@@ -27,7 +105,13 @@ player:invalid-target:
   en: Invalid target.
 player:joined:
   en: <%= player.name %> has entered the game!
+player:no-passing:
+  en: Either play or discard cards, <%= player.name %>.
+player:not-started:
+  en: The game has not started yet, <%= player.name %>.
 player:not-turn:
   en: It's not your turn, <%= player.name %>.
+player:played:
+  en: <%= player.name %> plays <%= card %>. Respond or pass, <%= target.name %>.
 player:stats:
   en: '<%= player.name %> (<%= player.hp %>): <%= cards %>'

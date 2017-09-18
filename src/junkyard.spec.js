@@ -60,7 +60,7 @@ Ava.test('Should stop a game', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   game.transferManagement('player2')
-  game.play('player1', 'player2', [Deck.getCard('gut-punch')])
+  game.play('player1', [Deck.getCard('gut-punch')])
   game.removePlayer('player2')
   t.false(game.started)
   t.is(announceCallback.callCount, callCount)
@@ -93,6 +93,35 @@ Ava.test('Should transfer game management when removing the manager', (t) => {
   t.is(game.manager, player)
 })
 
+Ava.test('Should not accept moves before starting', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.play('player2')
+  t.true(whisperCallback.calledWith('player2', 'player:not-started'))
+})
+
+Ava.test('Should not accept cards out of turn', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  const [, player2] = game.players
+  const card = Deck.getCard('gut-punch')
+  player2.hand.push(card)
+  game.play(player2.id, [card])
+  t.true(whisperCallback.calledWith('player2', 'player:not-started'))
+})
+
+Ava.test('Should ignore non-player moves', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  game.play('foo', [Deck.getCard('gut-punch')])
+  t.pass()
+})
+
 Ava.test('Gut Punch should work', (t) => {
   const game = new Junkyard('player1', 'Jay')
   game.addPlayer('player2', 'Kevin')
@@ -100,6 +129,7 @@ Ava.test('Gut Punch should work', (t) => {
   const [player, target] = game.players
   const card = Deck.getCard('gut-punch')
   player.hand.push(card)
-  game.play(player.id, target.id, [card])
+  game.play(player.id, [card])
+  game.pass(target.id)
   t.is(target.hp, 8)
 })
