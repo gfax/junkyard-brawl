@@ -145,7 +145,7 @@ rules:
     - error
     - always
   no-confusing-arrow: error
-  #no-console: warn
+  no-console: error
   no-const-assign: error
   no-constant-condition: error
   no-continue: error
@@ -302,7 +302,9 @@ rules:
   object-curly-spacing:
     - error
     - always
-  object-property-newline: error
+  object-property-newline:
+    - error
+    - allowMultiplePropertiesPerLine: true
   object-shorthand:
     - error
     - always

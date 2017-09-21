@@ -40,6 +40,7 @@ module.exports = class Junkyard {
     // Name of the game
     this.title = gameTitle
     // Total turns taken
+    this.turns = 0
     // Callback to pipe private messages through
     this.whisperCallback = whisperCallback
 
@@ -78,6 +79,23 @@ module.exports = class Junkyard {
     )
   }
 
+  counter(player, cards) {
+    if (!player) {
+      throw new Error(`Expected player, got: ${player}`)
+    }
+    if (!cards) {
+      throw new Error(`Expected cards, got: ${cards}`)
+    }
+    if (cards[0].type !== 'counter') {
+      this.whisper(player, 'player:invalid-counter')
+    }
+    if (player === this.target) {
+      cards[0].counter(player, this.players[0], cards, this)
+    } else if (player === this.players[0]) {
+      cards[0].counter(player, this.target, cards, this)
+    }
+  }
+
   deal(player) {
     const numberToDeal = player.handMax - player.hand.length
     if (numberToDeal > 0) {
@@ -108,6 +126,7 @@ module.exports = class Junkyard {
   }
 
   incrementTurn() {
+    this.target = null
     this.players = [..._.tail(this.players), this.players[0]]
     this.turns += 1
     this.players[0].turns += 1
@@ -119,15 +138,35 @@ module.exports = class Junkyard {
 
   pass(playerId) {
     const player = this.getPlayer(playerId)
-    if (!this.target && playerId === this.players[0].id) {
+    const [turnPlayer] = this.players
+    if (!this.target && playerId === turnPlayer.id) {
       this.whisper(player, 'player:no-passing')
+      return
+    }
+    // Let the target pass, but only if he hasn't played a counter
+    if (player === this.target && player.discard.length) {
+      this.whisper(player, 'player:already-played')
+      return
     }
     if (player === this.target) {
-      this.players[0].discard.forEach((card) => {
-        card.onContact(this.players[0], player, this)
-      })
-      this.incrementTurn()
+      turnPlayer.discard[0].contact(
+        turnPlayer,
+        player,
+        turnPlayer.discard,
+        this
+      )
+      turnPlayer.discard = []
+    // The target must have played a counter like Grab
+    } else if (player === turnPlayer && this.target.discard) {
+      this.target.discard[0].contact(
+        this.target,
+        turnPlayer,
+        this.target.discard,
+        this
+      )
+      this.target.discard = []
     }
+    this.incrementTurn()
   }
 
   // This simply processes requests and
@@ -141,9 +180,24 @@ module.exports = class Junkyard {
     if (!player) {
       return
     }
-    // Already played some cards; waiting for target to respond
-    if (player.discard.length) {
+    // Turn-player played some cards; waiting for target to respond
+    if (player === this.players[0] && player.discard.length) {
       return
+    }
+    if (!this.started) {
+      this.whisper(player, 'player:not-started')
+    }
+    if (this.players[0].id !== playerId && !this.target) {
+      this.whisper(player, 'player:not-turn')
+      return
+    }
+    // Countering the first play
+    if (this.target && this.target === player) {
+      this.counter(player, cards)
+      return
+    }
+    if (player === this.player && this.target.discard.length && cards[0].type === 'counter') {
+      this.counter(player, cards)
     }
     let target = null
     // Assume the target is the only other player
@@ -152,28 +206,16 @@ module.exports = class Junkyard {
     } else {
       target = this.getPlayer(targetId)
     }
-    if (!this.started) {
-      this.whisper(player, 'player:not-started')
-    }
-    if (this.players[0].id !== playerId) {
-      this.whisper(player, 'player:not-turn')
-      return
-    }
-    if (this.target) {
-      return
-    }
     if (!target) {
       this.whisper(player, 'player:invalid-target')
       return
     }
-    _.remove(player.hand, cards)
-    player.discard = cards
-    this.target = target
-    this.announce('player:played', {
-      card: Language.printCards(player.discard[0], 'en'),
-      player,
-      target: this.target
-    })
+    const [card] = cards
+    if (card.type === 'counter' && card.id !== 'grab') {
+      this.whisper(player, 'player:invalid-play')
+      return
+    }
+    card.play(player, target, cards, this)
   }
 
   removePlayer(id) {

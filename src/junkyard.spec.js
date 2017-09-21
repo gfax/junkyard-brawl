@@ -121,15 +121,3 @@ Ava.test('Should ignore non-player moves', (t) => {
   game.play('foo', [Deck.getCard('gut-punch')])
   t.pass()
 })
-
-Ava.test('Gut Punch should work', (t) => {
-  const game = new Junkyard('player1', 'Jay')
-  game.addPlayer('player2', 'Kevin')
-  game.start()
-  const [player, target] = game.players
-  const card = Deck.getCard('gut-punch')
-  player.hand.push(card)
-  game.play(player.id, [card])
-  game.pass(target.id)
-  t.is(target.hp, 8)
-})

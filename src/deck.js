@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const Language = require('./language')
 
 module.exports = {
   generate,
@@ -78,9 +79,43 @@ const deck = [
   },
   {
     id: 'grab',
-    type: 'attack',
-    copies: 0
-    // copies: 8
+    type: 'counter',
+    copies: 8,
+    contact: (player, target, cards, game) => {
+      game.discard.push(player.discard[0])
+      _.remove(player.discard, player.discard[0])
+      cards[0].contact(player, target, player.discard, game)
+      player.discard = []
+    },
+    counter: (player, target, cards, game) => {
+      if (cards.length < 2) {
+        game.whisper(player, 'card:grab:invalid-card', { target })
+        return
+      }
+      if (cards[1].type !== 'attack' && cards[1].type !== 'unstoppable') {
+        game.whisper(player, 'card:grab:invalid-card', { target })
+        return
+      }
+      target.discard[0].contact(target, player, target.discard, game)
+      player.discard = [cards[0], cards[1]]
+      game.announce('card:grab:counter', { player, target })
+    },
+    play: (player, target, cards, game) => {
+      if (cards.length < 2) {
+        game.whisper(player, 'card:grab:invalid-card')
+        return
+      }
+      if (cards[1].type !== 'attack' && cards[1].type !== 'unstoppable') {
+        game.whisper(player, 'card:grab:invalid-card')
+        return
+      }
+      if (target.discard[0]) {
+        target.discard[0].contact(target, player, target.discard, game)
+      }
+      player.discard = [cards[0], cards[1]]
+      game.target = target
+      game.announce('card:grab:play', { player, target })
+    }
   },
   {
     id: 'grease-bucket',
@@ -96,9 +131,19 @@ const deck = [
     id: 'gut-punch',
     type: 'attack',
     copies: 10,
-    onContact: (player, target, game) => {
+    play: (player, target, cards, game) => {
+      game.target = target
+      player.discard = [cards[0]]
+      _.remove(player.hand, player.discard)
+      game.announce('player:played', {
+        card: Language.printCards(player.discard[0], 'en'),
+        player,
+        target
+      })
+    },
+    contact: (player, target, cards, game) => {
       target.hp -= 2
-      game.announce('card:gut-punch:on-contact', {
+      game.announce('card:gut-punch:contact', {
         player,
         target
       })

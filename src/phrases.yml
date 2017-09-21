@@ -24,12 +24,16 @@ card:earthquake:
 card:energy-drink:
   en: Energy Drink
 card:gamblin-man:
-  en: Gamblin Man
+  en: Gamblin' Man
 card:gas-spill:
   en: Gas Spill
 card:grab:
   en: Grab
-card:grab:on-contact:
+card:grab:counter:
+  en: <%= player.name %> grabs <%= target.name %>. Respond or pass, <%= target.name %>.
+card:grab:invalid-card:
+  en: You must play an attack when grabbing, <%= player.name %>.
+card:grab:play:
   en: <%= player.name %> grabs <%= target.name %>. Respond or pass, <%= target.name %>.
 card:grease-bucket:
   en: Grease Bucket
@@ -37,7 +41,7 @@ card:guard-dog:
   en: Guard Dog
 card:gut-punch:
   en: Gut Punch
-card:gut-punch:on-contact:
+card:gut-punch:contact:
   en: <%= player.name %> punches <%= target.name %> in the guts.
 card:insurance:
   en: Insurance
@@ -99,14 +103,20 @@ game:transferred:
   en: Game manager has changed from <%= player.name %> to <%= game.manager.name %>.
 game:turn:
   en: <%= player.name %>'s turn.
+player:already-played:
+  en: You've already played, <%= player.name %>. Wait for a response.
 player:dropped:
   en: <%= player.name %> has been removed from the game.
+player:invalid-play:
+  en: Play an attack or discard, <%= player.name %>.
 player:invalid-target:
   en: Invalid target.
 player:joined:
   en: <%= player.name %> has entered the game!
 player:no-passing:
   en: Either play or discard cards, <%= player.name %>.
+player:not-counter:
+  en: Play a counter or pass, <%= player %>.
 player:not-started:
   en: The game has not started yet, <%= player.name %>.
 player:not-turn:
