@@ -50,11 +50,12 @@ Ava.test('Should start a game', (t) => {
   t.true(announceCallback.calledWith('game:turn'))
 })
 
-Ava.test('Should stop a game', (t) => {
+Ava.test('Should stop', (t) => {
   const announceCallback = Sinon.spy()
-  const game = new Junkyard('player1', 'Jay')
+  const game = new Junkyard('player1', 'Jay', announceCallback)
   game.stop()
   t.true(game.stopped instanceof Date)
+  t.true(announceCallback.calledWith('game:stopped'))
   // You shouldn't be able to do anything else after a game has stopped
   const { callCount } = announceCallback
   game.addPlayer('player2', 'Kevin')
@@ -66,6 +67,17 @@ Ava.test('Should stop a game', (t) => {
   t.is(announceCallback.callCount, callCount)
 })
 
+Ava.test('Should ignore a request to stop an already-stopped game', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  announceCallback.reset()
+  game.stop()
+  game.stop()
+  game.stop()
+  t.truthy(game.stopped)
+  t.is(announceCallback.callCount, 1)
+})
+
 Ava.test('Should remove a player', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -73,6 +85,36 @@ Ava.test('Should remove a player', (t) => {
   game.removePlayer('player2')
   t.true(announceCallback.calledWith('player:dropped'))
   t.is(game.dropouts[0], player)
+})
+
+Ava.test('Should throw an error when removing an invalid player', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  t.throws(() => {
+    game.removePlayer('Jim-bob Jones')
+  })
+})
+
+Ava.test('Should stop when removing all opponents', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  game.removePlayer('player2')
+  t.true(announceCallback.calledWith('player:dropped'))
+  t.true(announceCallback.calledWith('game:stopped'))
+  t.truthy(game.stopped)
+})
+
+Ava.test('Should stop when there are no players to start a game', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.removePlayer('player2')
+  t.true(announceCallback.calledWith('player:dropped'))
+  t.false(announceCallback.calledWith('game:stopped'))
+  game.removePlayer('player1')
+  t.true(announceCallback.calledWith('game:stopped'))
+  t.truthy(game.stopped)
 })
 
 Ava.test('Should transfer game management', (t) => {

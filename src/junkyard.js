@@ -116,7 +116,7 @@ module.exports = class Junkyard {
     return Language.getPhrase(code, this.language)(
       _.assign({
         game: this,
-        player: this.players[0].name
+        player: (this.players[0] || {}).name
       }, extraWords)
     )
   }
@@ -223,9 +223,18 @@ module.exports = class Junkyard {
       return
     }
     const player = this.getPlayer(id)
+    if (!player) {
+      throw new Error('Cannot remove invalid player: ${id}')
+    }
     _.remove(this.players, { id })
     this.dropouts.push(player)
     this.announce('player:dropped', { player })
+    // No more opponents left
+    if (this.started && this.players.length < 2) {
+      this.stop()
+      return
+    }
+    // Nobody wants to start a game
     if (!this.players.length) {
       this.stop()
       return

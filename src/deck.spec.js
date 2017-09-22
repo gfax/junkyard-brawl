@@ -20,7 +20,7 @@ Ava.test('Should not contain invalid cards in a deck', (t) => {
     })
 })
 
-Ava.test('Grab should work as a move', (t) => {
+Ava.test('Grab should be playable', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('user1', 'Jay', announceCallback)
   game.addPlayer('user2', 'Kevin')
@@ -34,7 +34,7 @@ Ava.test('Grab should work as a move', (t) => {
   t.true(announceCallback.calledWith('card:gut-punch:contact'))
 })
 
-Ava.test('Grab should only work with an attack', (t) => {
+Ava.test('Grab should only play with an attack', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy().withArgs(Sinon.match.any, 'card:grab:invalid-card')
   const game = new Junkyard('user1', 'Jay', announceCallback, whisperCallback)
@@ -50,7 +50,24 @@ Ava.test('Grab should only work with an attack', (t) => {
   t.true(whisperCallback.calledTwice)
 })
 
-Ava.test('Grab should work as a counter', (t) => {
+Ava.test('Grab should only counter with an attack', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy().withArgs(Sinon.match.any, 'card:grab:invalid-card')
+  const game = new Junkyard('user1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('user2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  game.play(player1.id, [Deck.getCard('gut-punch')])
+  game.play(player2.id, [Deck.getCard('grab')])
+  game.play(player2.id, [Deck.getCard('grab'), Deck.getCard('grab')])
+
+  t.false(announceCallback.calledWith('card:grab:play'))
+  t.true(whisperCallback.called)
+  t.true(whisperCallback.calledTwice)
+})
+
+Ava.test('Grab should counter', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()
   const game = new Junkyard('user1', 'Jay', announceCallback, whisperCallback)
@@ -70,14 +87,25 @@ Ava.test('Grab should work as a counter', (t) => {
   t.is(game.turns, 2)
 })
 
-Ava.test('Gut Punch should work', (t) => {
+Ava.test('Gut Punch should be playable', (t) => {
   const game = new Junkyard('player1', 'Jay')
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player, target] = game.players
-  const card = Deck.getCard('gut-punch')
-  player.hand.push(card)
-  game.play(player.id, [card])
+  game.play(player.id, [Deck.getCard('gut-punch')])
   game.pass(target.id)
   t.is(target.hp, 8)
+})
+
+Ava.test('Neck Punch should be playable', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  game.play(player1.id, [Deck.getCard('neck-punch')])
+  game.pass(player2.id)
+  t.is(player2.hp, 7)
+  game.play(player2.id, [Deck.getCard('neck-punch')])
+  game.pass(player1.id)
+  t.is(player1.hp, 7)
 })

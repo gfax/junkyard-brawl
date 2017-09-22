@@ -131,19 +131,19 @@ const deck = [
     id: 'gut-punch',
     type: 'attack',
     copies: 10,
+    contact: (player, target, cards, game) => {
+      target.hp -= 2
+      game.announce('card:gut-punch:contact', {
+        player,
+        target
+      })
+    },
     play: (player, target, cards, game) => {
       game.target = target
       player.discard = [cards[0]]
       _.remove(player.hand, player.discard)
       game.announce('player:played', {
         card: Language.printCards(player.discard[0], 'en'),
-        player,
-        target
-      })
-    },
-    contact: (player, target, cards, game) => {
-      target.hp -= 2
-      game.announce('card:gut-punch:contact', {
         player,
         target
       })
@@ -182,11 +182,20 @@ const deck = [
   {
     id: 'neck-punch',
     type: 'attack',
-    copies: 0,
-    // copies: 10
-    onContact: (player, target, game) => {
+    copies: 10,
+    contact: (player, target, cards, game) => {
       target.hp -= 3
-      game.announce('card:gut-punch:on-contact', {
+      game.announce('card:neck-punch:contact', {
+        player,
+        target
+      })
+    },
+    play: (player, target, cards, game) => {
+      game.target = target
+      player.discard = [cards[0]]
+      _.remove(player.hand, player.discard)
+      game.announce('player:played', {
+        card: Language.printCards(player.discard[0], 'en'),
         player,
         target
       })

@@ -57,6 +57,8 @@ card:mirror:
   en: Mirror
 card:neck-punch:
   en: Neck Punch
+card:neck-punch:contact:
+  en: <%= player.name %> delivers <%= target.name %> a punch in the neck.
 card:propeller:
   en: Propeller
 card:reverse:
