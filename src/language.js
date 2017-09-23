@@ -31,6 +31,9 @@ function printCards(cards, language) {
   checkLanguage(language)
   // Ensure parameter is an array, even when one card is passed in
   const cardsToPrint = Array.isArray(cards) ? cards : [cards]
+  if (!cardsToPrint.length) {
+    return getPhrase('player:no-cards', language)()
+  }
   return _.map(cardsToPrint, (card) => {
     return getPhrase(`card:${card.id}`, language)()
   }).join(', ')

@@ -15,7 +15,7 @@ Ava.test('Should not contain invalid cards in a deck', (t) => {
   Deck.generate()
     .forEach((card) => {
       t.is(typeof card, 'object')
-      t.true(Array.isArray(card.type.match(/^(attack|counter|disaster|support)$/)))
+      t.true(Array.isArray(card.type.match(/^(attack|counter|disaster|support|unstoppable)$/)))
       t.is(typeof card.play, 'function')
     })
 })
@@ -46,8 +46,7 @@ Ava.test('Grab should only play with an attack', (t) => {
   game.play(player.id, [Deck.getCard('grab'), Deck.getCard('grab')])
 
   t.false(announceCallback.calledWith('card:grab:play'))
-  t.true(whisperCallback.called)
-  t.true(whisperCallback.calledTwice)
+  t.true(whisperCallback.calledThrice)
 })
 
 Ava.test('Grab should only counter with an attack', (t) => {
@@ -64,7 +63,7 @@ Ava.test('Grab should only counter with an attack', (t) => {
 
   t.false(announceCallback.calledWith('card:grab:play'))
   t.true(whisperCallback.called)
-  t.true(whisperCallback.calledTwice)
+  t.true(whisperCallback.calledThrice)
 })
 
 Ava.test('Grab should counter', (t) => {
@@ -77,14 +76,13 @@ Ava.test('Grab should counter', (t) => {
   const [player1, player2] = game.players
   player1.hand.push(Deck.getCard('grab'))
 
-  // game.play(player1.id, [Deck.getCard('grab'), Deck.getCard('gut-punch')])
   game.play(player1.id, [Deck.getCard('grab'), Deck.getCard('gut-punch')])
   game.play(player2.id, [Deck.getCard('grab'), Deck.getCard('gut-punch')])
   game.play(player1.id, [Deck.getCard('grab'), Deck.getCard('gut-punch')])
   game.pass(player2.id)
   t.is(player1.hp, 8)
   t.is(player2.hp, 6)
-  t.is(game.turns, 2)
+  t.is(game.turns, 1)
 })
 
 Ava.test('Gut Punch should be playable', (t) => {
@@ -95,6 +93,30 @@ Ava.test('Gut Punch should be playable', (t) => {
   game.play(player.id, [Deck.getCard('gut-punch')])
   game.pass(target.id)
   t.is(target.hp, 8)
+})
+
+Ava.test('A Gun should be playable', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  game.play(player1.id, [Deck.getCard('a-gun')])
+  t.is(player2.hp, 8)
+  t.is(game.turns, 1)
+})
+
+Ava.test('A hidden A Gun should thwart counters', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  game.play(player1.id, [Deck.getCard('grab'), Deck.getCard('a-gun')])
+  game.play(player2.id, [Deck.getCard('grab'), Deck.getCard('gut-punch')])
+  t.true(announceCallback.calledWith('player:counter-failed'))
+  t.is(player2.hp, 8)
+  t.is(game.turns, 1)
+  t.is(game.players[0], player2)
 })
 
 Ava.test('Neck Punch should be playable', (t) => {

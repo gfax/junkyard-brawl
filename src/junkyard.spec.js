@@ -28,6 +28,16 @@ Ava.test('Should announce when a game is created', (t) => {
   ))
 })
 
+Ava.test('Should show a player his cards on his turn', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player] = game.players
+  t.true(whisperCallback.calledWith(player.id, 'player:stats'))
+})
+
 Ava.test('Should not start a with less than two players', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -162,4 +172,46 @@ Ava.test('Should ignore non-player moves', (t) => {
   game.start()
   game.play('foo', [Deck.getCard('gut-punch')])
   t.pass()
+})
+
+Ava.test('whisperStats() should whisper stats to a player upon request', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [, player2] = game.players
+  game.whisperStats(player2.id)
+  t.true(whisperCallback.calledWith(player2.id, 'player:stats'))
+  t.true(whisperCallback.calledTwice)
+})
+
+Ava.test('whisperStats() should let a player know they have no cards', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.whisperStats('player1')
+  t.true(whisperCallback.calledWith(
+    'player1',
+    'player:stats',
+    Sinon.match(/you have no cards/i)
+  ))
+})
+
+Ava.test('whisperStats() should ignore whispering stats to non-players', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  game.whisperStats('foo')
+  game.whisperStats('bar')
+  t.true(whisperCallback.calledOnce)
+})
+
+Ava.test('whisperStats() should throw an error when passed a non-string value', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  t.throws(() => {
+    game.whisperStats(null)
+  })
 })

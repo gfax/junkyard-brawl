@@ -1,6 +1,10 @@
 ---
 card:a-gun:
   en: A Gun
+card:a-gun:contact:
+  en: <%= player.name %> throws a gun at <%= target.name %>.
+card:a-gun:play:
+  en: <%= player.name %> throws a gun at <%= target.name %>.
 card:acid-coffee:
   en: Acid Coffee
 card:armor:
@@ -107,6 +111,8 @@ game:turn:
   en: <%= player.name %>'s turn.
 player:already-played:
   en: You've already played, <%= player.name %>. Wait for a response.
+player:counter-failed:
+  en: <%= player.name %>'s counter has been thwarted! Discarding <%= cards %>.
 player:dropped:
   en: <%= player.name %> has been removed from the game.
 player:invalid-play:
@@ -115,6 +121,8 @@ player:invalid-target:
   en: Invalid target.
 player:joined:
   en: <%= player.name %> has entered the game!
+player:no-cards:
+  en: You have no cards!
 player:no-passing:
   en: Either play or discard cards, <%= player.name %>.
 player:not-counter:

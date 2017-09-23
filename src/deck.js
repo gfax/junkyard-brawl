@@ -9,8 +9,25 @@ module.exports = {
 const deck = [
   {
     id: 'a-gun',
-    type: 'attack',
-    copies: 0
+    type: 'unstoppable',
+    copies: 1,
+    contact: (player, target, cards, game) => {
+      target.hp -= 2
+      game.discard.push(cards[0])
+      game.announce('card:a-gun:contact', {
+        player,
+        target
+      })
+    },
+    play: (player, target, cards, game) => {
+      target.hp -= 2
+      game.discard.push(cards[0])
+      game.announce('card:a-gun:play', {
+        player,
+        target
+      })
+      game.incrementTurn()
+    }
   },
   {
     id: 'acid-coffee',

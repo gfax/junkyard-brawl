@@ -40,7 +40,7 @@ module.exports = class Junkyard {
     // Name of the game
     this.title = gameTitle
     // Total turns taken
-    this.turns = 0
+    this.turns = -1
     // Callback to pipe private messages through
     this.whisperCallback = whisperCallback
 
@@ -89,11 +89,25 @@ module.exports = class Junkyard {
     if (cards[0].type !== 'counter') {
       this.whisper(player, 'player:invalid-counter')
     }
+    let attacker = this.target
     if (player === this.target) {
-      cards[0].counter(player, this.players[0], cards, this)
-    } else if (player === this.players[0]) {
-      cards[0].counter(player, this.target, cards, this)
+      [attacker] = this.players
     }
+    // One special situation with being grabbed is if the
+    // opponent has a hidden unstoppable card, the counter
+    // will be wasted.
+    if (attacker.discard[0].id === 'grab' && attacker.discard[1].type === 'unstoppable') {
+      const cardsToDiscard = cards[0].id === 'grab' && cards[1] ? [cards[0], cards[1]] : [cards[0]]
+      this.announce('player:counter-failed', {
+        cards: Language.printCards(cardsToDiscard, 'en'),
+        player
+      })
+      _.remove(player.hand, card => _.find(cardsToDiscard, card))
+      this.discard = this.discard.concat(cardsToDiscard)
+      this.pass(player.id)
+      return
+    }
+    cards[0].counter(player, attacker, cards, this)
   }
 
   deal(player) {
@@ -134,9 +148,13 @@ module.exports = class Junkyard {
     this.announce('game:turn', {
       player: this.players[0]
     })
+    this.whisperStats(this.players[0].id)
   }
 
   pass(playerId) {
+    if (typeof playerId !== 'string') {
+      throw new Error(`Expected played id when passing, got ${playerId}`)
+    }
     const player = this.getPlayer(playerId)
     const [turnPlayer] = this.players
     if (!this.target && playerId === turnPlayer.id) {
@@ -309,6 +327,9 @@ module.exports = class Junkyard {
   }
 
   whisperStats(playerId) {
+    if (typeof playerId !== 'string') {
+      throw new Error(`Expected player id to be a string, got ${playerId}`)
+    }
     const player = this.getPlayer(playerId)
     if (player) {
       this.whisper(
