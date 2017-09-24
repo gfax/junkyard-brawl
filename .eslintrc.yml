@@ -43,8 +43,8 @@ rules:
     - error
     - last
   complexity:
-    - off
-    - max: 18
+    - error
+    - max: 12
   computed-property-spacing:
     - error
     - never
@@ -112,7 +112,7 @@ rules:
     - always
   max-depth:
     - error
-    - 5
+    - 4
   max-len:
     - error
     - 100
@@ -126,7 +126,7 @@ rules:
   max-statements-per-line: error
   max-statements:
     - error
-    - 30
+    - 35
   multiline-ternary:
     - error
     - never

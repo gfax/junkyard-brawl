@@ -13,6 +13,8 @@ card:avalanche:
   en: Attack
 card:block:
   en: Block
+card:block:counter:
+  en: <%= player.name %> blocks <%= target.name %>'s <%= cards %>.
 card:bulldozer:
   en: Bulldozer
 card:cheap-shot:
@@ -43,6 +45,8 @@ card:grease-bucket:
   en: Grease Bucket
 card:guard-dog:
   en: Guard Dog
+card:guard-dog:contact:
+  en: <%= player.name %> throws a steak on <%= target.name %>'s face and blows a dog whistle.
 card:gut-punch:
   en: Gut Punch
 card:gut-punch:contact:

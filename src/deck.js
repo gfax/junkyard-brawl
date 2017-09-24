@@ -13,7 +13,6 @@ const deck = [
     copies: 1,
     contact: (player, target, cards, game) => {
       target.hp -= 2
-      game.discard.push(cards[0])
       game.announce('card:a-gun:contact', {
         player,
         target
@@ -21,7 +20,6 @@ const deck = [
     },
     play: (player, target, cards, game) => {
       target.hp -= 2
-      game.discard.push(cards[0])
       game.announce('card:a-gun:play', {
         player,
         target
@@ -46,8 +44,16 @@ const deck = [
   },
   {
     id: 'block',
-    type: 'attack',
-    copies: 0
+    type: 'counter',
+    copies: 5,
+    counter: (player, target, cards, game) => {
+      game.announce('card:block:counter', {
+        cards: Language.printCards(target.discard, game.language),
+        player,
+        target
+      })
+      game.incrementTurn()
+    }
   },
   {
     id: 'bulldozer',
@@ -129,8 +135,6 @@ const deck = [
       if (target.discard[0]) {
         target.discard[0].contact(target, player, target.discard, game)
       }
-      player.discard = [cards[0], cards[1]]
-      game.target = target
       game.announce('card:grab:play', { player, target })
     }
   },
@@ -142,7 +146,21 @@ const deck = [
   {
     id: 'guard-dog',
     type: 'attack',
-    copies: 0
+    copies: 1,
+    contact: (player, target, cards, game) => {
+      target.hp -= 4
+      game.announce('card:guard-dog:contact', {
+        player,
+        target
+      })
+    },
+    play: (player, target, cards, game) => {
+      game.announce('player:played', {
+        card: Language.printCards(player.discard[0], game.language),
+        player,
+        target
+      })
+    }
   },
   {
     id: 'gut-punch',
@@ -156,11 +174,8 @@ const deck = [
       })
     },
     play: (player, target, cards, game) => {
-      game.target = target
-      player.discard = [cards[0]]
-      _.remove(player.hand, player.discard)
       game.announce('player:played', {
-        card: Language.printCards(player.discard[0], 'en'),
+        card: Language.printCards(player.discard[0], game.language),
         player,
         target
       })
@@ -208,11 +223,8 @@ const deck = [
       })
     },
     play: (player, target, cards, game) => {
-      game.target = target
-      player.discard = [cards[0]]
-      _.remove(player.hand, player.discard)
       game.announce('player:played', {
-        card: Language.printCards(player.discard[0], 'en'),
+        card: Language.printCards(player.discard[0], game.language),
         player,
         target
       })
@@ -303,5 +315,9 @@ function generate() {
 }
 
 function getCard(id) {
-  return _.find(deck, { id })
+  const card = _.find(deck, { id })
+  if (!card) {
+    throw new Error(`Nonexistent card type requested: ${id}`)
+  }
+  return card
 }

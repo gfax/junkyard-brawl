@@ -29,8 +29,6 @@ module.exports = class Junkyard {
     this.manager = new Player(playerId, playerName)
     // Players currently in the game
     this.players = [this.manager]
-    // Slot machine damage
-    this.slots = []
     // Time the game started
     this.started = false
     // Time the game ended
@@ -93,17 +91,22 @@ module.exports = class Junkyard {
     if (player === this.target) {
       [attacker] = this.players
     }
+    // Take the cards out of the player's hand and put
+    // any previous discard into the main discard pile
+    _.remove(player.hand, card => _.find(cards, card))
+    this.discard = this.discard.concat(player.discard)
+    player.discard = cards
     // One special situation with being grabbed is if the
     // opponent has a hidden unstoppable card, the counter
     // will be wasted.
     if (attacker.discard[0].id === 'grab' && attacker.discard[1].type === 'unstoppable') {
-      const cardsToDiscard = cards[0].id === 'grab' && cards[1] ? [cards[0], cards[1]] : [cards[0]]
+      // Discard whaetever he played and treat it as if he passed
+      this.discard = this.discard.concat(cards)
+      player.discard = []
       this.announce('player:counter-failed', {
-        cards: Language.printCards(cardsToDiscard, 'en'),
+        cards: Language.printCards(cards, this.language),
         player
       })
-      _.remove(player.hand, card => _.find(cardsToDiscard, card))
-      this.discard = this.discard.concat(cardsToDiscard)
       this.pass(player.id)
       return
     }
@@ -140,7 +143,13 @@ module.exports = class Junkyard {
   }
 
   incrementTurn() {
-    this.target = null
+    this.discard = this.discard.concat(this.players[0].discard)
+    this.players[0].discard = []
+    if (this.target) {
+      this.discard = this.discard.concat(this.target.discard)
+      this.target.discard = []
+      this.target = null
+    }
     this.players = [..._.tail(this.players), this.players[0]]
     this.turns += 1
     this.players[0].turns += 1
@@ -173,7 +182,6 @@ module.exports = class Junkyard {
         turnPlayer.discard,
         this
       )
-      turnPlayer.discard = []
     // The target must have played a counter like Grab
     } else if (player === turnPlayer && this.target.discard) {
       this.target.discard[0].contact(
@@ -182,7 +190,6 @@ module.exports = class Junkyard {
         this.target.discard,
         this
       )
-      this.target.discard = []
     }
     this.incrementTurn()
   }
@@ -228,12 +235,14 @@ module.exports = class Junkyard {
       this.whisper(player, 'player:invalid-target')
       return
     }
-    const [card] = cards
-    if (card.type === 'counter' && card.id !== 'grab') {
+    if (cards[0].type === 'counter' && cards[0].id !== 'grab') {
       this.whisper(player, 'player:invalid-play')
       return
     }
-    card.play(player, target, cards, this)
+    this.target = target
+    player.discard = cards
+    _.remove(player.hand, card => _.find(player.discard, card))
+    cards[0].play(player, target, cards, this)
   }
 
   removePlayer(id) {
