@@ -1,9 +1,11 @@
 const _ = require('lodash')
 const Language = require('./language')
+const Player = require('./player')
 
 module.exports = {
   generate,
-  getCard
+  getCard,
+  parseCards
 }
 
 const deck = [
@@ -104,6 +106,18 @@ const deck = [
     id: 'grab',
     type: 'counter',
     copies: 8,
+    filter: (cards) => {
+      const [head, ...tail] = cards
+      if (head) {
+        if (head.type === 'attack' || head.type === 'unstoppable') {
+          if (head.filter) {
+            return [head].concat(head.filter(tail))
+          }
+          return cards
+        }
+      }
+      return []
+    },
     contact: (player, target, cards, game) => {
       game.discard.push(player.discard[0])
       _.remove(player.discard, player.discard[0])
@@ -115,20 +129,12 @@ const deck = [
         game.whisper(player, 'card:grab:invalid-card', { target })
         return
       }
-      if (cards[1].type !== 'attack' && cards[1].type !== 'unstoppable') {
-        game.whisper(player, 'card:grab:invalid-card', { target })
-        return
-      }
       target.discard[0].contact(target, player, target.discard, game)
       player.discard = [cards[0], cards[1]]
       game.announce('card:grab:counter', { player, target })
     },
     play: (player, target, cards, game) => {
       if (cards.length < 2) {
-        game.whisper(player, 'card:grab:invalid-card')
-        return
-      }
-      if (cards[1].type !== 'attack' && cards[1].type !== 'unstoppable') {
         game.whisper(player, 'card:grab:invalid-card')
         return
       }
@@ -147,6 +153,7 @@ const deck = [
     id: 'guard-dog',
     type: 'attack',
     copies: 1,
+    filter: () => [],
     contact: (player, target, cards, game) => {
       target.hp -= 4
       game.announce('card:guard-dog:contact', {
@@ -166,6 +173,7 @@ const deck = [
     id: 'gut-punch',
     type: 'attack',
     copies: 10,
+    filter: () => [],
     contact: (player, target, cards, game) => {
       target.hp -= 2
       game.announce('card:gut-punch:contact', {
@@ -215,6 +223,7 @@ const deck = [
     id: 'neck-punch',
     type: 'attack',
     copies: 10,
+    filter: () => [],
     contact: (player, target, cards, game) => {
       target.hp -= 3
       game.announce('card:neck-punch:contact', {
@@ -320,4 +329,62 @@ function getCard(id) {
     throw new Error(`Nonexistent card type requested: ${id}`)
   }
   return card
+}
+
+// Normalize requests into an array of card objects
+function parseCards(player, request) {
+  function checkObject(obj) {
+    if (!obj.id || !obj.type) {
+      throw new Error('Passed a non-card object.')
+    }
+  }
+  // Apply any card-specific filters. For instance,
+  // Gut Punch filters any card following itself
+  // as it is a standalone attack.
+  function filterCards(cards) {
+    const [head, ...tail] = cards
+    if (head && head.filter) {
+      return [head].concat(head.filter(tail))
+    }
+    return cards
+  }
+
+  if ((player instanceof Player) === false) {
+    throw new Error(`Expected first parameter to be a player, got ${player}`)
+  }
+  if (typeof request === 'undefined') {
+    throw new Error('Cannot parse an undefined request!')
+  }
+  // Card object
+  if (typeof request === 'object' && !Array.isArray(request)) {
+    checkObject(request)
+    return [request]
+  }
+  if (Array.isArray(request)) {
+    if (!request.length) {
+      throw new Error('Passed an empty array of cards.')
+    }
+    checkObject(request[0])
+    // It's already an array of cards so just filter them now
+    return filterCards(request)
+  }
+  if (!player.hand.length) {
+    return []
+  }
+  return _.flow([
+    req => req.split(' '),
+    req => req.filter(elem => elem),
+    _.uniq,
+    req => req.map((word) => {
+      const number = parseInt(word)
+      // 1-index to 0-index
+      return player.hand[number - 1]
+    }),
+    // Filter out undefined cards
+    cards => cards.filter(card => card),
+    // Apply any card-specific filters. For instance,
+    // Gut Punch filters any card following itself
+    // as it is a standalone attack.
+    filterCards
+  ])(request)
 }

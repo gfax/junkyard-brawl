@@ -78,9 +78,6 @@ module.exports = class Junkyard {
   }
 
   counter(player, cards) {
-    if (!player) {
-      throw new Error(`Expected player, got: ${player}`)
-    }
     if (!cards) {
       throw new Error(`Expected cards, got: ${cards}`)
     }
@@ -164,8 +161,19 @@ module.exports = class Junkyard {
     if (typeof playerId !== 'string') {
       throw new Error(`Expected played id when passing, got ${playerId}`)
     }
+    if (!this.started) {
+      return
+    }
     const player = this.getPlayer(playerId)
     const [turnPlayer] = this.players
+    // Ignore dropouts and others non-players
+    if (!player) {
+      return
+    }
+    // Ignore players that aren't currently engaged in a move
+    if (player !== turnPlayer && player !== this.target) {
+      this.whisper(player, 'player:not-turn')
+    }
     if (!this.target && playerId === turnPlayer.id) {
       this.whisper(player, 'player:no-passing')
       return
@@ -196,7 +204,7 @@ module.exports = class Junkyard {
 
   // This simply processes requests and
   // passes it to the appropriate method.
-  play(playerId, cards, targetId) {
+  play(playerId, cardRequest, targetId) {
     if (this.stopped) {
       return
     }
@@ -216,13 +224,11 @@ module.exports = class Junkyard {
       this.whisper(player, 'player:not-turn')
       return
     }
+    const cards = Deck.parseCards(player, cardRequest)
     // Countering the first play
     if (this.target && this.target === player) {
       this.counter(player, cards)
       return
-    }
-    if (player === this.player && this.target.discard.length && cards[0].type === 'counter') {
-      this.counter(player, cards)
     }
     let target = null
     // Assume the target is the only other player

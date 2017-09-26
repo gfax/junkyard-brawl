@@ -38,7 +38,7 @@ Ava.test('Should show a player his cards on his turn', (t) => {
   t.true(whisperCallback.calledWith(player.id, 'player:stats'))
 })
 
-Ava.test('Should not start a with less than two players', (t) => {
+Ava.test('start() should not start a with less than two players', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.start()
@@ -48,7 +48,7 @@ Ava.test('Should not start a with less than two players', (t) => {
   t.false(game.started)
 })
 
-Ava.test('Should start a game', (t) => {
+Ava.test('start() should start a game', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
@@ -60,7 +60,7 @@ Ava.test('Should start a game', (t) => {
   t.true(announceCallback.calledWith('game:turn'))
 })
 
-Ava.test('Should stop', (t) => {
+Ava.test('stop() should stop', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.stop()
@@ -77,7 +77,7 @@ Ava.test('Should stop', (t) => {
   t.is(announceCallback.callCount, callCount)
 })
 
-Ava.test('Should ignore a request to stop an already-stopped game', (t) => {
+Ava.test('stop() should ignore a request to stop an already-stopped game', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   announceCallback.reset()
@@ -88,7 +88,7 @@ Ava.test('Should ignore a request to stop an already-stopped game', (t) => {
   t.is(announceCallback.callCount, 1)
 })
 
-Ava.test('Should remove a player', (t) => {
+Ava.test('removePlayer() should remove a player', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   const player = game.addPlayer('player2', 'Kevin')
@@ -97,14 +97,14 @@ Ava.test('Should remove a player', (t) => {
   t.is(game.dropouts[0], player)
 })
 
-Ava.test('Should throw an error when removing an invalid player', (t) => {
+Ava.test('removePlayer() should throw an error when removing an invalid player', (t) => {
   const game = new Junkyard('player1', 'Jay')
   t.throws(() => {
     game.removePlayer('Jim-bob Jones')
   })
 })
 
-Ava.test('Should stop when removing all opponents', (t) => {
+Ava.test('removePlayer() should stop when removing all opponents', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
@@ -115,7 +115,7 @@ Ava.test('Should stop when removing all opponents', (t) => {
   t.truthy(game.stopped)
 })
 
-Ava.test('Should stop when there are no players to start a game', (t) => {
+Ava.test('removePlayer() should stop when there are no players to start a game', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
@@ -127,7 +127,7 @@ Ava.test('Should stop when there are no players to start a game', (t) => {
   t.truthy(game.stopped)
 })
 
-Ava.test('Should transfer game management', (t) => {
+Ava.test('transferManagement() should transfer game management', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   const player = game.addPlayer('player2', 'Kevin')
@@ -136,7 +136,7 @@ Ava.test('Should transfer game management', (t) => {
   t.is(game.manager, player)
 })
 
-Ava.test('Should transfer game management when removing the manager', (t) => {
+Ava.test('transferManagement() should transfer game management when removing the manager', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   const player = game.addPlayer('player2', 'Kevin')
@@ -145,7 +145,7 @@ Ava.test('Should transfer game management when removing the manager', (t) => {
   t.is(game.manager, player)
 })
 
-Ava.test('Should not accept moves before starting', (t) => {
+Ava.test('play() should not accept moves before starting', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
@@ -154,7 +154,7 @@ Ava.test('Should not accept moves before starting', (t) => {
   t.true(whisperCallback.calledWith('player2', 'player:not-started'))
 })
 
-Ava.test('Should not accept cards out of turn', (t) => {
+Ava.test('play() should not accept cards out of turn', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
@@ -166,12 +166,25 @@ Ava.test('Should not accept cards out of turn', (t) => {
   t.true(whisperCallback.calledWith('player2', 'player:not-started'))
 })
 
-Ava.test('Should ignore non-player moves', (t) => {
+Ava.test('play() should ignore non-player moves', (t) => {
   const game = new Junkyard('player1', 'Jay')
   game.addPlayer('player2', 'Kevin')
   game.start()
   game.play('foo', [Deck.getCard('gut-punch')])
   t.pass()
+})
+
+Ava.test('pass() should throw an error when not passed a player id', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  t.throws(() => game.pass())
+})
+
+Ava.test('pass() should ignore requests when the game has not started', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  announceCallback.reset()
+  game.pass(game.manager.id)
+  t.true(announceCallback.notCalled)
 })
 
 Ava.test('whisperStats() should whisper stats to a player upon request', (t) => {
