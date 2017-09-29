@@ -13,6 +13,7 @@ const deck = [
     id: 'a-gun',
     type: 'unstoppable',
     copies: 1,
+    filter: () => [],
     contact: (player, target, cards, game) => {
       target.hp -= 2
       game.announce('card:a-gun:contact', {
@@ -32,22 +33,26 @@ const deck = [
   {
     id: 'acid-coffee',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'armor',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'avalanche',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'block',
     type: 'counter',
     copies: 5,
+    filter: () => [],
     counter: (player, target, cards, game) => {
       game.announce('card:block:counter', {
         cards: Language.printCards(target.discard, game.language),
@@ -60,12 +65,14 @@ const deck = [
   {
     id: 'bulldozer',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'cheap-shot',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'crane',
@@ -75,32 +82,38 @@ const deck = [
   {
     id: 'deflector',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'dodge',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'earthquake',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'energy-drink',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'gamblin-man',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'gas-spill',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'grab',
@@ -147,7 +160,8 @@ const deck = [
   {
     id: 'grease-bucket',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'guard-dog',
@@ -163,7 +177,7 @@ const deck = [
     },
     play: (player, target, cards, game) => {
       game.announce('player:played', {
-        card: Language.printCards(player.discard[0], game.language),
+        card: Language.printCards(cards[0], game.language),
         player,
         target
       })
@@ -183,7 +197,7 @@ const deck = [
     },
     play: (player, target, cards, game) => {
       game.announce('player:played', {
-        card: Language.printCards(player.discard[0], game.language),
+        card: Language.printCards(cards[0], game.language),
         player,
         target
       })
@@ -192,32 +206,38 @@ const deck = [
   {
     id: 'insurance',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'its-getting-windy',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'magnet',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'mattress',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'meal-steal',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'mirror',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'neck-punch',
@@ -233,7 +253,7 @@ const deck = [
     },
     play: (player, target, cards, game) => {
       game.announce('player:played', {
-        card: Language.printCards(player.discard[0], game.language),
+        card: Language.printCards(cards[0], game.language),
         player,
         target
       })
@@ -242,77 +262,123 @@ const deck = [
   {
     id: 'propeller',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'reverse',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'sleep',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'siphon',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'soup',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'spare-bolts',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'sub',
-    type: 'attack',
-    copies: 0
+    type: 'support',
+    copies: 7,
+    filter: () => [],
+    contact: (player, target, cards, game) => {
+      player.hp = Math.min(player.hp + 2, player.maxHp)
+      game.announce('card:sub:contact', { player })
+    }
   },
   {
     id: 'surgery',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'the-bees',
-    type: 'attack',
-    copies: 0
+    type: 'disaster',
+    copies: 1,
+    filter: () => [],
+    afterContact: (player, target, cards, game) => {
+      if (cards[0].type === 'support') {
+        _.remove(player.beforeTurn, () => getCard('the-bees').beforeTurn)
+        _.remove(player.afterContact, () => getCard('the-bees').afterContact)
+        game.announce('card:the-bees:healed', { player })
+      }
+      return true
+    },
+    beforeTurn: (player, game) => {
+      player.hp -= 1
+      game.announce('card:the-bees:before-turn', { player })
+      if (player.hp < 1) {
+        game.incrementTurn()
+        return false
+      }
+      return true
+    },
+    disaster: (player, cards, game) => {
+      const target = _.sample(game.players)
+      target.beforeTurn.push(cards[0].beforeTurn)
+      target.afterContact.push(cards[0].afterContact)
+      game.announce('card:the-bees:play', {
+        card: Language.printCards(cards[0], game.language),
+        player,
+        target
+      })
+    }
   },
   {
     id: 'tire',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'tire-iron',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'toolbox',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'uppercut',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'whirlwind',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   },
   {
     id: 'wrench',
     type: 'attack',
-    copies: 0
+    copies: 0,
+    filter: () => []
   }
 ]
 

@@ -81,10 +81,18 @@ card:spare-bolts:
   en: Spare Bolts
 card:sub:
   en: Sub
+card:sub:contact:
+  en: <%= player.name %> eats a sub.
 card:surgery:
   en: Surgery
 card:the-bees:
   en: THE BEES
+card:the-bees:before-turn:
+  en: <%= player.name %> is stung by THE BEES.
+card:the-bees:healed:
+  en: <%= player.name %> is healed of THE BEES.
+card:the-bees:play:
+  en: <%= player.name %> drops a bee hive on <%= target.name %>'s head…
 card:tire:
   en: Tire
 card:tire-iron:

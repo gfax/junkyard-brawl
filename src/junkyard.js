@@ -151,10 +151,15 @@ module.exports = class Junkyard {
     this.turns += 1
     this.players[0].turns += 1
     this.announceStats()
-    this.announce('game:turn', {
-      player: this.players[0]
-    })
-    this.whisperStats(this.players[0].id)
+    const [player] = this.players
+    // Condition callbacks should return true or false. If false, the
+    // callback chain is interrupted (ie., perhaps the played died.)
+    player.beforeTurn.concat([
+      () => {
+        this.announce('game:turn', { player })
+        this.whisperStats(player.id)
+      }
+    ]).reduce((bool, condition) => bool && condition(player, this), true)
   }
 
   pass(playerId) {
@@ -219,12 +224,18 @@ module.exports = class Junkyard {
     }
     if (!this.started) {
       this.whisper(player, 'player:not-started')
+      return
+    }
+    const cards = Deck.parseCards(player, cardRequest)
+    // Disaster can (only) be played when there is no target
+    if (!this.target && cards[0].type && cards[0].type === 'disaster') {
+      cards[0].disaster(player, cards, this)
+      return
     }
     if (this.players[0].id !== playerId && !this.target) {
       this.whisper(player, 'player:not-turn')
       return
     }
-    const cards = Deck.parseCards(player, cardRequest)
     // Countering the first play
     if (this.target && this.target === player) {
       this.counter(player, cards)
@@ -241,8 +252,19 @@ module.exports = class Junkyard {
       this.whisper(player, 'player:invalid-target')
       return
     }
+    // This can probably be factored out and just check
+    // whether a card has a "play" function on it.
     if (cards[0].type === 'counter' && cards[0].id !== 'grab') {
       this.whisper(player, 'player:invalid-play')
+      return
+    }
+    if (cards[0].type === 'support') {
+      cards[0].contact(player, target, cards, this)
+      player.afterContact.reduce(
+        (bool, condition) => bool && condition(player, target, cards, this),
+        true
+      )
+      this.incrementTurn()
       return
     }
     this.target = target

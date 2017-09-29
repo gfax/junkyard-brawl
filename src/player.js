@@ -8,6 +8,10 @@ module.exports = class Player {
     if (typeof name !== 'string') {
       throw new Error(`Invalid player name provided: ${name}`)
     }
+    // Array of callbacks to trigger post-contact
+    this.afterContact = []
+    // Array of callbacks to trigger pre-fight
+    this.beforeTurn = []
     // Cards in play
     this.discard = []
     // Cards in hand
@@ -18,6 +22,8 @@ module.exports = class Player {
     this.hp = maxHp
     // Unique player ID
     this.id = id
+    // Maximum hp the player is allowed to accumulate
+    this.maxHp = maxHp
     // Display name
     this.name = name
     // Turns spent playing this game

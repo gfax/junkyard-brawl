@@ -13,14 +13,28 @@ Ava.test('generate() should generate a deck', (t) => {
 })
 
 Ava.test('generate() should not contain invalid cards in a deck', (t) => {
+  const validTypes = /^(attack|counter|disaster|support|unstoppable)$/
   Deck.generate()
     .forEach((card) => {
       t.is(typeof card, 'object')
-      t.true(Array.isArray(card.type.match(/^(attack|counter|disaster|support|unstoppable)$/)))
+      t.is(typeof card.id, 'string')
+      t.true(
+        Array.isArray(card.type.match(validTypes)),
+        `Card ${card.id} has an invalid type: ${card.type}`
+      )
       if (card.type === 'counter') {
-        t.is(typeof card.counter, 'function')
-      } else {
-        t.is(typeof card.play, 'function')
+        t.is(
+          typeof card.counter,
+          'function',
+          `Counter card ${card.id} should have a counter function. Got: ${card.counter}`
+        )
+      }
+      if (card.filter) {
+        t.deepEqual(
+          card.filter([]),
+          [],
+          `Card filters should return empty arrays for empty requests. Got ${card.filter([])}`
+        )
       }
     })
 })
@@ -235,7 +249,7 @@ Ava.test('Block should counter', (t) => {
 
   game.play(player1.id, [Deck.getCard('gut-punch')])
   game.play(player2.id, [Deck.getCard('block')])
-  t.is(player2.hp, 10)
+  t.is(player2.hp, player2.maxHp)
   t.true(announceCallback.calledWith('card:block:counter'))
   t.is(game.turns, 1)
   t.is(game.discard.length, 2)
@@ -271,4 +285,88 @@ Ava.test('Neck Punch should be playable', (t) => {
   game.play(player2.id, [Deck.getCard('neck-punch')])
   game.pass(player1.id)
   t.is(player1.hp, 7)
+})
+
+Ava.test('Sub should heal a player', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('neck-punch'))
+  player2.hand.push(Deck.getCard('sub'))
+
+  game.play(player1.id, [Deck.getCard('neck-punch')])
+  game.pass(player2.id)
+  game.play(player2.id, [Deck.getCard('sub')])
+
+  t.true(announceCallback.calledWith('card:sub:contact'))
+  t.true(player2.hp === 9)
+})
+
+Ava.test('Sub should not heal a player above max health', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1] = game.players
+  player1.hand.push(Deck.getCard('sub'))
+
+  game.play(player1.id, [Deck.getCard('sub')])
+
+  t.true(announceCallback.calledWith('card:sub:contact'))
+  t.true(player1.hp === player1.maxHp)
+})
+
+Ava.test('THE BEES should be playable', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('the-bees'))
+
+  game.play(player1.id, [Deck.getCard('the-bees')])
+
+  t.true(announceCallback.calledWith('card:the-bees:play'))
+  t.true(player1.beforeTurn.length + player2.beforeTurn.length === 1)
+})
+
+Ava.test('THE BEES should sting a player each turn', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('the-bees'))
+
+  game.play(player1.id, [Deck.getCard('the-bees')])
+  game.incrementTurn()
+  game.incrementTurn()
+
+  t.true(announceCallback.calledWith('card:the-bees:before-turn'))
+  t.true(player1.hp + player2.hp === player1.maxHp + player2.maxHp - 1)
+})
+
+Ava.test('THE BEES should go away when a player heals', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('the-bees'))
+  player1.hand.push(Deck.getCard('sub'))
+  player2.hand.push(Deck.getCard('sub'))
+
+  game.play(player1.id, [Deck.getCard('the-bees')])
+  game.play(player1.id, [Deck.getCard('sub')])
+  game.play(player2.id, [Deck.getCard('sub')])
+  game.incrementTurn()
+  game.incrementTurn()
+  game.incrementTurn()
+  game.incrementTurn()
+
+  t.true(announceCallback.calledWith('card:the-bees:healed'))
+  t.true(player1.hp > 8)
+  t.true(player2.hp > 8)
 })
