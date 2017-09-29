@@ -1,7 +1,8 @@
 # Junkyard Brawl
 
-[![Build Status](https://travis-ci.org/gfax/node-junkyard.svg?branch=master)](https://travis-ci.org/gfax/node-junkyard)
-[![Coverage Status](https://coveralls.io/repos/github/gfax/node-junkyard/badge.svg?branch=master)](https://coveralls.io/github/gfax/node-junkyard?branch=master)
+[![Build Status](https://travis-ci.org/gfax/junkyard-brawl.svg?branch=master)](https://travis-ci.org/gfax/junkyard-brawl)
+[![codecov](https://codecov.io/gh/gfax/junkyard-brawl/branch/master/graph/badge.svg)](https://codecov.io/gh/gfax/junkyard-brawl)
+[![dependencies Status](https://david-dm.org/gfax/junkyard-brawl/status.svg)](https://david-dm.org/gfax/junkyard-brawl)
 
 A nodejs implementation of the card game Junkyard Brawl.
 

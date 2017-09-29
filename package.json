@@ -1,13 +1,13 @@
 {
-  "name": "node-junkyard",
-  "version": "0.1.0",
+  "name": "junkyard-brawl",
+  "version": "0.0.0",
   "description": "NodeJS implementation of the card game Junkyard Brawl",
   "main": "index.js",
   "engines": {
     "node": ">=6.5"
   },
   "scripts": {
-    "coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "codecov": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
     "eslint": "eslint .",
     "eslint:fix": "npm run eslint -- --fix",
     "nyc": "nyc ava '**/*.spec.js'",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/gfax/node-junkyard.git"
+    "url": "git+ssh://git@github.com/gfax/junkyard-brawl.git"
   },
   "nyc": {
     "exclude": [
@@ -34,21 +34,22 @@
     "card-game",
     "game",
     "junkyard",
-    "junkyard-brawl"
+    "junkyard-brawl",
+    "tabletop"
   ],
   "author": "Jay Thomas <jay@gfax.ch>",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/gfax/node-junkyard/issues"
+    "url": "https://github.com/gfax/junkyard-brawl/issues"
   },
-  "homepage": "https://github.com/gfax/node-junkyard#readme",
+  "homepage": "https://github.com/gfax/junkyard-brawl#readme",
   "dependencies": {
     "js-yaml": "^3.10.0",
     "lodash": "^4.17.4"
   },
   "devDependencies": {
     "ava": "^0.22.0",
-    "coveralls": "^2.13.1",
+    "codecov": "^2.3.0",
     "eslint": "^4.6.1",
     "eslint-plugin-unicorn": "^2.1.2",
     "nyc": "^11.2.1",
