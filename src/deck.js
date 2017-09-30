@@ -328,7 +328,7 @@ const deck = [
       player.hp -= 1
       game.announce('card:the-bees:before-turn', { player })
       if (player.hp < 1) {
-        game.incrementTurn()
+        game.announce('player:died', { player })
         return false
       }
       return true

@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const Ava = require('ava')
 const Sinon = require('sinon')
 const Deck = require('./deck')
@@ -10,14 +11,14 @@ Ava.test('Should allow instantiation', (t) => {
   t.is('player1', game.manager.id)
 })
 
-Ava.test('Should throw an error if passed an invalid language', (t) => {
+Ava.test('constructor() should throw an error if passed an invalid language', (t) => {
   t.throws(() => {
     const noop = () => {}
     new Junkyard('player1', 'Jay', noop, noop, 'xyz')
   })
 })
 
-Ava.test('Should announce when a game is created', (t) => {
+Ava.test('constructor() should announce when a game is created', (t) => {
   const announceCallback = Sinon.spy()
   new Junkyard('player1', 'Jay', announceCallback)
   t.true(announceCallback.calledOnce)
@@ -28,24 +29,64 @@ Ava.test('Should announce when a game is created', (t) => {
   ))
 })
 
-Ava.test('Should show a player his cards on his turn', (t) => {
+Ava.test('addPlayer() should add multiple players', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  _.times(3, num => game.addPlayer(`player${num + 2}`, 'Randy'))
+
+  t.true(announceCallback.calledWith('player:joined'))
+  t.is(game.players.length, 4)
+})
+
+Ava.test('addPlayer() should not allow duplicate players', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player1', 'Jay')
+
+  t.true(whisperCallback.calledWith('player1', 'player:already-joined'))
+})
+
+Ava.test('addPlayer() should not let a dropped player rejoin', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
   game.addPlayer('player2', 'Kevin')
-  game.start()
-  const [player] = game.players
-  t.true(whisperCallback.calledWith(player.id, 'player:stats'))
+  game.removePlayer('player2')
+  game.addPlayer('player2', 'Kevin')
+
+  t.true(whisperCallback.calledWith('player2', 'player:cannot-rejoin'))
 })
 
-Ava.test('start() should not start a with less than two players', (t) => {
+Ava.test('addPlayer() should allow players to join mid-game', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
   game.start()
-  t.true(announceCallback.calledWith(
-    'game:invalid-number-of-players'
-  ))
-  t.false(game.started)
+  game.addPlayer('player3', 'Jimbo')
+
+  t.true(announceCallback.calledWith('player:joined'))
+  t.is(game.players.length, 3)
+})
+
+Ava.test('addPlayer() should trigger deck replenishing', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  _.times(10, num => game.addPlayer(`player${num + 2}`, 'Randy'))
+  game.start()
+
+  t.true(announceCallback.calledWith('deck:increased'))
+})
+
+Ava.test('addPlayer() should trigger discard shuffling', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.discard.push(Deck.getCard('gut-punch'))
+  _.times(10, num => game.addPlayer(`player${num + 2}`, 'Randy'))
+  game.start()
+
+  t.is(game.discard.length, 0)
+  t.true(announceCallback.calledWith('deck:shuffled'))
 })
 
 Ava.test('start() should start a game', (t) => {
@@ -58,6 +99,26 @@ Ava.test('start() should start a game', (t) => {
   t.true(game.players[0] instanceof Player)
   t.true(game.players[1] instanceof Player)
   t.true(announceCallback.calledWith('game:turn'))
+})
+
+Ava.test('start() should not start a with less than two players', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.start()
+  t.true(announceCallback.calledWith(
+    'game:invalid-number-of-players'
+  ))
+  t.false(game.started)
+})
+
+Ava.test('start() should show a player his cards on his turn', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player] = game.players
+  t.true(whisperCallback.calledWith(player.id, 'player:stats'))
 })
 
 Ava.test('stop() should stop', (t) => {
@@ -227,4 +288,34 @@ Ava.test('whisperStats() should throw an error when passed a non-string value', 
   t.throws(() => {
     game.whisperStats(null)
   })
+})
+
+Ava.test('contact() should announce if a played died', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('gut-punch'))
+  player2.hp = 2
+
+  game.play(player1.id, [Deck.getCard('gut-punch')])
+  t.false(announceCallback.calledWith('player:died'))
+  game.pass(player2.id)
+  t.true(announceCallback.calledWith('player:died'))
+})
+
+Ava.test('incrementTurn() should remove dead players', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('gut-punch'))
+  player2.hp = 2
+
+  game.play(player1.id, [Deck.getCard('gut-punch')])
+  game.pass(player2.id)
+  t.is(game.players.length, 1)
+  t.truthy(game.stopped)
 })

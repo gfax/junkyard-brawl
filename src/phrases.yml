@@ -107,7 +107,7 @@ card:wrench:
   en: Wrench
 deck:increased:
   en: An extra deck has been shuffle into the game!
-deck:shuffle:
+deck:shuffled:
   en: Shuffling deck...
 game:created:
   en: A new game of <%= game.title %> has been created by <%= game.manager.name %>.
@@ -121,10 +121,16 @@ game:transferred:
   en: Game manager has changed from <%= player.name %> to <%= game.manager.name %>.
 game:turn:
   en: <%= player.name %>'s turn.
+player:already-joined:
+  en: You've already joined, <%= player.name %>.
 player:already-played:
   en: You've already played, <%= player.name %>. Wait for a response.
+player:cannot-rejoin:
+  en: You've been dropped from the game, <%= player.name %>. You cannot rejoin.
 player:counter-failed:
   en: <%= player.name %>'s counter has been thwarted! Discarding <%= cards %>.
+player:died:
+  en: <%= player.name %> has died.
 player:dropped:
   en: <%= player.name %> has been removed from the game.
 player:invalid-play:

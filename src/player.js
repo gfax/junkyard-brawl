@@ -16,12 +16,12 @@ module.exports = class Player {
     this.discard = []
     // Cards in hand
     this.hand = []
-    // Max number of cards to deal up to
-    this.handMax = 5
     // Starting health
     this.hp = maxHp
     // Unique player ID
     this.id = id
+    // Max number of cards to deal up to
+    this.maxHand = 5
     // Maximum hp the player is allowed to accumulate
     this.maxHp = maxHp
     // Display name

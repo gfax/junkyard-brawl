@@ -49,6 +49,18 @@ module.exports = class Junkyard {
     if (this.stopped) {
       return
     }
+    if (this.getPlayer(id)) {
+      this.whisper(this.getPlayer(id), 'player:already-joined', {
+        player: this.getPlayer(id)
+      })
+      return
+    }
+    if (this.getDropout(id)) {
+      this.whisper(this.getDropout(id), 'player:cannot-rejoin', {
+        player: this.getDropout(id)
+      })
+      return
+    }
     const player = new Player(id, name)
     this.players.push(player)
     this.announce('player:joined', { player })
@@ -81,9 +93,6 @@ module.exports = class Junkyard {
     if (!cards) {
       throw new Error(`Expected cards, got: ${cards}`)
     }
-    if (cards[0].type !== 'counter') {
-      this.whisper(player, 'player:invalid-counter')
-    }
     let attacker = this.target
     if (player === this.target) {
       [attacker] = this.players
@@ -111,11 +120,11 @@ module.exports = class Junkyard {
   }
 
   deal(player) {
-    const numberToDeal = player.handMax - player.hand.length
+    const numberToDeal = player.maxHand - player.hand.length
     if (numberToDeal > 0) {
       _.times(numberToDeal, () => {
         if (this.deck.length < 1) {
-          this.shuffleDeck()
+          shuffleDeck(this)
         }
         player.hand.push(this.deck.pop())
       })
@@ -140,14 +149,24 @@ module.exports = class Junkyard {
   }
 
   incrementTurn() {
+    if (this.stopped) {
+      return
+    }
     this.discard = this.discard.concat(this.players[0].discard)
     this.players[0].discard = []
     if (this.target) {
       this.discard = this.discard.concat(this.target.discard)
       this.target.discard = []
+      // Silently prune dead player and return if the game stopped
+      if (maybeRemove(this.target, this) && this.stopped) {
+        return
+      }
       this.target = null
     }
     this.players = [..._.tail(this.players), this.players[0]]
+    if (maybeRemove(this.players[0], this) && this.stopped) {
+      return
+    }
     this.turns += 1
     this.players[0].turns += 1
     this.announceStats()
@@ -160,6 +179,7 @@ module.exports = class Junkyard {
         this.whisperStats(player.id)
       }
     ]).reduce((bool, condition) => bool && condition(player, this), true)
+    maybeRemove(this.players[0], this)
   }
 
   pass(playerId) {
@@ -189,20 +209,10 @@ module.exports = class Junkyard {
       return
     }
     if (player === this.target) {
-      turnPlayer.discard[0].contact(
-        turnPlayer,
-        player,
-        turnPlayer.discard,
-        this
-      )
+      contact(turnPlayer, player, turnPlayer.discard, this)
     // The target must have played a counter like Grab
     } else if (player === turnPlayer && this.target.discard) {
-      this.target.discard[0].contact(
-        this.target,
-        turnPlayer,
-        this.target.discard,
-        this
-      )
+      contact(this.target, turnPlayer, this.target.discard, this)
     }
     this.incrementTurn()
   }
@@ -242,6 +252,11 @@ module.exports = class Junkyard {
       return
     }
     let target = null
+    if (cards[0].type === 'support') {
+      contact(player, target, cards, this)
+      this.incrementTurn()
+      return
+    }
     // Assume the target is the only other player
     if (this.players.length === 2) {
       [, target] = this.players
@@ -258,22 +273,13 @@ module.exports = class Junkyard {
       this.whisper(player, 'player:invalid-play')
       return
     }
-    if (cards[0].type === 'support') {
-      cards[0].contact(player, target, cards, this)
-      player.afterContact.reduce(
-        (bool, condition) => bool && condition(player, target, cards, this),
-        true
-      )
-      this.incrementTurn()
-      return
-    }
     this.target = target
     player.discard = cards
     _.remove(player.hand, card => _.find(player.discard, card))
     cards[0].play(player, target, cards, this)
   }
 
-  removePlayer(id) {
+  removePlayer(id, silent = false) {
     if (this.stopped) {
       return
     }
@@ -281,9 +287,12 @@ module.exports = class Junkyard {
     if (!player) {
       throw new Error('Cannot remove invalid player: ${id}')
     }
-    _.remove(this.players, { id })
+    const wasTurnPlayer = player === this.players[0]
+    _.remove(this.players, player)
     this.dropouts.push(player)
-    this.announce('player:dropped', { player })
+    if (!silent) {
+      this.announce('player:dropped', { player })
+    }
     // No more opponents left
     if (this.started && this.players.length < 2) {
       this.stop()
@@ -297,17 +306,10 @@ module.exports = class Junkyard {
     if (this.manager === player) {
       this.transferManagement()
     }
-  }
-
-  shuffleDeck() {
-    if (!this.discard.length) {
-      this.deck = this.deck.concat(Deck.generate())
-      this.announce('deck:increased')
-      return
+    // Let the new turn player know its their turn now
+    if (wasTurnPlayer) {
+      this.announce('game:turn', { player: this.players[0] })
     }
-    this.deck.concat(_.shuffle(this.discard))
-    this.discard = []
-    this.announce('deck:shuffle')
   }
 
   start() {
@@ -379,4 +381,59 @@ module.exports = class Junkyard {
     }
   }
 
+}
+
+function contact(player, target, cards, game) {
+  cards[0].contact(
+    player,
+    target,
+    cards,
+    game
+  )
+  if (target) {
+    target.afterContact.concat([
+      () => {
+        if (target.hp < 1) {
+          game.announce('player:died', { player: target })
+        }
+      }
+    ]).reduce(
+      (bool, condition) => {
+        return bool && condition(target, player, target.discard, game)
+      },
+      true
+    )
+  } else {
+    player.afterContact.concat([
+      () => {
+        if (player.hp < 1) {
+          game.announce('player:died', { player })
+        }
+      }
+    ]).reduce(
+      (bool, condition) => {
+        return bool && condition(player, target, cards, game)
+      },
+      true
+    )
+  }
+}
+
+function maybeRemove(player, game) {
+  if (player.hp < 1) {
+    game.removePlayer(player.id, true)
+    return true
+  }
+  return false
+}
+
+function shuffleDeck(game) {
+  if (!game.discard.length) {
+    game.deck = game.deck.concat(Deck.generate())
+    game.announce('deck:increased')
+    return
+  }
+  game.deck.concat(_.shuffle(game.discard))
+  game.discard = []
+  game.announce('deck:shuffled')
 }

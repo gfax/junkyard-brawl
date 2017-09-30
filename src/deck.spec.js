@@ -211,11 +211,23 @@ Ava.test('A Gun should be playable', (t) => {
   player1.hand.push(Deck.getCard('a-gun'))
 
   game.play(player1.id, [Deck.getCard('a-gun')])
-  t.is(player2.hp, 8)
+  t.is(player2.hp, player2.maxHp - 2)
   t.is(game.turns, 1)
 })
 
-Ava.test('A hidden A Gun should thwart counters', (t) => {
+Ava.test('A Gun should be able to kill a player', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('a-gun'))
+  player2.hp = 2
+
+  game.play(player1.id, [Deck.getCard('a-gun')])
+  t.is(game.players.length, 1)
+})
+
+Ava.test('A Gun should thwart counters', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
@@ -346,6 +358,27 @@ Ava.test('THE BEES should sting a player each turn', (t) => {
 
   t.true(announceCallback.calledWith('card:the-bees:before-turn'))
   t.true(player1.hp + player2.hp === player1.maxHp + player2.maxHp - 1)
+})
+
+Ava.test('THE BEES should sting a player to death', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  const [player1, player2] = game.players
+  player1.hp = 2
+  player2.hp = 2
+
+  game.start()
+  game.players[0].hand.push(Deck.getCard('the-bees'))
+  game.play(game.players[0].id, [Deck.getCard('the-bees')])
+  game.incrementTurn()
+  game.incrementTurn()
+  game.incrementTurn()
+  game.incrementTurn()
+
+  t.true(announceCallback.calledWith('player:died'))
+  t.is(game.players.length, 1)
+  t.truthy(game.stopped)
 })
 
 Ava.test('THE BEES should go away when a player heals', (t) => {
