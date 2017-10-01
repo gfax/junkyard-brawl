@@ -14,7 +14,7 @@ card:avalanche:
 card:block:
   en: Block
 card:block:counter:
-  en: <%= player.name %> blocks <%= target.name %>'s <%= cards %>.
+  en: <%= player.name %> blocks <%= attacker.name %>'s <%= cards %>.
 card:bulldozer:
   en: Bulldozer
 card:cheap-shot:
@@ -36,7 +36,7 @@ card:gas-spill:
 card:grab:
   en: Grab
 card:grab:counter:
-  en: <%= player.name %> grabs <%= target.name %>. Respond or pass, <%= target.name %>.
+  en: <%= player.name %> grabs <%= attacker.name %>. Respond or pass, <%= attacker.name %>.
 card:grab:invalid-card:
   en: You must play an attack when grabbing, <%= player.name %>.
 card:grab:play:
@@ -53,6 +53,10 @@ card:gut-punch:contact:
   en: <%= player.name %> punches <%= target.name %> in the guts.
 card:insurance:
   en: Insurance
+card:insurance:counter:
+  en: <%= player.name %> hastily pays premiums on insurance.
+card:insurance:success:
+  en: <%= player.name %>'s insurance plan kicks in! Health restored!
 card:its-getting-windy:
   en: It's Getting Windy
 card:magnet:
@@ -131,6 +135,8 @@ player:counter-failed:
   en: <%= player.name %>'s counter has been thwarted! Discarding <%= cards %>.
 player:died:
   en: <%= player.name %> has died.
+player:discard:
+  en: <%= player.name %> discards <%= cards %>.
 player:dropped:
   en: <%= player.name %> has been removed from the game.
 player:invalid-play:

@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const Ava = require('ava')
 const Sinon = require('sinon')
 const Deck = require('./deck')
@@ -265,6 +266,79 @@ Ava.test('Block should counter', (t) => {
   t.true(announceCallback.calledWith('card:block:counter'))
   t.is(game.turns, 1)
   t.is(game.discard.length, 2)
+})
+
+Ava.test('Block should be thwarted by unstoppable cards', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('grab'))
+  player1.hand.push(Deck.getCard('a-gun'))
+  player2.hand.push(Deck.getCard('block'))
+
+  game.play(player1.id, [Deck.getCard('grab'), Deck.getCard('a-gun')])
+  game.play(player2.id, [Deck.getCard('block')])
+  t.is(player2.hp, player2.maxHp - 2)
+  t.true(announceCallback.calledWith('player:counter-failed'))
+  t.is(game.turns, 1)
+  t.is(game.discard.length, 2)
+})
+
+Ava.test('Insurance should restore a player to half HP', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('gut-punch'))
+  player2.hand.push(Deck.getCard('insurance'))
+  player2.hp = 2
+  game.play(player1.id, Deck.getCard('gut-punch'))
+  game.play(player2.id, Deck.getCard('insurance'))
+
+  t.is(player2.hp, Math.floor(player2.maxHp / 2))
+  t.true(announceCallback.calledWith('card:insurance:counter'))
+  t.true(announceCallback.calledWith('card:insurance:success'))
+  t.truthy(_.find(game.discard, { id: 'insurance' }))
+})
+
+Ava.test('Insurance should work against unstoppable attacks', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('grab'))
+  player1.hand.push(Deck.getCard('a-gun'))
+  player2.hand.push(Deck.getCard('insurance'))
+  player2.hp = 1
+  game.play(player1.id, [Deck.getCard('grab'), Deck.getCard('a-gun')])
+  game.play(player2.id, Deck.getCard('insurance'))
+
+  t.is(player2.hp, Math.floor(player2.maxHp / 2))
+  t.true(announceCallback.calledWith('card:insurance:counter'))
+  t.true(announceCallback.calledWith('card:insurance:success'))
+})
+
+Ava.test('Insurance should do nothing when a player lives', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('gut-punch'))
+  player2.hand.push(Deck.getCard('insurance'))
+  game.play(player1.id, Deck.getCard('gut-punch'))
+  game.play(player2.id, Deck.getCard('insurance'))
+
+  t.is(player2.hp, player2.maxHp - 2)
+  t.true(announceCallback.calledWith('card:insurance:counter'))
+  t.false(announceCallback.calledWith('card:insurance:success'))
 })
 
 Ava.test('Guard Dog should be playable', (t) => {

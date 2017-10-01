@@ -53,11 +53,25 @@ const deck = [
     type: 'counter',
     copies: 5,
     filter: () => [],
-    counter: (player, target, cards, game) => {
+    counter: (player, attacker, cards, game) => {
+      // One special situation with being grabbed is if the
+      // opponent has a hidden unstoppable card, blocks and
+      // grabs will be wasted.
+      if (attacker.discard[0].id === 'grab' && attacker.discard[1].type === 'unstoppable') {
+        // Discard whatever he played and treat it as if he passed
+        game.discard = game.discard.concat(cards)
+        player.discard = []
+        game.announce('player:counter-failed', {
+          cards: Language.printCards(cards, game.language),
+          player
+        })
+        game.pass(player.id)
+        return
+      }
       game.announce('card:block:counter', {
-        cards: Language.printCards(target.discard, game.language),
-        player,
-        target
+        attacker,
+        cards: Language.printCards(attacker.discard, game.language),
+        player
       })
       game.incrementTurn()
     }
@@ -137,14 +151,28 @@ const deck = [
       cards[0].contact(player, target, player.discard, game)
       player.discard = []
     },
-    counter: (player, target, cards, game) => {
+    counter: (player, attacker, cards, game) => {
       if (cards.length < 2) {
-        game.whisper(player, 'card:grab:invalid-card', { target })
+        game.whisper(player, 'card:grab:invalid-card', { attacker })
         return
       }
-      target.discard[0].contact(target, player, target.discard, game)
+      // One special situation with being grabbed is if the
+      // opponent has a hidden unstoppable card, blocks and
+      // grabs will be wasted.
+      if (attacker.discard[0].id === 'grab' && attacker.discard[1].type === 'unstoppable') {
+        // Discard whatever he played and treat it as if he passed
+        game.discard = game.discard.concat(cards)
+        player.discard = []
+        game.announce('player:counter-failed', {
+          cards: Language.printCards(cards, game.language),
+          player
+        })
+        game.pass(player.id)
+        return
+      }
+      attacker.discard[0].contact(attacker, player, attacker.discard, game)
       player.discard = [cards[0], cards[1]]
-      game.announce('card:grab:counter', { player, target })
+      game.announce('card:grab:counter', { attacker, player })
     },
     play: (player, target, cards, game) => {
       if (cards.length < 2) {
@@ -205,9 +233,21 @@ const deck = [
   },
   {
     id: 'insurance',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'counter',
+    copies: 2,
+    filter: () => [],
+    counter: (player, attacker, cards, game) => {
+      game.announce('card:insurance:counter', {
+        player
+      })
+      attacker.discard[0].contact(attacker, player, attacker.discard, game)
+      game.discard.push(cards[0])
+      if (player.hp < 1) {
+        player.hp = Math.floor(player.maxHp / 2)
+        game.announce('card:insurance:success', { player })
+      }
+      game.incrementTurn()
+    }
   },
   {
     id: 'its-getting-windy',

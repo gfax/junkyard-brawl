@@ -158,6 +158,20 @@ Ava.test('removePlayer() should remove a player', (t) => {
   t.is(game.dropouts[0], player)
 })
 
+Ava.test('removePlayer() should discard player cards', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+  const [, player] = game.players
+  game.removePlayer(player.id)
+  t.true(announceCallback.calledWith('player:dropped'))
+  t.is(game.discard.length, player.maxHand)
+  t.is(player.hand.length, 0)
+  t.true(announceCallback.calledWith('player:discard'))
+})
+
 Ava.test('removePlayer() should throw an error when removing an invalid player', (t) => {
   const game = new Junkyard('player1', 'Jay')
   t.throws(() => {
@@ -228,11 +242,13 @@ Ava.test('play() should not accept cards out of turn', (t) => {
 })
 
 Ava.test('play() should ignore non-player moves', (t) => {
-  const game = new Junkyard('player1', 'Jay')
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
   game.start()
+  announceCallback.reset()
   game.play('foo', [Deck.getCard('gut-punch')])
-  t.pass()
+  t.false(announceCallback.called)
 })
 
 Ava.test('pass() should throw an error when not passed a player id', (t) => {

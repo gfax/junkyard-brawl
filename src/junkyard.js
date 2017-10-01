@@ -102,20 +102,6 @@ module.exports = class Junkyard {
     _.remove(player.hand, card => _.find(cards, card))
     this.discard = this.discard.concat(player.discard)
     player.discard = cards
-    // One special situation with being grabbed is if the
-    // opponent has a hidden unstoppable card, the counter
-    // will be wasted.
-    if (attacker.discard[0].id === 'grab' && attacker.discard[1].type === 'unstoppable') {
-      // Discard whaetever he played and treat it as if he passed
-      this.discard = this.discard.concat(cards)
-      player.discard = []
-      this.announce('player:counter-failed', {
-        cards: Language.printCards(cards, this.language),
-        player
-      })
-      this.pass(player.id)
-      return
-    }
     cards[0].counter(player, attacker, cards, this)
   }
 
@@ -279,7 +265,7 @@ module.exports = class Junkyard {
     cards[0].play(player, target, cards, this)
   }
 
-  removePlayer(id, silent = false) {
+  removePlayer(id, died = false) {
     if (this.stopped) {
       return
     }
@@ -289,8 +275,14 @@ module.exports = class Junkyard {
     }
     const wasTurnPlayer = player === this.players[0]
     _.remove(this.players, player)
+    // Announce what cards the player had
+    if (player.hand.length) {
+      announceDiscard(player, this)
+      this.discard = this.discard.concat(player.hand)
+      player.hand = []
+    }
     this.dropouts.push(player)
-    if (!silent) {
+    if (!died) {
       this.announce('player:dropped', { player })
     }
     // No more opponents left
@@ -381,6 +373,15 @@ module.exports = class Junkyard {
     }
   }
 
+}
+
+/* *** Private Functions *** */
+
+function announceDiscard(player, game) {
+  game.announce('player:discard', {
+    cards: Language.printCards(player.hand, game.language),
+    player
+  })
 }
 
 function contact(player, target, cards, game) {
