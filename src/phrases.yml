@@ -10,7 +10,9 @@ card:acid-coffee:
 card:armor:
   en: Armor
 card:avalanche:
-  en: Attack
+  en: Avalanche
+card:avalanche:play:
+  en: <%= player.name %> causes and avalanche to fall on <%= target.name %>.
 card:block:
   en: Block
 card:block:counter:

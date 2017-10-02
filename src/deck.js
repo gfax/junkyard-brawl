@@ -15,6 +15,8 @@ const deck = [
     copies: 1,
     filter: () => [],
     contact: (player, target, cards, game) => {
+      game.discard.push(cards[0])
+      player.discard = []
       target.hp -= 2
       game.announce('card:a-gun:contact', {
         player,
@@ -44,9 +46,21 @@ const deck = [
   },
   {
     id: 'avalanche',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'disaster',
+    copies: 1,
+    filter: () => [],
+    contact: (player, target, cards, game) => {
+      game.discard.push(cards[0])
+      target.hp -= 6
+      game.announce('card:avalanche:play', {
+        player,
+        target
+      })
+    },
+    disaster: (player, cards, game) => {
+      const target = _.sample(game.players)
+      game.contact(player, target, cards)
+    }
   },
   {
     id: 'block',
@@ -149,11 +163,10 @@ const deck = [
       game.discard.push(player.discard[0])
       _.remove(player.discard, player.discard[0])
       cards[0].contact(player, target, player.discard, game)
-      player.discard = []
     },
     counter: (player, attacker, cards, game) => {
       if (cards.length < 2) {
-        game.whisper(player, 'card:grab:invalid-card', { attacker })
+        game.whisper(player, 'card:grab:invalid-card')
         return
       }
       // One special situation with being grabbed is if the
@@ -171,7 +184,7 @@ const deck = [
         return
       }
       attacker.discard[0].contact(attacker, player, attacker.discard, game)
-      player.discard = [cards[0], cards[1]]
+      player.discard = cards
       game.announce('card:grab:counter', { attacker, player })
     },
     play: (player, target, cards, game) => {
@@ -217,6 +230,8 @@ const deck = [
     copies: 10,
     filter: () => [],
     contact: (player, target, cards, game) => {
+      game.discard.push(player.discard[0])
+      player.discard = []
       target.hp -= 2
       game.announce('card:gut-punch:contact', {
         player,
@@ -368,7 +383,6 @@ const deck = [
       player.hp -= 1
       game.announce('card:the-bees:before-turn', { player })
       if (player.hp < 1) {
-        game.announce('player:died', { player })
         return false
       }
       return true
@@ -378,7 +392,6 @@ const deck = [
       target.beforeTurn.push(cards[0].beforeTurn)
       target.afterContact.push(cards[0].afterContact)
       game.announce('card:the-bees:play', {
-        card: Language.printCards(cards[0], game.language),
         player,
         target
       })

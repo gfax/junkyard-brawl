@@ -89,6 +89,32 @@ module.exports = class Junkyard {
     )
   }
 
+  contact(player, target, cards) {
+    cards[0].contact(
+      player,
+      target,
+      cards,
+      this
+    )
+    if (target) {
+      target.afterContact.reduce(
+        (bool, condition) => {
+          return bool && condition(target, player, target.discard, this)
+        },
+        true
+      )
+      this.maybeRemove(target)
+    } else {
+      player.afterContact.reduce(
+        (bool, condition) => {
+          return bool && condition(player, target, cards, this)
+        },
+        true
+      )
+      this.maybeRemove(player)
+    }
+  }
+
   counter(player, cards) {
     if (!cards) {
       throw new Error(`Expected cards, got: ${cards}`)
@@ -144,13 +170,13 @@ module.exports = class Junkyard {
       this.discard = this.discard.concat(this.target.discard)
       this.target.discard = []
       // Silently prune dead player and return if the game stopped
-      if (maybeRemove(this.target, this) && this.stopped) {
+      if (this.maybeRemove(this.target, this) && this.stopped) {
         return
       }
       this.target = null
     }
     this.players = [..._.tail(this.players), this.players[0]]
-    if (maybeRemove(this.players[0], this) && this.stopped) {
+    if (this.maybeRemove(this.players[0], this) && this.stopped) {
       return
     }
     this.turns += 1
@@ -165,7 +191,17 @@ module.exports = class Junkyard {
         this.whisperStats(player.id)
       }
     ]).reduce((bool, condition) => bool && condition(player, this), true)
-    maybeRemove(this.players[0], this)
+    if (!this.maybeRemove(this.players[0], this)) {
+      this.deal(this.players[0])
+    }
+  }
+
+  maybeRemove(player) {
+    if (player.hp < 1) {
+      this.removePlayer(player.id, true)
+      return true
+    }
+    return false
   }
 
   pass(playerId) {
@@ -195,10 +231,10 @@ module.exports = class Junkyard {
       return
     }
     if (player === this.target) {
-      contact(turnPlayer, player, turnPlayer.discard, this)
+      this.contact(turnPlayer, player, turnPlayer.discard, this)
     // The target must have played a counter like Grab
     } else if (player === turnPlayer && this.target.discard) {
-      contact(this.target, turnPlayer, this.target.discard, this)
+      this.contact(this.target, turnPlayer, this.target.discard, this)
     }
     this.incrementTurn()
   }
@@ -239,7 +275,7 @@ module.exports = class Junkyard {
     }
     let target = null
     if (cards[0].type === 'support') {
-      contact(player, target, cards, this)
+      this.contact(player, target, cards, this)
       this.incrementTurn()
       return
     }
@@ -282,7 +318,9 @@ module.exports = class Junkyard {
       player.hand = []
     }
     this.dropouts.push(player)
-    if (!died) {
+    if (died) {
+      this.announce('player:died', { player })
+    } else {
       this.announce('player:dropped', { player })
     }
     // No more opponents left
@@ -317,7 +355,15 @@ module.exports = class Junkyard {
       return
     }
     this.players = _.shuffle(this.players)
-    this.players.forEach(player => this.deal(player))
+    this.players.forEach((player) => {
+      this.deal(player)
+      // Whisper everyone their stats, except the last player
+      // in the array, because it's about to be their turn and
+      // they will get whispered their cards when that happens.
+      if (player !== _.last(this.players)) {
+        this.whisperStats(player.id)
+      }
+    })
     this.incrementTurn()
     this.started = new Date()
   }
@@ -384,57 +430,13 @@ function announceDiscard(player, game) {
   })
 }
 
-function contact(player, target, cards, game) {
-  cards[0].contact(
-    player,
-    target,
-    cards,
-    game
-  )
-  if (target) {
-    target.afterContact.concat([
-      () => {
-        if (target.hp < 1) {
-          game.announce('player:died', { player: target })
-        }
-      }
-    ]).reduce(
-      (bool, condition) => {
-        return bool && condition(target, player, target.discard, game)
-      },
-      true
-    )
-  } else {
-    player.afterContact.concat([
-      () => {
-        if (player.hp < 1) {
-          game.announce('player:died', { player })
-        }
-      }
-    ]).reduce(
-      (bool, condition) => {
-        return bool && condition(player, target, cards, game)
-      },
-      true
-    )
-  }
-}
-
-function maybeRemove(player, game) {
-  if (player.hp < 1) {
-    game.removePlayer(player.id, true)
-    return true
-  }
-  return false
-}
-
 function shuffleDeck(game) {
   if (!game.discard.length) {
     game.deck = game.deck.concat(Deck.generate())
     game.announce('deck:increased')
     return
   }
-  game.deck.concat(_.shuffle(game.discard))
+  game.deck = game.deck.concat(_.shuffle(game.discard))
   game.discard = []
   game.announce('deck:shuffled')
 }

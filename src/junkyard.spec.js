@@ -81,8 +81,9 @@ Ava.test('addPlayer() should trigger deck replenishing', (t) => {
 Ava.test('addPlayer() should trigger discard shuffling', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.deck = []
   game.discard.push(Deck.getCard('gut-punch'))
-  _.times(10, num => game.addPlayer(`player${num + 2}`, 'Randy'))
   game.start()
 
   t.is(game.discard.length, 0)
@@ -271,9 +272,10 @@ Ava.test('whisperStats() should whisper stats to a player upon request', (t) => 
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [, player2] = game.players
+  whisperCallback.reset()
   game.whisperStats(player2.id)
   t.true(whisperCallback.calledWith(player2.id, 'player:stats'))
-  t.true(whisperCallback.calledTwice)
+  t.true(whisperCallback.calledOnce)
 })
 
 Ava.test('whisperStats() should let a player know they have no cards', (t) => {
@@ -296,7 +298,7 @@ Ava.test('whisperStats() should ignore whispering stats to non-players', (t) => 
   game.start()
   game.whisperStats('foo')
   game.whisperStats('bar')
-  t.true(whisperCallback.calledOnce)
+  t.true(whisperCallback.calledTwice)
 })
 
 Ava.test('whisperStats() should throw an error when passed a non-string value', (t) => {
@@ -334,4 +336,21 @@ Ava.test('incrementTurn() should remove dead players', (t) => {
   game.pass(player2.id)
   t.is(game.players.length, 1)
   t.truthy(game.stopped)
+})
+
+Ava.test('incrementTurn() should deal players back up to a full hand', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.players.forEach(player => player.hand.push(Deck.getCard('gut-punch')))
+  game.start()
+
+  const [player1, player2] = game.players
+  t.is(player1.hand.length, player1.maxHand)
+
+  game.play(player1.id, Deck.getCard('gut-punch'))
+  game.pass(player2.id)
+  game.play(player2.id, Deck.getCard('gut-punch'))
+  game.pass(player1.id)
+
+  t.is(player1.hand.length, player1.maxHand)
 })

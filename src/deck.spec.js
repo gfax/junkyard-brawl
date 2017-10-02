@@ -95,6 +95,20 @@ Ava.test('parseCards() should parse a string of numbers', (t) => {
   )
 })
 
+Ava.test('Gut Punch should be playable', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player, target] = game.players
+  player.hand.push(Deck.getCard('gut-punch'))
+
+  game.play(player.id, [Deck.getCard('gut-punch')])
+  game.pass(target.id)
+  t.is(target.hp, 8)
+  t.truthy(_.find(game.discard, { id: 'gut-punch' }))
+  t.is(game.discard.length, 1)
+})
+
 Ava.test('Grab should be playable', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('user1', 'Jay', announceCallback)
@@ -122,6 +136,9 @@ Ava.test('Grab should be playable', (t) => {
 
   t.true(announceCallback.calledWith('card:grab:play'))
   t.true(announceCallback.calledWith('card:a-gun:contact'))
+
+  t.truthy(_.find(game.discard, { id: 'grab' }))
+  t.is(game.discard.length, 4)
 })
 
 Ava.test('Grab should only play with an attack', (t) => {
@@ -130,6 +147,7 @@ Ava.test('Grab should only play with an attack', (t) => {
   const game = new Junkyard('user1', 'Jay', announceCallback, whisperCallback)
   game.addPlayer('user2', 'Kevin')
   game.start()
+  whisperCallback.reset()
 
   const [player] = game.players
   player.hand = player.hand.concat([
@@ -141,7 +159,7 @@ Ava.test('Grab should only play with an attack', (t) => {
   game.play(player.id, [Deck.getCard('grab'), Deck.getCard('grab')])
 
   t.false(announceCallback.calledWith('card:grab:play'))
-  t.true(whisperCallback.calledTwice)
+  t.true(whisperCallback.called)
 })
 
 Ava.test('Grab should only counter with an attack', (t) => {
@@ -151,6 +169,7 @@ Ava.test('Grab should only counter with an attack', (t) => {
   const game = new Junkyard('user1', 'Jay', announceCallback, whisperCallback)
   game.addPlayer('user2', 'Kevin')
   game.start()
+  whisperCallback.reset()
 
   const [player1, player2] = game.players
   player1.hand.push(Deck.getCard('gut-punch'))
@@ -163,7 +182,7 @@ Ava.test('Grab should only counter with an attack', (t) => {
 
   t.false(announceCallback.calledWith('card:grab:play'))
   t.true(whisperCallback.called)
-  t.true(whisperCallback.calledThrice)
+  t.true(whisperCallback.calledTwice)
 })
 
 Ava.test('Grab should counter', (t) => {
@@ -176,6 +195,8 @@ Ava.test('Grab should counter', (t) => {
   const [player1, player2] = game.players
   player1.hand = player1.hand.concat([
     Deck.getCard('grab'),
+    Deck.getCard('grab'),
+    Deck.getCard('gut-punch'),
     Deck.getCard('gut-punch')
   ])
   player2.hand = player2.hand.concat([
@@ -190,18 +211,7 @@ Ava.test('Grab should counter', (t) => {
   t.is(player1.hp, 8)
   t.is(player2.hp, 6)
   t.is(game.turns, 1)
-})
-
-Ava.test('Gut Punch should be playable', (t) => {
-  const game = new Junkyard('player1', 'Jay')
-  game.addPlayer('player2', 'Kevin')
-  game.start()
-  const [player, target] = game.players
-  player.hand.push(Deck.getCard('gut-punch'))
-
-  game.play(player.id, [Deck.getCard('gut-punch')])
-  game.pass(target.id)
-  t.is(target.hp, 8)
+  t.is(game.discard.length, 6)
 })
 
 Ava.test('A Gun should be playable', (t) => {
@@ -214,6 +224,8 @@ Ava.test('A Gun should be playable', (t) => {
   game.play(player1.id, [Deck.getCard('a-gun')])
   t.is(player2.hp, player2.maxHp - 2)
   t.is(game.turns, 1)
+  t.truthy(_.find(game.discard, { id: 'a-gun' }))
+  t.is(game.discard.length, 1)
 })
 
 Ava.test('A Gun should be able to kill a player', (t) => {
@@ -251,6 +263,44 @@ Ava.test('A Gun should thwart counters', (t) => {
   t.is(game.players[0], player2)
 })
 
+Ava.test('Avalanche should attack a random player', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+
+  const [, player] = game.players
+  player.hand.push(Deck.getCard('avalanche'))
+  game.play(player.id, Deck.getCard('avalanche'))
+
+  t.is(
+    game.players.reduce((acc, plyr) => acc + plyr.hp, 0),
+    game.players.reduce((acc, plyr) => acc + plyr.maxHp, 0) - 6
+  )
+  t.truthy(_.find(game.discard, { id: 'avalanche' }))
+  t.is(game.discard.length, 1)
+})
+
+Ava.test('Avalanche should be able to kill a random player', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+
+  const [player1, player2, player3] = game.players
+  player1.hp = 6
+  player2.hp = 6
+  player3.hp = 6
+  player2.hand.push(Deck.getCard('avalanche'))
+  game.play(player2.id, Deck.getCard('avalanche'))
+
+  t.true(announceCallback.calledWith('player:died'))
+  t.is(game.players.length, 2)
+  t.is(game.dropouts.length, 1)
+})
+
 Ava.test('Block should counter', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -283,7 +333,7 @@ Ava.test('Block should be thwarted by unstoppable cards', (t) => {
   t.is(player2.hp, player2.maxHp - 2)
   t.true(announceCallback.calledWith('player:counter-failed'))
   t.is(game.turns, 1)
-  t.is(game.discard.length, 2)
+  t.is(game.discard.length, 3)
 })
 
 Ava.test('Insurance should restore a player to half HP', (t) => {
