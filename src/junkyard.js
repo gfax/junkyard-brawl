@@ -147,6 +147,12 @@ module.exports = class Junkyard {
     return _.find(this.dropouts, { id })
   }
 
+  getNextPlayer(id) {
+    const { players } = this
+    const idx = _.findIndex(players, { id }) + 1
+    return idx === players.length ? players[0] : players[idx]
+  }
+
   getPhrase(code, extraWords) {
     return Language.getPhrase(code, this.language)(
       _.assign({

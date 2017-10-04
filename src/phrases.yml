@@ -27,6 +27,12 @@ card:deflector:
   en: Deflector
 card:dodge:
   en: Dodge
+card:dodge:invalid:
+  en: You cannot dodge since you've already been grabbed, <%= player.name %>.
+card:dodge:new-target:
+  en: <%= player.name %> dodges <%= attacker.name %>'s <%= cards %>, leaving <%= target.name %> in the line of sight. Respond or pass, <%= target.name %>.
+card:dodge:nullify:
+  en: <%= player.name %> dodges and nullifies <%= attacker.name %>'s <%= cards %>.
 card:earthquake:
   en: Earthquake
 card:energy-drink:

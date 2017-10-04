@@ -115,9 +115,34 @@ const deck = [
   },
   {
     id: 'dodge',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'counter',
+    copies: 6,
+    filter: () => [],
+    counter: (player, attacker, cards, game) => {
+      // Can't dodge an attack when you've already been grabbed
+      if (attacker.discard[0].id === 'grab') {
+        game.whisper(player, 'card:dodge:invalid')
+        return
+      }
+      game.discard.push(cards[0])
+      player.discard = []
+      if (game.getNextPlayer(player.id) === attacker) {
+        game.announce('card:dodge:nullify', {
+          attacker,
+          cards: Language.printCards(attacker.discard, game.language),
+          player
+        })
+        game.incrementTurn()
+        return
+      }
+      game.target = game.getNextPlayer(player.id)
+      game.announce('card:dodge:new-target', {
+        attacker,
+        cards: Language.printCards(attacker.discard[0], game.language),
+        player,
+        target: game.target
+      })
+    }
   },
   {
     id: 'earthquake',

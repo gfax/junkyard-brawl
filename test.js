@@ -12,8 +12,8 @@ game.start()
 
 const [player1, player2] = game.players
 player1.hand.push(Deck.getCard('grab'))
-player1.hand.push(Deck.getCard('a-gun'))
-player2.hand.push(Deck.getCard('block'))
+player1.hand.push(Deck.getCard('gut-punch'))
+player2.hand.push(Deck.getCard('dodge'))
 
-game.play(player1.id, [Deck.getCard('grab'), Deck.getCard('a-gun')])
-game.play(player2.id, Deck.getCard('block'))
+game.play(player1.id, [Deck.getCard('grab'), Deck.getCard('gut-punch')])
+game.play(player2.id, [Deck.getCard('dodge')])
