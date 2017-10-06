@@ -25,6 +25,10 @@ card:crane:
   en: Crane
 card:deflector:
   en: Deflector
+card:deflector:deflect:
+  en: <%= player.name %> deflects <%= target.name %>'s <%= cards %>!
+card:deflector:play:
+  en: <%= player.name %> raises a deflector as a shield.
 card:dodge:
   en: Dodge
 card:dodge:invalid:

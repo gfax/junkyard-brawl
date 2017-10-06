@@ -1,6 +1,14 @@
-const _ = require('lodash')
 const Language = require('./language')
 const Player = require('./player')
+const {
+  find,
+  flow,
+  removeOnce,
+  sample,
+  shuffle,
+  times,
+  uniq
+} = require('./util')
 
 module.exports = {
   generate,
@@ -58,7 +66,7 @@ const deck = [
       })
     },
     disaster: (player, cards, game) => {
-      const target = _.sample(game.players)
+      const target = sample(game.players)
       game.contact(player, target, cards)
     }
   },
@@ -109,9 +117,31 @@ const deck = [
   },
   {
     id: 'deflector',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'disaster',
+    copies: 1,
+    filter: () => [],
+    beforeContact: (contacter, contactee, cards, game) => {
+      const deflector = getCard('deflector')
+      // Relinquish the card once its ability is used up
+      removeOnce(contactee.beforeContact, () => deflector.beforeContact)
+      game.discard.push(deflector)
+      game.announce('card:deflector:deflect', {
+        player: contactee,
+        target: contacter,
+        cards: Language.printCards(cards[0], game.language)
+      })
+      const victim = sample(
+        game.players.filter(player => player !== contactee)
+      )
+      game.contact(contacter, victim, cards, game)
+      // Returning false means the contactee won't be contacted
+      return false
+    },
+    disaster: (player, cards, game) => {
+      removeOnce(player.hand, cards[0])
+      player.beforeContact.push(cards[0].beforeContact)
+      game.announce('card:deflector:play', { player })
+    }
   },
   {
     id: 'dodge',
@@ -186,7 +216,7 @@ const deck = [
     },
     contact: (player, target, cards, game) => {
       game.discard.push(player.discard[0])
-      _.remove(player.discard, player.discard[0])
+      removeOnce(player.discard, player.discard[0])
       cards[0].contact(player, target, player.discard, game)
     },
     counter: (player, attacker, cards, game) => {
@@ -398,8 +428,8 @@ const deck = [
     filter: () => [],
     afterContact: (player, target, cards, game) => {
       if (cards[0].type === 'support') {
-        _.remove(player.beforeTurn, () => getCard('the-bees').beforeTurn)
-        _.remove(player.afterContact, () => getCard('the-bees').afterContact)
+        removeOnce(player.beforeTurn, () => getCard('the-bees').beforeTurn)
+        removeOnce(player.afterContact, () => getCard('the-bees').afterContact)
         game.announce('card:the-bees:healed', { player })
       }
       return true
@@ -413,7 +443,7 @@ const deck = [
       return true
     },
     disaster: (player, cards, game) => {
-      const target = _.sample(game.players)
+      const target = sample(game.players)
       target.beforeTurn.push(cards[0].beforeTurn)
       target.afterContact.push(cards[0].afterContact)
       game.announce('card:the-bees:play', {
@@ -461,14 +491,14 @@ const deck = [
 ]
 
 function generate() {
-  return _.shuffle(deck.reduce((acc, card) => {
-    _.times(card.copies, () => acc.push(card))
+  return shuffle(deck.reduce((acc, card) => {
+    times(card.copies, () => acc.push(card))
     return acc
   }, []))
 }
 
 function getCard(id) {
-  const card = _.find(deck, { id })
+  const card = find(deck, { id })
   if (!card) {
     throw new Error(`Nonexistent card type requested: ${id}`)
   }
@@ -515,10 +545,10 @@ function parseCards(player, request) {
   if (!player.hand.length) {
     return []
   }
-  return _.flow([
+  return flow([
     req => req.split(' '),
     req => req.filter(elem => elem),
-    _.uniq,
+    uniq,
     req => req.map((word) => {
       const number = parseInt(word)
       // 1-index to 0-index

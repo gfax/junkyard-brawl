@@ -1,7 +1,7 @@
-const _ = require('lodash')
 const fs = require('fs')
 const path = require('path')
 const yaml = require('js-yaml')
+const { map, template } = require('./util')
 
 let phrases = null
 
@@ -20,7 +20,7 @@ function getPhrase(code, language) {
   if (!phrases[code]) {
     throw new Error(`Code not found in language file: ${code}`)
   }
-  return _.template(phrases[code][language])
+  return template(phrases[code][language])
 }
 
 function getSupportedLanguages() {
@@ -34,7 +34,7 @@ function printCards(cards, language) {
   if (!cardsToPrint.length) {
     return getPhrase('player:no-cards', language)()
   }
-  return _.map(cardsToPrint, (card) => {
+  return map(cardsToPrint, (card) => {
     return getPhrase(`card:${card.id}`, language)()
   }).join(', ')
 }

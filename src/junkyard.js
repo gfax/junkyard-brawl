@@ -1,7 +1,18 @@
-const _ = require('lodash')
 const Deck = require('./deck')
 const Language = require('./language')
 const Player = require('./player')
+const {
+  assign,
+  clone,
+  find,
+  findIndex,
+  last,
+  merge,
+  removeOnce,
+  shuffle,
+  tail,
+  times
+} = require('./util')
 
 
 const gameTitle = 'Junkyard Brawl'
@@ -74,7 +85,7 @@ module.exports = class Junkyard {
     this.announceCallback(
       code,
       this.getPhrase(code, extraWords),
-      _.merge(extraWords, { game: this })
+      merge(extraWords, { game: this })
     )
   }
 
@@ -89,30 +100,21 @@ module.exports = class Junkyard {
     )
   }
 
-  contact(player, target, cards) {
-    cards[0].contact(
-      player,
-      target,
-      cards,
-      this
-    )
-    if (target) {
-      target.afterContact.reduce(
-        (bool, condition) => {
-          return bool && condition(target, player, target.discard, this)
-        },
-        true
-      )
-      this.maybeRemove(target)
-    } else {
-      player.afterContact.reduce(
-        (bool, condition) => {
-          return bool && condition(player, target, cards, this)
-        },
-        true
-      )
-      this.maybeRemove(player)
-    }
+  contact(contacter, contactee, cards) {
+    // Before-contact conditions (ie, Deflector)
+    contactee.beforeContact
+      .concat([
+        () => cards[0].contact(contacter, contactee, cards, this)
+      ])
+      .reduce((bool, condition) => {
+        return bool && condition(contacter, contactee, cards, this)
+      }, true)
+    // After-contact conditions (ie, Mirror)
+    contacter.afterContact
+      .reduce((bool, condition) => {
+        return bool && condition(contacter, contactee, cards, this)
+      }, true)
+    this.maybeRemove(contactee)
   }
 
   counter(player, cards) {
@@ -125,7 +127,7 @@ module.exports = class Junkyard {
     }
     // Take the cards out of the player's hand and put
     // any previous discard into the main discard pile
-    _.remove(player.hand, card => _.find(cards, card))
+    removeOnce(player.hand, card => find(cards, card))
     this.discard = this.discard.concat(player.discard)
     player.discard = cards
     cards[0].counter(player, attacker, cards, this)
@@ -134,7 +136,7 @@ module.exports = class Junkyard {
   deal(player) {
     const numberToDeal = player.maxHand - player.hand.length
     if (numberToDeal > 0) {
-      _.times(numberToDeal, () => {
+      times(numberToDeal, () => {
         if (this.deck.length < 1) {
           shuffleDeck(this)
         }
@@ -144,18 +146,18 @@ module.exports = class Junkyard {
   }
 
   getDropout(id) {
-    return _.find(this.dropouts, { id })
+    return find(this.dropouts, { id })
   }
 
   getNextPlayer(id) {
     const { players } = this
-    const idx = _.findIndex(players, { id }) + 1
+    const idx = findIndex(players, { id }) + 1
     return idx === players.length ? players[0] : players[idx]
   }
 
   getPhrase(code, extraWords) {
     return Language.getPhrase(code, this.language)(
-      _.assign({
+      assign({
         game: this,
         player: (this.players[0] || {}).name
       }, extraWords)
@@ -163,7 +165,7 @@ module.exports = class Junkyard {
   }
 
   getPlayer(id) {
-    return _.find(this.players, { id })
+    return find(this.players, { id })
   }
 
   incrementTurn() {
@@ -181,7 +183,7 @@ module.exports = class Junkyard {
       }
       this.target = null
     }
-    this.players = [..._.tail(this.players), this.players[0]]
+    this.players = [...tail(this.players), this.players[0]]
     if (this.maybeRemove(this.players[0], this) && this.stopped) {
       return
     }
@@ -281,7 +283,7 @@ module.exports = class Junkyard {
     }
     let target = null
     if (cards[0].type === 'support') {
-      this.contact(player, target, cards, this)
+      this.contact(player, player, cards, this)
       this.incrementTurn()
       return
     }
@@ -303,7 +305,7 @@ module.exports = class Junkyard {
     }
     this.target = target
     player.discard = cards
-    _.remove(player.hand, card => _.find(player.discard, card))
+    removeOnce(player.hand, card => find(player.discard, card))
     cards[0].play(player, target, cards, this)
   }
 
@@ -316,7 +318,7 @@ module.exports = class Junkyard {
       throw new Error('Cannot remove invalid player: ${id}')
     }
     const wasTurnPlayer = player === this.players[0]
-    _.remove(this.players, player)
+    removeOnce(this.players, player)
     // Announce what cards the player had
     if (player.hand.length) {
       announceDiscard(player, this)
@@ -360,13 +362,13 @@ module.exports = class Junkyard {
       this.announce('game:invalid-number-of-players')
       return
     }
-    this.players = _.shuffle(this.players)
+    this.players = shuffle(this.players)
     this.players.forEach((player) => {
       this.deal(player)
       // Whisper everyone their stats, except the last player
       // in the array, because it's about to be their turn and
       // they will get whispered their cards when that happens.
-      if (player !== _.last(this.players)) {
+      if (player !== last(this.players)) {
         this.whisperStats(player.id)
       }
     })
@@ -386,7 +388,7 @@ module.exports = class Junkyard {
     if (this.stopped) {
       return
     }
-    const oldManager = _.clone(this.manager)
+    const oldManager = clone(this.manager)
     const newManager = this.getPlayer(playerId)
     if (newManager) {
       this.manager = newManager
@@ -397,7 +399,7 @@ module.exports = class Junkyard {
   }
 
   whisper(player, code, extraWords = {}) {
-    const words = _.merge({
+    const words = merge({
       game: this,
       player
     }, extraWords)
@@ -405,7 +407,7 @@ module.exports = class Junkyard {
       player.id,
       code,
       this.getPhrase(code, words),
-      _.merge(words)
+      merge(words)
     )
   }
 
@@ -442,7 +444,7 @@ function shuffleDeck(game) {
     game.announce('deck:increased')
     return
   }
-  game.deck = game.deck.concat(_.shuffle(game.discard))
+  game.deck = game.deck.concat(shuffle(game.discard))
   game.discard = []
   game.announce('deck:shuffled')
 }

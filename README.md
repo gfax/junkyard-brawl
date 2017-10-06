@@ -254,9 +254,11 @@ A player object consists of the following properties:
 
 ```js
 {
-  // Array of functions. Pending conditions for when the player is hit.
+  // Array of functions. Pending conditions to trigger after a player is affected by a card.
   afterContact: [],
-  // Array of functions. Pending conditions for when the player's turn starts.
+  // Array of functions. Pending conditions to trigger before a player is affected by a card.
+  beforeContact: [],
+  // Array of functions. Pending conditions to trigger when the player's turn starts.
   beforeTurn: [],
   // Array of card objects. Temporary discard of cards to which the other player may need to respond.
   discard: [],

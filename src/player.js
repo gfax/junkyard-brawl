@@ -10,7 +10,9 @@ module.exports = class Player {
     }
     // Array of callbacks to trigger post-contact
     this.afterContact = []
-    // Array of callbacks to trigger pre-fight
+    // Array of callbacks to trigger pre-contact
+    this.beforeContact = []
+    // Array of callbacks to trigger pre-move
     this.beforeTurn = []
     // Cards in play
     this.discard = []

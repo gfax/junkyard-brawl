@@ -1,9 +1,10 @@
-const _ = require('lodash')
 const Ava = require('ava')
 const Sinon = require('sinon')
+
 const Deck = require('./deck')
 const Junkyard = require('./junkyard')
 const Player = require('./player')
+const { find } = require('./util')
 
 Ava.test('Should return an object', (t) => {
   t.is(typeof Deck, 'object')
@@ -105,7 +106,7 @@ Ava.test('Gut Punch should be playable', (t) => {
   game.play(player.id, [Deck.getCard('gut-punch')])
   game.pass(target.id)
   t.is(target.hp, 8)
-  t.truthy(_.find(game.discard, { id: 'gut-punch' }))
+  t.truthy(find(game.discard, { id: 'gut-punch' }))
   t.is(game.discard.length, 1)
 })
 
@@ -137,7 +138,7 @@ Ava.test('Grab should be playable', (t) => {
   t.true(announceCallback.calledWith('card:grab:play'))
   t.true(announceCallback.calledWith('card:a-gun:contact'))
 
-  t.truthy(_.find(game.discard, { id: 'grab' }))
+  t.truthy(find(game.discard, { id: 'grab' }))
   t.is(game.discard.length, 4)
 })
 
@@ -224,7 +225,7 @@ Ava.test('A Gun should be playable', (t) => {
   game.play(player1.id, [Deck.getCard('a-gun')])
   t.is(player2.hp, player2.maxHp - 2)
   t.is(game.turns, 1)
-  t.truthy(_.find(game.discard, { id: 'a-gun' }))
+  t.truthy(find(game.discard, { id: 'a-gun' }))
   t.is(game.discard.length, 1)
 })
 
@@ -278,7 +279,7 @@ Ava.test('Avalanche should attack a random player', (t) => {
     game.players.reduce((acc, plyr) => acc + plyr.hp, 0),
     game.players.reduce((acc, plyr) => acc + plyr.maxHp, 0) - 6
   )
-  t.truthy(_.find(game.discard, { id: 'avalanche' }))
+  t.truthy(find(game.discard, { id: 'avalanche' }))
   t.is(game.discard.length, 1)
 })
 
@@ -334,6 +335,99 @@ Ava.test('Block should be thwarted by unstoppable cards', (t) => {
   t.true(announceCallback.calledWith('player:counter-failed'))
   t.is(game.turns, 1)
   t.is(game.discard.length, 3)
+})
+
+Ava.test('Deflector should attach to a random player', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('deflector'))
+
+  announceCallback.reset()
+  game.play(player1.id, [Deck.getCard('deflector')])
+
+  t.true(announceCallback.calledWith('card:deflector:play'))
+  t.true(announceCallback.calledOnce)
+  t.is(game.discard.length, 0, 'card should be with the player, not discarded yet')
+  t.is(player1.beforeContact.length + player2.beforeContact.length, 1)
+  t.is(player1.hand.length, player1.maxHand)
+})
+
+Ava.test('Deflector should deflect an attack to another random player', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const deflector = Deck.getCard('deflector')
+  player1.hand.push(deflector)
+  game.play(player1.id, [deflector])
+  const gutPunch = Deck.getCard('gut-punch')
+
+  if (player1.beforeContact.length) {
+    game.incrementTurn()
+    player2.hand.push(gutPunch)
+    game.play(player2.id, [gutPunch])
+    game.pass(player1.id)
+    t.is(player1.hp, player1.maxHp)
+    t.is(player2.hp, player2.maxHp - 2)
+    t.is(game.turns, 2)
+  } else {
+    player1.hand.push(gutPunch)
+    game.play(player1.id, [gutPunch])
+    game.pass(player2.id)
+    t.is(player2.hp, player2.maxHp)
+    t.is(player1.hp, player1.maxHp - 2)
+    t.is(game.turns, 1)
+  }
+
+  t.true(announceCallback.calledWith('card:deflector:deflect'))
+  t.is(player1.beforeContact.length + player2.beforeContact.length, 0)
+  t.truthy(find(game.discard, deflector))
+})
+
+Ava.test('Deflector should halt resolving further before-contact conditions', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const deflector = Deck.getCard('deflector')
+  const gutPunch = Deck.getCard('gut-punch')
+  player2.beforeContact.push(deflector.beforeContact)
+  player2.beforeContact.push(deflector.beforeContact)
+  player1.hand.push(gutPunch)
+  game.play(player1.id, [gutPunch])
+  game.pass(player2.id)
+
+  t.true(announceCallback.calledWith('card:deflector:deflect'))
+  t.is(game.turns, 1)
+  t.is(player2.beforeContact.length, 1, 'player should have 1 unresolved beforeContact')
+})
+
+Ava.test('Deflector should resolve before-contact conditions across player', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const deflector = Deck.getCard('deflector')
+  const gutPunch = Deck.getCard('gut-punch')
+  player1.beforeContact.push(deflector.beforeContact)
+  player2.beforeContact.push(deflector.beforeContact)
+  player1.hand.push(gutPunch)
+  game.play(player1.id, [gutPunch])
+  game.pass(player2.id)
+
+  t.true(announceCallback.calledWith('card:deflector:deflect'))
+  t.is(game.turns, 1)
+  t.is(player2.hp, player2.maxHp - 2)
 })
 
 Ava.test('Dodge should counter and nullify attacks', (t) => {
@@ -410,7 +504,7 @@ Ava.test('Insurance should restore a player to half HP', (t) => {
   t.is(player2.hp, Math.floor(player2.maxHp / 2))
   t.true(announceCallback.calledWith('card:insurance:counter'))
   t.true(announceCallback.calledWith('card:insurance:success'))
-  t.truthy(_.find(game.discard, { id: 'insurance' }))
+  t.truthy(find(game.discard, { id: 'insurance' }))
 })
 
 Ava.test('Insurance should work against unstoppable attacks', (t) => {
