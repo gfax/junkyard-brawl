@@ -15,6 +15,15 @@ A nodejs implementation of the card game Junkyard Brawl.
   - [Counter cards](#counter-cards)
   - [Disaster cards](#disaster-cards)
   - [Inventory](#inventory)
+- [API](#api)
+  - [new JunkyardBrawl()](#new-junkyardbrawl)
+  - [announceCallback()](#announcecallback)
+  - [whisperCallback()](#whispercallback)
+  - [addPlayer()](#addplayer)
+  - [start()](#start)
+  - [stop()](#stop)
+  - [play()](#play)
+  - [pass()](#pass)
 
 ## Installation
 
@@ -26,6 +35,13 @@ yarn add junkyard-brawl
 # Install via npm
 npm install --save junkyard-brawl
 ```
+
+And required in a project like so:
+```js
+require('junkyard-brawl')
+```
+
+The module is built using ES6 classes, so Node v4 and below isn't supported. Node 6+ or current LTS recommended.
 
 ## Game rules
 
@@ -52,9 +68,9 @@ The objective is to use your cards to beat up the other players and be the last 
 
 - Wrench (-0) (miss-2) – Throw a wrench in your opponent's machinery. He must spend 2 turns finding what jammed his gears. [The wrench is mightier than the sword... unless it's a sword made out of wrenches.]
 - Gut Punch (-2) – Basic attack.
-- ~Grease Bucket~ (-2) (miss-1) – Even more painful than it is messy. [You need a dirty weapon for a dirty job.]
+- Grease Bucket (-2) (miss-1) – Even more painful than it is messy. [You need a dirty weapon for a dirty job.]
 - Neck Punch (-3) – Slightly more powerful attack directed at the neck of your opponent.
-- ~Acid Coffee~ (-3) (miss-1) – Opponent gets sick for a turn due to battery acid being poured in his coffee.
+- Acid Coffee (-3) (miss-1) – Opponent gets sick for a turn due to battery acid being poured in his coffee.
 - Guard Dog (-4) – Sick one of the dogs on your opponent. [It's amazing how easily old steak becomes a bribe.]
 - Uppercut (-5) – Ultimate attack.
 - Gamblin’ Man (-1 to -6) – If successful in reaching the opponent, roll the die to see how much damage the opponent takes.
@@ -79,7 +95,7 @@ Play these on your turn in place of attacking if you so wish.
 
 - Soup (+1) – Take a sip. Relax. Gain up to 10 health. [There is no useless junk – only useless junkyard workers.]
 - Sub (+2) – Heal yourself by 2 points, up to a maximum of 10. [The flies are having another union meeting.]
-- ~Energy Drink~ (+3) – Gain 1 health per turn for 3 turns. Only consumes the first turn, with health added automatically for the next two.
+- Energy Drink (+3) – Gain 1 health per turn for 3 turns. Only consumes the first turn, with health added automatically for the next two.
 - Armor (+5) – Adds 5 points to your health. It can stack above 10, for a maximum of 15.
 - Surgery (+9) – Can only be used when you have 1 health. Resets health to 10. [It's a nice day to... START AGAIN!]
 - Sleep (+?) – Discard an attack card to receive its damage as health.
@@ -117,3 +133,213 @@ Play these on your turn in place of attacking if you so wish.
 - 3 – Mattresses, Grease Buckets, Soups
 - 2 – Acid Coffees, Cheap Shots, Gamblin' Mans, Guard Dogs, Insurances, Meal Steals, Mirrors, Siphons, Surgeries, Siphons, Tires, Wrenches
 - 1 – A Guns, Armor, Avalanche, Bulldozer, Crane, Deflector, Diesel Spill, Earthquake, Energy Drink, It’s Getting Windy, Magnet, Propeller, Sleep, Spare Bolts, Reverse, The Bees, Tire Iron, Toolbox, Whirlwind
+
+## API
+
+### new JunkyardBrawl()
+
+To require the game in your project, load the module and create a new class instance from the module.
+
+```js
+const JunkyardBrawl = require('junkyard-brawl')
+// This will return a new game instance:
+const game = new JunkyardBrawl(userId, userName, announceCallback, whisperCallback, language)
+```
+| param              | type     ||
+|-                    |-         |- |
+| `userId`            | string   | Unique ID for the user that initiated the game play. This will be the first player and game manager. |
+| `userName`          | string   | Display name of the player, used in battle text. |
+| [`announceCallback`](#announcecallback) | function | Callback that is invoked when there is a public message to be displayed to all users. |
+| [`whisperCallback`](#whispercallback)   | function | Private messages to display to individual users, like what cards they currently have. |
+
+A game instance consists of the following properties:
+```js
+{
+  // The announceCallback that was passed in on instantiation.
+  announceCallback: [Function: announceCallback],
+  // This is the draw pile - an array of card objects.
+  deck: [ ... ],
+  // Cards that were played. This is shuffled and put
+  // back in the deck when the deck becomes empty.
+  discard: [],
+  // Array of players that have died or forfeited.
+  dropouts: [],
+  // Language that messages will be displayed in.
+  language: 'en',
+  // Usually the user that started the game. Managers have
+  // elevated priveleges such as removing other players.
+  manager: Player { ... },
+  // Array of players currently playing the game.
+  players: [ ... ],
+  // Date object of the time the game started,
+  // or false if the game hasn't started yet.
+  started: Date { ... },
+  // Date object of the time the game stopped,
+  // or false if the game hasn't stopped yet.
+  stopped: false,
+  // The player currently being targeted, or null if nobody.
+  target: Player {},
+  // Name of the game.
+  title: 'Junkyard Brawl',
+  // Turns played so far this game
+  turns: 0,
+  // The whisperCallback that was passed in on instantiation.
+  whisperCallback: [Function: whisperCallback]
+}
+```
+
+### announceCallback()
+
+```js
+const JunkyardBrawl = require('junkyard-brawl')
+const announceCallback = (code, message, messageProps) => console.log(message)
+const game = new JunkyardBrawl(userId, userName, announceCallback, whisperCallback, language)
+```
+
+| param         | type ||
+|-               |-     |- |
+| `code`         | string   | Message key for the language phrase. |
+| `message`      | string   | Rendered message from the game’s set language. |
+| `messageProps` | object   | Contains the game objects (lodash options) required to re-render the message from the original lodash template.
+| `template`     | function | The original lodash template, in case you want to reformat the message props and render the message yourself. Usage can be found in the [lodash docs](https://lodash.com/docs/4.17.4#template).
+
+### whisperCallback()
+
+```js
+const JunkyardBrawl = require('junkyard-brawl')
+
+const whisperCallback = (player, code, message, messageProps, template) => {
+  console.log(`(( ${player} )) -- ${message}`)
+}
+
+const game = new JunkyardBrawl(userId, userName, announceCallback, whisperCallback, language)
+```
+
+| param         | type ||
+|-               |-     |- |
+| `userId`       | string   | ID of the user this message is intended for. |
+| `code`         | string   | Message key for the language phrase. |
+| `message`      | string   | Rendered message from the game’s set language. |
+| `messageProps` | object   | Contains the game objects (lodash options) required to re-render the message from the original lodash template.
+| `template`     | function | The original lodash template, in case you want to reformat the message props and render the message yourself. Usage can be found in the [lodash docs](https://lodash.com/docs/4.17.4#template).
+
+Example using the template:
+
+```js
+// Re-parse the template using the messageProps, but
+// extend the messageProps so the player name is *bold*.
+const whisperCallback = (player, code, message, messageProps, template) => {
+  console.log(template(
+    messageProps.extend({
+      player: player.extend({
+        name: `*${player.name}*`
+      })
+    })
+  )
+}
+```
+
+### addPlayer()
+
+Join a new player to the game. Players can join a game that has already started. Players that have already left the game (though forfeit or death) cannot rejoin.
+
+```js
+const JunkyardBrawl = require('junkyard-brawl')
+const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCallback, language)
+// This will also return the new player instance for easy inspection:
+const player = game.addPlayer('WBE1F94D7', 'Kevin')
+```
+
+A player object consists of the following properties:
+
+```js
+{
+  // Array of functions. Pending conditions for when the player is hit.
+  afterContact: [],
+  // Array of functions. Pending conditions for when the player's turn starts.
+  beforeTurn: [],
+  // Array of card objects. Temporary discard of cards to which the other player may need to respond.
+  discard: [],
+  // Array of card objects available to the player for play.
+  hand: [Array],
+  // Current number of health points
+  hp: 10,
+  // The unique user ID for the player
+  id: 'WBE1F94D7',
+  // Maximum number of cards the player can be dealt, though
+  // some cards may cause the player to have more cards than
+  // this (they just won't be dealt more on their turn.)
+  maxHand: 5,
+  // Maximum number of health points. A player cannot heal any higher than
+  // this number (with the exception of a few cards, such as "Armor").
+  maxHp: 10,
+  // Display name to use for this player in announcements and notifications.
+  name: 'Kevin',
+  // Turns the player has taken so far
+  turns: 0
+}
+```
+
+### start()
+
+Starting a game will deal cards to all the players, shuffle the play order, and announce the first player. The game needs a minimum of two players to start.
+
+```js
+const JunkyardBrawl = require('junkyard-brawl')
+const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCallback, language)
+game.addPlayer('WBE1F94D7', 'Kevin')
+game.start()
+```
+
+### stop()
+
+If the game needs to be canceled for any reason, it can be stopped so that a game ending message appears and scores can be logged before the game instance is destroyed.
+
+
+```js
+const JunkyardBrawl = require('junkyard-brawl')
+const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCallback, language)
+game.addPlayer('WBE1F94D7', 'Kevin')
+game.start()
+game.stop() // Perhaps the player changed their mind and cancelled the match.
+```
+
+### play()
+
+Once a game is started, players can play cards. `game.players` contains a rotating array of players, with the first player in the array being the turn-player.
+
+```js
+const JunkyardBrawl = require('junkyard-brawl')
+const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCallback, language)
+game.addPlayer('WBE1F94D7', 'Kevin')
+game.start()
+const [{ id: playerId, { id: targetId }] = game.players
+game.play(playerId, '2', targetId)
+```
+
+| param         | type ||
+|-               |-     |- |
+| `playerId`     | string | ID of the user requesting to play. The game can distinguish valid players from invalid players. |
+| `request`      | array|string | The request must either be an array of card objects or a string of card indexes. Card indexes count from 1. So cards[0] and cards[3], would become '1 4'. This is useful for handling chatroom game adapters where a player may say the index of the cards they want to play. |
+| `targetId`     | string | ID of the player being attacked. In a 2-player game, the opposite player is assumed and the parameter is ignored. Likewise, with player moves that don't require a target the parameter is also ignored in such a case. |
+
+### pass()
+
+If a player decides to pass their chance to play, this method should be invoked instead of `play()`.
+
+```js
+const JunkyardBrawl = require('junkyard-brawl')
+const Deck = require('junkyard-brawl/deck')
+const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCallback, language)
+game.addPlayer('WBE1F94D7', 'Kevin')
+game.start()
+const [player1, player2] = game.players
+const gutPunch = Deck.getCard('gut-punch') // Generate an extra card to give to the first player
+player1.hand.push(gutPunch) // You wouldn't actually do this in a real implementation
+game.play(player1.id, [gutPunch]) // Attack the second player
+game.pass(player2.id) // Player doesn't wish to counter the Gut Punch attack.
+```
+
+| param     | type ||
+|-           |-     |- |
+| `playerId` | string | ID of the user wishing to pass on responding the attack. Invalid user requests are ignored or notified as necessary.
