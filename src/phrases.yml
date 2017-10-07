@@ -7,6 +7,8 @@ card:a-gun:play:
   en: <%= player.name %> throws a gun at <%= target.name %>.
 card:acid-coffee:
   en: Acid Coffee
+card:acid-coffee:contact:
+  en: <%= player.name %> pours some battery acid in <%= target.name %>'s coffee.
 card:armor:
   en: Armor
 card:avalanche:
@@ -57,6 +59,8 @@ card:grab:play:
   en: <%= player.name %> grabs <%= target.name %>. Respond or pass, <%= target.name %>.
 card:grease-bucket:
   en: Grease Bucket
+card:grease-bucket:contact:
+  en: <%= player.name %> drops a bucket of grease on <%= target.name %>'s head. <%= target.name %> goes to wash up.
 card:guard-dog:
   en: Guard Dog
 card:guard-dog:contact:
@@ -159,6 +163,8 @@ player:invalid-target:
   en: Invalid target.
 player:joined:
   en: <%= player.name %> has entered the game!
+player:miss-turn:
+  en: <%= player.name %> misses a turn.
 player:no-cards:
   en: You have no cards!
 player:no-passing:

@@ -215,6 +215,37 @@ Ava.test('Grab should counter', (t) => {
   t.is(game.discard.length, 6)
 })
 
+Ava.test('Acid Coffee should make a player miss a turn', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('acid-coffee'))
+
+  game.play(player1.id, [Deck.getCard('acid-coffee')])
+  game.pass(player2.id)
+  t.is(player2.hp, player2.maxHp - 3)
+  t.is(game.turns, 2)
+})
+
+Ava.test('Acid Coffee should delay discarding', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('acid-coffee'))
+
+  game.play(player1.id, [Deck.getCard('acid-coffee')])
+  t.is(player1.hand.length, player1.maxHand)
+
+  game.pass(player2.id)
+  t.is(game.discard.length, 0)
+
+  game.incrementTurn()
+  t.is(game.discard.length, 1)
+})
+
 Ava.test('A Gun should be playable', (t) => {
   const game = new Junkyard('player1', 'Jay')
   game.addPlayer('player2', 'Kevin')
@@ -537,6 +568,37 @@ Ava.test('Dodge should not be playable when grabbed', (t) => {
   t.true(whisperCallback.calledWith(player2.id, 'card:dodge:invalid'))
   t.is(game.turns, 0)
   t.is(game.discard.length, 0)
+})
+
+Ava.test('Grease Bucket should make a player miss a turn', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('grease-bucket'))
+
+  game.play(player1.id, [Deck.getCard('grease-bucket')])
+  game.pass(player2.id)
+  t.is(player2.hp, player2.maxHp - 2)
+  t.is(game.turns, 2)
+})
+
+Ava.test('Grease Bucket should delay discarding', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('grease-bucket'))
+
+  game.play(player1.id, [Deck.getCard('grease-bucket')])
+  t.is(player1.hand.length, player1.maxHand)
+
+  game.pass(player2.id)
+  t.is(game.discard.length, 0)
+
+  game.incrementTurn()
+  t.is(game.discard.length, 1)
 })
 
 Ava.test('Insurance should restore a player to half HP', (t) => {

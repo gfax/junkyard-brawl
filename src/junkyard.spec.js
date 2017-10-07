@@ -1,9 +1,9 @@
-const _ = require('lodash')
 const Ava = require('ava')
 const Sinon = require('sinon')
 const Deck = require('./deck')
 const Junkyard = require('./junkyard')
 const Player = require('./player')
+const { times } = require('./util')
 
 Ava.test('Should allow instantiation', (t) => {
   const game = new Junkyard('player1', 'Jay')
@@ -32,7 +32,7 @@ Ava.test('constructor() should announce when a game is created', (t) => {
 Ava.test('addPlayer() should add multiple players', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
-  _.times(3, num => game.addPlayer(`player${num + 2}`, 'Randy'))
+  times(3, num => game.addPlayer(`player${num + 2}`, 'Randy'))
 
   t.true(announceCallback.calledWith('player:joined'))
   t.is(game.players.length, 4)
@@ -72,7 +72,7 @@ Ava.test('addPlayer() should allow players to join mid-game', (t) => {
 Ava.test('addPlayer() should trigger deck replenishing', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
-  _.times(10, num => game.addPlayer(`player${num + 2}`, 'Randy'))
+  times(100, num => game.addPlayer(`player${num + 2}`, 'Randy'))
   game.start()
 
   t.true(announceCallback.calledWith('deck:increased'))

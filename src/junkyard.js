@@ -195,16 +195,22 @@ module.exports = class Junkyard {
     this.players[0].turns += 1
     this.announceStats()
     const [player] = this.players
+    this.deal(player)
     // Condition callbacks should return true or false. If false, the
     // callback chain is interrupted (ie., perhaps the played died.)
-    player.beforeTurn.concat([
-      () => {
-        this.announce('game:turn', { player })
-        this.whisperStats(player.id)
-      }
-    ]).reduce((bool, condition) => bool && condition(player, this), true)
-    if (!this.maybeRemove(this.players[0], this)) {
-      this.deal(this.players[0])
+    player.beforeTurn
+      .reduce((bool, condition) => bool && condition(player, this), true)
+    if (this.maybeRemove(player, this)) {
+      return
+    }
+    // Maybe skip this player
+    if (player.missTurns) {
+      player.missTurns -= 1
+      this.announce('player:miss-turn', { player })
+      this.incrementTurn()
+    } else {
+      this.announce('game:turn', { player })
+      this.whisperStats(player.id)
     }
   }
 

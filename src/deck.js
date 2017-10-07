@@ -43,8 +43,38 @@ const deck = [
   {
     id: 'acid-coffee',
     type: 'attack',
-    copies: 0,
-    filter: () => []
+    copies: 2,
+    filter: () => [],
+    beforeTurn: (player, game) => {
+      const acidCoffee = getCard('acid-coffee')
+      const discardFn = () => {
+        // Now we can discard the card
+        game.discard.push(acidCoffee)
+        removeOnce(player.beforeTurn, () => discardFn)
+        return true
+      }
+      player.beforeTurn.push(discardFn)
+      removeOnce(player.beforeTurn, () => acidCoffee.beforeTurn)
+      return true
+    },
+    contact: (player, target, cards, game) => {
+      // Card isn't put in the discard until the missed turn is expended
+      player.discard = []
+      target.hp -= 3
+      target.missTurns += 1
+      target.beforeTurn.push(cards[0].beforeTurn)
+      game.announce('card:acid-coffee:contact', {
+        player,
+        target
+      })
+    },
+    play: (player, target, cards, game) => {
+      game.announce('player:played', {
+        cards: printCards(cards[0], game.language),
+        player,
+        target
+      })
+    }
   },
   {
     id: 'armor',
@@ -281,8 +311,38 @@ const deck = [
   {
     id: 'grease-bucket',
     type: 'attack',
-    copies: 0,
-    filter: () => []
+    copies: 3,
+    filter: () => [],
+    beforeTurn: (player, game) => {
+      const greaseBucket = getCard('grease-bucket')
+      const discardFn = () => {
+        // Now we can discard the card
+        game.discard.push(greaseBucket)
+        removeOnce(player.beforeTurn, () => discardFn)
+        return true
+      }
+      player.beforeTurn.push(discardFn)
+      removeOnce(player.beforeTurn, () => greaseBucket.beforeTurn)
+      return true
+    },
+    contact: (player, target, cards, game) => {
+      // Card isn't put in the discard until the missed turn is expended
+      player.discard = []
+      target.hp -= 2
+      target.missTurns += 1
+      target.beforeTurn.push(cards[0].beforeTurn)
+      game.announce('card:grease-bucket:contact', {
+        player,
+        target
+      })
+    },
+    play: (player, target, cards, game) => {
+      game.announce('player:played', {
+        cards: printCards(cards[0], game.language),
+        player,
+        target
+      })
+    }
   },
   {
     id: 'guard-dog',

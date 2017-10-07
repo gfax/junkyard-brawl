@@ -26,6 +26,8 @@ module.exports = class Player {
     this.maxHand = 5
     // Maximum hp the player is allowed to accumulate
     this.maxHp = maxHp
+    // Tracker for determining how many turns will be missed
+    this.missTurns = 0
     // Display name
     this.name = name
     // Turns spent playing this game
