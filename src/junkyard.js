@@ -10,7 +10,6 @@ const {
   merge,
   removeOnce,
   shuffle,
-  tail,
   times
 } = require('./util')
 
@@ -100,21 +99,21 @@ module.exports = class Junkyard {
     )
   }
 
-  contact(contacter, contactee, cards) {
+  contact(player, target, cards) {
     // Before-contact conditions (ie, Deflector)
-    contactee.beforeContact
+    target.beforeContact
       .concat([
-        () => cards[0].contact(contacter, contactee, cards, this)
+        () => cards[0].contact(player, target, cards, this)
       ])
       .reduce((bool, condition) => {
-        return bool && condition(contacter, contactee, cards, this)
+        return bool && condition(player, target, cards, this)
       }, true)
     // After-contact conditions (ie, Mirror)
-    contacter.afterContact
+    target.afterContact
       .reduce((bool, condition) => {
-        return bool && condition(contacter, contactee, cards, this)
+        return bool && condition(player, target, cards, this)
       }, true)
-    this.maybeRemove(contactee)
+    this.maybeRemove(target)
   }
 
   counter(player, cards) {
@@ -125,9 +124,14 @@ module.exports = class Junkyard {
     if (player === this.target) {
       [attacker] = this.players
     }
+    if (cards[0].validateCounter) {
+      if (!cards[0].validateCounter(player, attacker, cards, this)) {
+        return
+      }
+    }
     // Take the cards out of the player's hand and put
     // any previous discard into the main discard pile
-    removeOnce(player.hand, card => find(cards, card))
+    cards.forEach(card => removeOnce(player.hand, card))
     this.discard = this.discard.concat(player.discard)
     player.discard = cards
     cards[0].counter(player, attacker, cards, this)
@@ -183,7 +187,7 @@ module.exports = class Junkyard {
       }
       this.target = null
     }
-    this.players = [...tail(this.players), this.players[0]]
+    this.players = [...this.players.slice(1), this.players[0]]
     if (this.maybeRemove(this.players[0], this) && this.stopped) {
       return
     }
@@ -264,17 +268,18 @@ module.exports = class Junkyard {
     }
     if (!this.started) {
       this.whisper(player, 'player:not-started')
-      return
+      return false
     }
     const cards = Deck.parseCards(player, cardRequest)
     // Disaster can (only) be played when there is no target
-    if (!this.target && cards[0].type && cards[0].type === 'disaster') {
+    if (!this.target && cards[0].type === 'disaster') {
+      removeOnce(player.hand, cards[0])
       cards[0].disaster(player, cards, this)
       return
     }
     if (this.players[0].id !== playerId && !this.target) {
       this.whisper(player, 'player:not-turn')
-      return
+      return false
     }
     // Countering the first play
     if (this.target && this.target === player) {
@@ -293,20 +298,34 @@ module.exports = class Junkyard {
     } else {
       target = this.getPlayer(targetId)
     }
+    // Make sure a target was specified
     if (!target) {
       this.whisper(player, 'player:invalid-target')
-      return
+      return false
     }
     // This can probably be factored out and just check
     // whether a card has a "play" function on it.
     if (cards[0].type === 'counter' && cards[0].id !== 'grab') {
       this.whisper(player, 'player:invalid-play')
-      return
+      return false
     }
-    this.target = target
-    player.discard = cards
-    removeOnce(player.hand, card => find(player.discard, card))
-    cards[0].play(player, target, cards, this)
+
+    [
+      // Pre-play check
+      () => {
+        if (cards[0].validatePlay) {
+          return cards[0].validatePlay(player, target, cards, this)
+        }
+        return true
+      },
+
+      () => {
+        this.target = target
+        player.discard = cards
+        cards.forEach(card => removeOnce(player.hand, { id: card.id }))
+        cards[0].play(player, target, cards, this)
+      }
+    ].reduce((bool, fn) => bool && fn(), true)
   }
 
   removePlayer(id, died = false) {

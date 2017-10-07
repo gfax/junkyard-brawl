@@ -1,4 +1,4 @@
-const Language = require('./language')
+const { printCards } = require('./language')
 const Player = require('./player')
 const {
   find,
@@ -84,7 +84,7 @@ const deck = [
         game.discard = game.discard.concat(cards)
         player.discard = []
         game.announce('player:counter-failed', {
-          cards: Language.printCards(cards, game.language),
+          cards: printCards(cards, game.language),
           player
         })
         game.pass(player.id)
@@ -92,7 +92,7 @@ const deck = [
       }
       game.announce('card:block:counter', {
         attacker,
-        cards: Language.printCards(attacker.discard, game.language),
+        cards: printCards(attacker.discard, game.language),
         player
       })
       game.incrementTurn()
@@ -113,32 +113,52 @@ const deck = [
   {
     id: 'crane',
     type: 'attack',
-    copies: 0
+    copies: 1,
+    contact: (player, target, cards, game) => {
+      game.discard.push(cards[0])
+      player.discard = []
+      const [, ...tail] = cards
+      target.hand = target.hand.concat(tail)
+      game.announce('card:crane:contact', {
+        cards: printCards(tail, game.language),
+        player,
+        target
+      })
+      game.deal(player)
+      game.whisperStats(target.id)
+      game.whisperStats(player.id)
+    },
+    play: (player, target, cards, game) => {
+      game.announce('player:played', {
+        cards: printCards(cards[0], game.language),
+        player,
+        target
+      })
+    }
   },
   {
     id: 'deflector',
     type: 'disaster',
     copies: 1,
     filter: () => [],
-    beforeContact: (contacter, contactee, cards, game) => {
+    beforeContact: (player, target, cards, game) => {
       const deflector = getCard('deflector')
       // Relinquish the card once its ability is used up
-      removeOnce(contactee.beforeContact, () => deflector.beforeContact)
+      removeOnce(target.beforeContact, () => deflector.beforeContact)
       game.discard.push(deflector)
       game.announce('card:deflector:deflect', {
-        player: contactee,
-        target: contacter,
-        cards: Language.printCards(cards[0], game.language)
+        player,
+        target,
+        cards: printCards(cards[0], game.language)
       })
       const victim = sample(
-        game.players.filter(player => player !== contactee)
+        game.players.filter(plyr => plyr !== target)
       )
-      game.contact(contacter, victim, cards, game)
+      game.contact(player, victim, cards, game)
       // Returning false means the contactee won't be contacted
       return false
     },
     disaster: (player, cards, game) => {
-      removeOnce(player.hand, cards[0])
       player.beforeContact.push(cards[0].beforeContact)
       game.announce('card:deflector:play', { player })
     }
@@ -148,18 +168,21 @@ const deck = [
     type: 'counter',
     copies: 6,
     filter: () => [],
-    counter: (player, attacker, cards, game) => {
+    validateCounter: (player, attacker, cards, game) => {
       // Can't dodge an attack when you've already been grabbed
       if (attacker.discard[0].id === 'grab') {
         game.whisper(player, 'card:dodge:invalid')
-        return
+        return false
       }
+      return true
+    },
+    counter: (player, attacker, cards, game) => {
       game.discard.push(cards[0])
       player.discard = []
       if (game.getNextPlayer(player.id) === attacker) {
         game.announce('card:dodge:nullify', {
           attacker,
-          cards: Language.printCards(attacker.discard, game.language),
+          cards: printCards(attacker.discard, game.language),
           player
         })
         game.incrementTurn()
@@ -168,7 +191,7 @@ const deck = [
       game.target = game.getNextPlayer(player.id)
       game.announce('card:dodge:new-target', {
         attacker,
-        cards: Language.printCards(attacker.discard[0], game.language),
+        cards: printCards(attacker.discard[0], game.language),
         player,
         target: game.target
       })
@@ -219,11 +242,10 @@ const deck = [
       removeOnce(player.discard, player.discard[0])
       cards[0].contact(player, target, player.discard, game)
     },
+    validateCounter: (player, attacker, cards, game) => {
+      return cards[0].validatePlay(player, attacker, cards, game)
+    },
     counter: (player, attacker, cards, game) => {
-      if (cards.length < 2) {
-        game.whisper(player, 'card:grab:invalid-card')
-        return
-      }
       // One special situation with being grabbed is if the
       // opponent has a hidden unstoppable card, blocks and
       // grabs will be wasted.
@@ -232,21 +254,24 @@ const deck = [
         game.discard = game.discard.concat(cards)
         player.discard = []
         game.announce('player:counter-failed', {
-          cards: Language.printCards(cards, game.language),
+          cards: printCards(cards, game.language),
           player
         })
         game.pass(player.id)
         return
       }
-      attacker.discard[0].contact(attacker, player, attacker.discard, game)
+      game.contact(attacker, player, attacker.discard, game)
       player.discard = cards
       game.announce('card:grab:counter', { attacker, player })
     },
-    play: (player, target, cards, game) => {
+    validatePlay: (player, target, cards, game) => {
       if (cards.length < 2) {
         game.whisper(player, 'card:grab:invalid-card')
-        return
+        return false
       }
+      return true
+    },
+    play: (player, target, cards, game) => {
       if (target.discard[0]) {
         target.discard[0].contact(target, player, target.discard, game)
       }
@@ -273,7 +298,7 @@ const deck = [
     },
     play: (player, target, cards, game) => {
       game.announce('player:played', {
-        card: Language.printCards(cards[0], game.language),
+        cards: printCards(cards[0], game.language),
         player,
         target
       })
@@ -295,7 +320,7 @@ const deck = [
     },
     play: (player, target, cards, game) => {
       game.announce('player:played', {
-        card: Language.printCards(cards[0], game.language),
+        cards: printCards(cards[0], game.language),
         player,
         target
       })
@@ -363,7 +388,7 @@ const deck = [
     },
     play: (player, target, cards, game) => {
       game.announce('player:played', {
-        card: Language.printCards(cards[0], game.language),
+        cards: printCards(cards[0], game.language),
         player,
         target
       })
@@ -427,9 +452,12 @@ const deck = [
     copies: 1,
     filter: () => [],
     afterContact: (player, target, cards, game) => {
+      const theBees = getCard('the-bees')
       if (cards[0].type === 'support') {
-        removeOnce(player.beforeTurn, () => getCard('the-bees').beforeTurn)
-        removeOnce(player.afterContact, () => getCard('the-bees').afterContact)
+        removeOnce(player.beforeTurn, () => theBees.beforeTurn)
+        removeOnce(player.afterContact, () => theBees.afterContact)
+        // Relinquish the card from the player
+        game.discard.push(theBees)
         game.announce('card:the-bees:healed', { player })
       }
       return true

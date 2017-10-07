@@ -252,6 +252,14 @@ Ava.test('play() should ignore non-player moves', (t) => {
   t.false(announceCallback.called)
 })
 
+Ava.test('counter() should throw an error when not passed cards', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  const player = game.addPlayer('player2', 'Kevin')
+  game.start()
+  t.throws(() => game.counter(player))
+})
+
 Ava.test('pass() should throw an error when not passed a player id', (t) => {
   const game = new Junkyard('player1', 'Jay')
   t.throws(() => game.pass())

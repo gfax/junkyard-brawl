@@ -23,10 +23,12 @@ card:cheap-shot:
   en: Cheap Shot
 card:crane:
   en: Crane
+card:crane:contact:
+  en: <%= player.name %> dumps <%= cards %> onto <%= target.name %>.
 card:deflector:
   en: Deflector
 card:deflector:deflect:
-  en: <%= player.name %> deflects <%= target.name %>'s <%= cards %>!
+  en: <%= target.name %> deflects <%= player.name %>'s <%= cards %>!
 card:deflector:play:
   en: <%= player.name %> raises a deflector as a shield.
 card:dodge:
@@ -168,6 +170,6 @@ player:not-started:
 player:not-turn:
   en: It's not your turn, <%= player.name %>.
 player:played:
-  en: <%= player.name %> plays <%= card %>. Respond or pass, <%= target.name %>.
+  en: <%= player.name %> plays <%= cards %>. Respond or pass, <%= target.name %>.
 player:stats:
   en: '<%= player.name %> (<%= player.hp %>): <%= cards %>'

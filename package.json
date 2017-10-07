@@ -54,7 +54,6 @@
     "lodash.map": "^4.6.0",
     "lodash.sample": "^4.2.1",
     "lodash.shuffle": "^4.2.0",
-    "lodash.tail": "^4.1.1",
     "lodash.template": "^4.4.0",
     "lodash.times": "^4.3.2",
     "lodash.uniq": "^4.5.0"

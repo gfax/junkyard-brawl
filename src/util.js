@@ -11,7 +11,6 @@ const Util = module.exports = {
   removeOnce,
   sample: require('lodash.sample'),
   shuffle: require('lodash.shuffle'),
-  tail: require('lodash.tail'),
   template: require('lodash.template'),
   times: require('lodash.times'),
   uniq: require('lodash.uniq')
