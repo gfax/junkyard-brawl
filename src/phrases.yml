@@ -3,8 +3,6 @@ card:a-gun:
   en: A Gun
 card:a-gun:contact:
   en: <%= player.name %> throws a gun at <%= target.name %>.
-card:a-gun:play:
-  en: <%= player.name %> throws a gun at <%= target.name %>.
 card:acid-coffee:
   en: Acid Coffee
 card:acid-coffee:contact:
@@ -79,6 +77,8 @@ card:its-getting-windy:
   en: It's Getting Windy
 card:magnet:
   en: Magnet
+card:magnet:contact:
+  en: <%= player.name %> steals <%= number %> cards from <%= target.name %>.
 card:mattress:
   en: Mattress
 card:meal-steal:

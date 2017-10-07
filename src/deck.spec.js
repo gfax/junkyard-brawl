@@ -4,7 +4,7 @@ const Sinon = require('sinon')
 const Deck = require('./deck')
 const Junkyard = require('./junkyard')
 const Player = require('./player')
-const { find } = require('./util')
+const { clone, find } = require('./util')
 
 Ava.test('Should return an object', (t) => {
   t.is(typeof Deck, 'object')
@@ -382,8 +382,6 @@ Ava.test('Crane should dump cards onto a target', (t) => {
   player1.hand.push(Deck.getCard('crane'))
   const [card1, card2, card3] = player1.hand
   game.play(player1.id, [Deck.getCard('crane'), card1, card2, card3])
-  t.is(player1.hand.length, player1.maxHand - 3)
-  game.pass(player2.id)
 
   t.is(player2.hand.length, player2.maxHand + 3)
   t.truthy(find(player2.hand, card1))
@@ -670,6 +668,24 @@ Ava.test('Guard Dog should be playable', (t) => {
   game.play(player2.id, [Deck.getCard('guard-dog')])
   game.pass(player1.id)
   t.is(player1.hp, 6)
+})
+
+Ava.test('Magnet should steal cards from another player', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const aGun = Deck.getCard('a-gun')
+  const crazyHand = [aGun, aGun, aGun, aGun, aGun]
+  player1.hand.push(Deck.getCard('magnet'))
+  player2.hand = clone(crazyHand)
+  game.play(player1.id, [...player1.hand.reverse()])
+
+  t.is(game.turns, 1)
+  t.true(announceCallback.calledWith('card:magnet:contact'))
+  t.deepEqual(player1.hand, crazyHand)
 })
 
 Ava.test('Neck Punch should be playable', (t) => {
