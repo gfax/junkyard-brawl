@@ -372,6 +372,24 @@ Ava.test('Block should be thwarted by unstoppable cards', (t) => {
   t.is(game.discard.length, 3)
 })
 
+Ava.test('Bulldozer should leave a target with no cards', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+
+  const [player1, , player3] = game.players
+  player1.hand.push(Deck.getCard('bulldozer'))
+  game.play(player1.id, Deck.getCard('bulldozer'), player3.id)
+
+  t.true(announceCallback.calledWith('card:bulldozer:contact'))
+  t.is(player3.hand.length, 0)
+  t.is(game.turns, 1)
+  t.is(player1.hand.length, player1.maxHand)
+  t.is(game.discard.length, player3.maxHand + 1)
+})
+
 Ava.test('Crane should dump cards onto a target', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -566,6 +584,55 @@ Ava.test('Dodge should not be playable when grabbed', (t) => {
   t.true(whisperCallback.calledWith(player2.id, 'card:dodge:invalid'))
   t.is(game.turns, 0)
   t.is(game.discard.length, 0)
+})
+
+Ava.test('Earthquake should hurt everybody', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('earthquake'))
+  game.play(player1.id, Deck.getCard('earthquake'))
+
+  t.true(announceCallback.calledWith('card:earthquake:disaster'))
+  t.is(player1.hp, player1.maxHp - 1)
+  t.is(player2.hp, player2.maxHp - 1)
+})
+
+Ava.test('Earthquake should immediately discard', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player] = game.players
+  player.hand.push(Deck.getCard('earthquake'))
+  game.play(player.id, Deck.getCard('earthquake'))
+
+  t.is(player.hand.length, player.maxHand)
+  t.is(game.discard.length, 1)
+  t.truthy(find(game.discard, Deck.getCard('earthquake')))
+})
+
+Ava.test('Gamblin\' man should do some random damage between 1 and 6', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('gamblin-man'))
+  game.play(player1.id, Deck.getCard('gamblin-man'))
+  game.pass(player2.id)
+
+  t.true(announceCallback.calledWith('card:gamblin-man:contact'))
+  t.true(player2.hp <= player2.maxHp - 1)
+  t.true(player2.hp >= player2.maxHp - 6)
+  t.is(game.turns, 1)
+  t.is(player1.hand.length, player1.maxHand)
+  t.is(game.discard.length, 1)
 })
 
 Ava.test('Grease Bucket should make a player miss a turn', (t) => {

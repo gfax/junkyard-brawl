@@ -126,9 +126,23 @@ const deck = [
   },
   {
     id: 'bulldozer',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'unstoppable',
+    copies: 1,
+    filter: () => [],
+    contact: (player, target, cards, game) => {
+      game.discard.push(cards[0])
+      player.discard = []
+      game.discard = game.discard.concat(target.hand)
+      target.hand = []
+      game.announce('card:bulldozer:contact', {
+        player,
+        target
+      })
+    },
+    play: (player, target, cards, game) => {
+      game.contact(player, target, cards)
+      game.incrementTurn()
+    }
   },
   {
     id: 'cheap-shot',
@@ -222,9 +236,16 @@ const deck = [
   },
   {
     id: 'earthquake',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'disaster',
+    copies: 1,
+    filter: () => [],
+    disaster: (player, cards, game) => {
+      game.discard.push(cards[0])
+      game.announce('card:earthquake:disaster', { player })
+      game.players.forEach(plyr => (plyr.hp -= 1))
+      game.announceStats()
+      game.players.forEach(plyr => game.maybeRemove(plyr))
+    }
   },
   {
     id: 'energy-drink',
@@ -235,8 +256,26 @@ const deck = [
   {
     id: 'gamblin-man',
     type: 'attack',
-    copies: 0,
-    filter: () => []
+    copies: 2,
+    filter: () => [],
+    contact: (player, target, cards, game) => {
+      game.discard.push(player.discard[0])
+      player.discard = []
+      const damage = Math.floor((Math.random() * 6) + 1)
+      target.hp -= damage
+      game.announce('card:gamblin-man:contact', {
+        damage,
+        player,
+        target
+      })
+    },
+    play: (player, target, cards, game) => {
+      game.announce('player:played', {
+        cards: printCards(cards[0], game.language),
+        player,
+        target
+      })
+    }
   },
   {
     id: 'gas-spill',

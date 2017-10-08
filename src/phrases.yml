@@ -19,6 +19,8 @@ card:block:counter:
   en: <%= player.name %> blocks <%= attacker.name %>'s <%= cards %>.
 card:bulldozer:
   en: Bulldozer
+card:bulldozer:contact:
+  en: <%= player.name %> bulldozes over all of <%= target.name %>'s junk.
 card:cheap-shot:
   en: Cheap Shot
 card:crane:
@@ -41,10 +43,14 @@ card:dodge:nullify:
   en: <%= player.name %> dodges and nullifies <%= attacker.name %>'s <%= cards %>.
 card:earthquake:
   en: Earthquake
+card:earthquake:disaster:
+  en: <%= player.name %> steps on a fault line and causes an earthquake!
 card:energy-drink:
   en: Energy Drink
 card:gamblin-man:
   en: Gamblin' Man
+card:gamblin-man:contact:
+  en: <%= player.name %> rolls the bones to determine <%= target.name %>'s fate... <%= damage %> damage!
 card:gas-spill:
   en: Gas Spill
 card:grab:
