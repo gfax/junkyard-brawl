@@ -9,6 +9,8 @@ card:acid-coffee:contact:
   en: <%= player.name %> pours some battery acid in <%= target.name %>'s coffee.
 card:armor:
   en: Armor
+card:armor:contact:
+  en: <%= player.name %> buckles on some armor.
 card:avalanche:
   en: Avalanche
 card:avalanche:contact:

@@ -70,9 +70,13 @@ const deck = [
   },
   {
     id: 'armor',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'support',
+    copies: 1,
+    filter: () => [],
+    contact: (player, target, cards, game) => {
+      player.hp += 5
+      game.announce('card:armor:contact', { player })
+    }
   },
   {
     id: 'avalanche',

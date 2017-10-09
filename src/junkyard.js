@@ -295,6 +295,8 @@ module.exports = class Junkyard {
     let target = null
     if (cards[0].type === 'support') {
       this.contact(player, player, cards, this)
+      cards.forEach(card => removeOnce(player.hand, card))
+      this.discard = this.discard.concat(cards)
       this.incrementTurn()
       return
     }

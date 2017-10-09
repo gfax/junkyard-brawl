@@ -316,6 +316,22 @@ Ava.test('A Gun should thwart counters', (t) => {
   t.is(player1.hand.length, player1.maxHand)
 })
 
+Ava.test('Armor should add 5 HP, even past the player\'s max HP', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player] = game.players
+  player.hand.push(Deck.getCard('armor'))
+  game.play(player.id, [Deck.getCard('armor')])
+
+  t.true(announceCallback.calledWith('card:armor:contact'))
+  t.is(player.hand.length, player.maxHand)
+  t.is(game.discard.length, 1)
+  t.is(player.hp, player.maxHp + 5)
+})
+
 Ava.test('Avalanche should attack a random player', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -880,7 +896,10 @@ Ava.test('Sub should heal a player', (t) => {
   game.play(player2.id, [Deck.getCard('sub')])
 
   t.true(announceCallback.calledWith('card:sub:contact'))
-  t.true(player2.hp === 9)
+  t.is(player2.hp, player2.maxHp - 1)
+  t.is(player2.hand.length, player2.maxHand)
+  t.is(game.discard.length, 2)
+  t.truthy(find(game.discard, Deck.getCard('sub')))
 })
 
 Ava.test('Sub should not heal a player above max health', (t) => {
