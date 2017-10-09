@@ -232,18 +232,36 @@ Ava.test('Acid Coffee should make a player miss a turn', (t) => {
 Ava.test('Acid Coffee should delay discarding', (t) => {
   const game = new Junkyard('player1', 'Jay')
   game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+  const [player1, , player3] = game.players
+  player1.hand.push(Deck.getCard('acid-coffee'))
+
+  game.play(player1.id, [Deck.getCard('acid-coffee')], player3.id)
+  t.is(player1.hand.length, player1.maxHand)
+
+  game.pass(player3.id)
+  t.is(game.discard.length, 0)
+
+  game.incrementTurn()
+  t.is(game.discard.length, 1)
+})
+
+Ava.test('Acid Coffee should discard even in the event of death', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
   player1.hand.push(Deck.getCard('acid-coffee'))
+  player2.hp = 3
 
   game.play(player1.id, [Deck.getCard('acid-coffee')])
   t.is(player1.hand.length, player1.maxHand)
 
   game.pass(player2.id)
-  t.is(game.discard.length, 0)
-
-  game.incrementTurn()
-  t.is(game.discard.length, 1)
+  t.truthy(game.stopped)
+  t.is(game.discard.length, player2.maxHand + 1)
+  t.truthy(find(game.discard, Deck.getCard('acid-coffee')))
 })
 
 Ava.test('A Gun should be playable', (t) => {
@@ -635,6 +653,67 @@ Ava.test('Gamblin\' man should do some random damage between 1 and 6', (t) => {
   t.is(game.discard.length, 1)
 })
 
+Ava.test('Gas Spill should cause a player to miss 2 turns.', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('gas-spill'))
+
+  game.play(player1.id, [Deck.getCard('gas-spill')])
+  t.true(announceCallback.calledWith('card:gas-spill:contact'))
+  t.is(player1.beforeTurn.length + player2.beforeTurn.length, 1)
+  t.is(player1.missTurns + player2.missTurns, 2)
+})
+
+Ava.test('Gas Spill should delay discarding', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const gasSpill = Deck.getCard('gas-spill')
+  player1.hand.push(gasSpill)
+  game.play(player1.id, [gasSpill])
+  t.is(player1.hand.length, player1.maxHand)
+
+  t.is(game.discard.length, 0)
+  if (player1.beforeTurn.length) {
+    t.is(player1.missTurns, 2)
+    game.incrementTurn()
+    game.incrementTurn()
+    t.is(player1.missTurns, 1)
+    t.is(game.discard.length, 0)
+    game.incrementTurn()
+  } else if (player2.beforeTurn.length) {
+    game.incrementTurn()
+    t.is(game.discard.length, 0)
+    game.incrementTurn()
+  } else {
+    t.fail()
+  }
+  t.is(game.discard.length, 1)
+  t.true(announceCallback.calledWith('card:gas-spill:discard'))
+})
+
+Ava.test('Gas Spill should discard when the affected player is removed', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+  const gasSpill = Deck.getCard('gas-spill')
+  game.players[0].hand.push(gasSpill)
+  game.play(game.players[0].id, [gasSpill])
+
+  t.is(game.discard.length, 0)
+  const player = find(game.players, plyr => plyr.beforeTurn.length === 1)
+  game.removePlayer(player.id)
+  t.is(game.discard.length, player.maxHand + 1)
+  t.truthy(find(game.discard, gasSpill))
+})
+
 Ava.test('Grease Bucket should make a player miss a turn', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -652,18 +731,34 @@ Ava.test('Grease Bucket should make a player miss a turn', (t) => {
 Ava.test('Grease Bucket should delay discarding', (t) => {
   const game = new Junkyard('player1', 'Jay')
   game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
   game.start()
-  const [player1, player2] = game.players
+  const [player1, , player3] = game.players
   player1.hand.push(Deck.getCard('grease-bucket'))
 
-  game.play(player1.id, [Deck.getCard('grease-bucket')])
+  game.play(player1.id, [Deck.getCard('grease-bucket')], player3.id)
   t.is(player1.hand.length, player1.maxHand)
 
-  game.pass(player2.id)
+  game.pass(player3.id)
   t.is(game.discard.length, 0)
 
   game.incrementTurn()
   t.is(game.discard.length, 1)
+})
+
+Ava.test('Grease Bucket should discard when a player dies', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('grease-bucket'))
+  player2.hp = 2
+
+  game.play(player1.id, [Deck.getCard('grease-bucket')])
+  game.pass(player2.id)
+
+  t.truthy(find(game.discard, Deck.getCard('grease-bucket')))
+  t.is(game.discard.length, player2.maxHand + 1)
 })
 
 Ava.test('Insurance should restore a player to half HP', (t) => {
@@ -851,6 +946,11 @@ Ava.test('THE BEES should sting a player to death', (t) => {
   t.true(announceCallback.calledWith('player:died'))
   t.is(game.players.length, 1)
   t.truthy(game.stopped)
+  t.truthy(
+    find(game.discard, Deck.getCard('the-bees')),
+    'it should be cycled back into the game when the player dies'
+  )
+  t.is(game.discard.length, player2.maxHand + 1)
 })
 
 Ava.test('THE BEES should go away when a player heals', (t) => {

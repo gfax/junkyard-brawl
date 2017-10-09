@@ -14,6 +14,11 @@ module.exports = class Player {
     this.beforeContact = []
     // Array of callbacks to trigger pre-move
     this.beforeTurn = []
+    // Array of cards attached to the player while special conditions are in effect.
+    // Not only does this let us see what conditions are currently applied to the player
+    // for the purpose of displaying player stats, but in the event of a pre-mature death
+    // the cards can be quickly collected and put in the discard pile.
+    this.conditionCards = []
     // Cards in play
     this.discard = []
     // Cards in hand

@@ -351,11 +351,9 @@ module.exports = class Junkyard {
       player.hand = []
     }
     this.dropouts.push(player)
-    if (died) {
-      this.announce('player:died', { player })
-    } else {
-      this.announce('player:dropped', { player })
-    }
+    // Relinquish all attached cards back to the discard
+    this.discard = this.discard.concat(player.conditionCards)
+    this.announce(`player:${died ? 'died' : 'dropped'}`, { player })
     // No more opponents left
     if (this.started && this.players.length < 2) {
       this.stop()

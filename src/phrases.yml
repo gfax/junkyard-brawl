@@ -11,7 +11,7 @@ card:armor:
   en: Armor
 card:avalanche:
   en: Avalanche
-card:avalanche:play:
+card:avalanche:contact:
   en: <%= player.name %> causes and avalanche to fall on <%= target.name %>.
 card:block:
   en: Block
@@ -53,6 +53,10 @@ card:gamblin-man:contact:
   en: <%= player.name %> rolls the bones to determine <%= target.name %>'s fate... <%= damage %> damage!
 card:gas-spill:
   en: Gas Spill
+card:gas-spill:contact:
+  en: <%= player.name %> drops a fuel take on <%= target.name %>'s stuff. <%= target.name %> goes to find a hose and ash tray...
+card:gas-spill:discard:
+  en: <%= player.name %> discards <%= cards %>.
 card:grab:
   en: Grab
 card:grab:counter:

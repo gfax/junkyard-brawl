@@ -260,7 +260,13 @@ A player object consists of the following properties:
   beforeContact: [],
   // Array of functions. Pending conditions to trigger when the player's turn starts.
   beforeTurn: [],
-  // Array of card objects. Temporary discard of cards to which the other player may need to respond.
+  // Array of cards attached to the player while special conditions are in effect.
+  // Not only does this let us see what conditions are currently applied to the player
+  // for the purpose of displaying player stats, but in the event of a pre-mature death
+  // the cards can be quickly collected and put in the discard pile.
+  conditionCards: [],
+  // Array of card objects. Temporary discard of cards
+  // to which the other player may need to respond.
   discard: [],
   // Array of card objects available to the player for play.
   hand: [Array],
@@ -275,6 +281,8 @@ A player object consists of the following properties:
   // Maximum number of health points. A player cannot heal any higher than
   // this number (with the exception of a few cards, such as "Armor").
   maxHp: 10,
+  // If the player was caused to miss any turns, they are counted here.
+  missTurns: 0
   // Display name to use for this player in announcements and notifications.
   name: 'Kevin',
   // Turns the player has taken so far
@@ -284,7 +292,8 @@ A player object consists of the following properties:
 
 ### start()
 
-Starting a game will deal cards to all the players, shuffle the play order, and announce the first player. The game needs a minimum of two players to start.
+Starting a game will deal cards to all the players, shuffle the play order, and announce the first player.
+The game needs a minimum of two players to start.
 
 ```js
 const JunkyardBrawl = require('junkyard-brawl')
@@ -344,4 +353,4 @@ game.pass(player2.id) // Player doesn't wish to counter the Gut Punch attack.
 
 | param     | type ||
 |-           |-     |- |
-| `playerId` | string | ID of the user wishing to pass on responding the attack. Invalid user requests are ignored or notified as necessary.
+| `playerId` | string | ID of the user wishing to pass on responding the attack. Invalid user requests are ignored or notified as necessary. |

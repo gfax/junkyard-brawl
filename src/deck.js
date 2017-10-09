@@ -43,13 +43,8 @@ const deck = [
     filter: () => [],
     beforeTurn: (player, game) => {
       const acidCoffee = getCard('acid-coffee')
-      const discardFn = () => {
-        // Now we can discard the card
-        game.discard.push(acidCoffee)
-        removeOnce(player.beforeTurn, () => discardFn)
-        return true
-      }
-      player.beforeTurn.push(discardFn)
+      game.discard.push(acidCoffee)
+      removeOnce(player.conditionCards, acidCoffee)
       removeOnce(player.beforeTurn, () => acidCoffee.beforeTurn)
       return true
     },
@@ -59,6 +54,7 @@ const deck = [
       target.hp -= 3
       target.missTurns += 1
       target.beforeTurn.push(cards[0].beforeTurn)
+      target.conditionCards.push(cards[0])
       game.announce('card:acid-coffee:contact', {
         player,
         target
@@ -86,7 +82,7 @@ const deck = [
     contact: (player, target, cards, game) => {
       game.discard.push(cards[0])
       target.hp -= 6
-      game.announce('card:avalanche:play', {
+      game.announce('card:avalanche:contact', {
         player,
         target
       })
@@ -279,9 +275,39 @@ const deck = [
   },
   {
     id: 'gas-spill',
-    type: 'attack',
+    type: 'disaster',
     copies: 0,
-    filter: () => []
+    filter: () => [],
+    beforeTurn: (player, game) => {
+      const gasSpill = getCard('gas-spill')
+      const discardFn = () => {
+        // Now we can discard the card
+        game.discard.push(gasSpill)
+        removeOnce(player.conditionCards, gasSpill)
+        removeOnce(player.beforeTurn, () => discardFn)
+        game.announce('card:gas-spill:discard', {
+          cards: printCards(gasSpill, game.language),
+          player
+        })
+        return true
+      }
+      player.beforeTurn.push(discardFn)
+      removeOnce(player.beforeTurn, () => gasSpill.beforeTurn)
+      return true
+    },
+    contact: (player, target, cards, game) => {
+      target.missTurns += 2
+      target.beforeTurn.push(cards[0].beforeTurn)
+      target.conditionCards.push(cards[0])
+      game.announce('card:gas-spill:contact', {
+        player,
+        target
+      })
+    },
+    disaster: (player, cards, game) => {
+      const target = sample(game.players)
+      game.contact(player, target, cards)
+    }
   },
   {
     id: 'grab',
@@ -347,13 +373,8 @@ const deck = [
     filter: () => [],
     beforeTurn: (player, game) => {
       const greaseBucket = getCard('grease-bucket')
-      const discardFn = () => {
-        // Now we can discard the card
-        game.discard.push(greaseBucket)
-        removeOnce(player.beforeTurn, () => discardFn)
-        return true
-      }
-      player.beforeTurn.push(discardFn)
+      game.discard.push(greaseBucket)
+      removeOnce(player.conditionCards, greaseBucket)
       removeOnce(player.beforeTurn, () => greaseBucket.beforeTurn)
       return true
     },
@@ -363,6 +384,7 @@ const deck = [
       target.hp -= 2
       target.missTurns += 1
       target.beforeTurn.push(cards[0].beforeTurn)
+      target.conditionCards.push(cards[0])
       game.announce('card:grease-bucket:contact', {
         player,
         target
@@ -566,6 +588,7 @@ const deck = [
       if (cards[0].type === 'support') {
         removeOnce(player.beforeTurn, () => theBees.beforeTurn)
         removeOnce(player.afterContact, () => theBees.afterContact)
+        removeOnce(player.conditionCards, theBees)
         // Relinquish the card from the player
         game.discard.push(theBees)
         game.announce('card:the-bees:healed', { player })
@@ -584,6 +607,7 @@ const deck = [
       const target = sample(game.players)
       target.beforeTurn.push(cards[0].beforeTurn)
       target.afterContact.push(cards[0].afterContact)
+      target.conditionCards.push(cards[0])
       game.announce('card:the-bees:play', {
         player,
         target
