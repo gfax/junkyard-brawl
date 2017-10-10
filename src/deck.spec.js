@@ -424,6 +424,22 @@ Ava.test('Bulldozer should leave a target with no cards', (t) => {
   t.is(game.discard.length, player3.maxHand + 1)
 })
 
+Ava.test('Cheap Shot should be playable', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const cheapShot = Deck.getCard('cheap-shot')
+  player1.hand.push(cheapShot)
+
+  game.play(player1.id, [cheapShot])
+  t.is(player2.hp, player2.maxHp - 1)
+  t.is(game.turns, 1)
+  t.is(game.discard.length, 1)
+  t.truthy(find(game.discard, cheapShot))
+  t.is(player1.hand.length, player1.maxHand)
+})
+
 Ava.test('Crane should dump cards onto a target', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -620,6 +636,40 @@ Ava.test('Dodge should not be playable when grabbed', (t) => {
   t.is(game.discard.length, 0)
 })
 
+Ava.test('Energy Drink should heal a player over the course of 3 turns', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player] = game.players
+  const energyDrink = Deck.getCard('energy-drink')
+  player.hand.push(energyDrink)
+  player.hp = 2
+  game.play(player.id, [energyDrink])
+
+  t.true(announceCallback.calledWith('card:energy-drink:contact'))
+  t.false(announceCallback.calledWith('card:energy-drink:before-turn'))
+  t.is(player.hp, 3)
+  t.is(player.hand.length, player.maxHand)
+  t.is(game.discard.length, 0)
+
+  game.incrementTurn()
+  game.incrementTurn()
+  t.is(player.hp, 4)
+  t.is(game.discard.length, 0)
+  t.true(announceCallback.calledWith('card:energy-drink:before-turn'))
+
+  announceCallback.reset()
+  game.incrementTurn()
+  game.incrementTurn()
+  t.is(player.hp, 5)
+  t.is(game.discard.length, 1)
+  t.truthy(find(game.discard, energyDrink))
+  t.true(announceCallback.calledWith('card:energy-drink:before-turn'))
+  t.true(announceCallback.calledWith('player:discard'))
+})
+
 Ava.test('Earthquake should hurt everybody', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -710,7 +760,7 @@ Ava.test('Gas Spill should delay discarding', (t) => {
     t.fail()
   }
   t.is(game.discard.length, 1)
-  t.true(announceCallback.calledWith('card:gas-spill:discard'))
+  t.true(announceCallback.calledWith('player:discard'))
 })
 
 Ava.test('Gas Spill should discard when the affected player is removed', (t) => {
@@ -882,7 +932,29 @@ Ava.test('Neck Punch should be playable', (t) => {
   t.is(player1.hp, 7)
 })
 
-Ava.test('Sub should heal a player', (t) => {
+Ava.test('Soup should heal a player and discard', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const soup = Deck.getCard('soup')
+  player1.hand.push(soup)
+  player1.hp = 3
+  player2.hand.push(soup)
+
+  game.play(player1.id, [soup])
+  game.play(player2.id, [soup])
+
+  t.true(announceCallback.calledWith('card:soup:contact'))
+  t.is(player1.hp, 4)
+  t.is(player2.hp, player2.maxHp)
+  t.is(player2.hand.length, player2.maxHand)
+  t.is(game.discard.length, 2)
+  t.truthy(find(game.discard, soup))
+})
+
+Ava.test('Sub should heal a player and discard', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')

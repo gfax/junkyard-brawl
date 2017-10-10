@@ -25,6 +25,8 @@ card:bulldozer:contact:
   en: <%= player.name %> bulldozes over all of <%= target.name %>'s junk.
 card:cheap-shot:
   en: Cheap Shot
+card:cheap-shot:contact:
+  en: <%= player.name %> takes a cheap shot at <%= target.name %>.
 card:crane:
   en: Crane
 card:crane:contact:
@@ -49,6 +51,10 @@ card:earthquake:disaster:
   en: <%= player.name %> steps on a fault line and causes an earthquake!
 card:energy-drink:
   en: Energy Drink
+card:energy-drink:before-turn:
+  en: <%= player.name %> feels a burst of caffeine kick in. +1!
+card:energy-drink:contact:
+  en: <%= player.name %> chugs an energy drink. +1!
 card:gamblin-man:
   en: Gamblin' Man
 card:gamblin-man:contact:
@@ -57,8 +63,6 @@ card:gas-spill:
   en: Gas Spill
 card:gas-spill:contact:
   en: <%= player.name %> drops a fuel take on <%= target.name %>'s stuff. <%= target.name %> goes to find a hose and ash tray...
-card:gas-spill:discard:
-  en: <%= player.name %> discards <%= cards %>.
 card:grab:
   en: Grab
 card:grab:counter:
@@ -111,6 +115,8 @@ card:siphon:
   en: Siphon
 card:soup:
   en: Soup
+card:soup:contact:
+  en: <%= player.name %> sips a can of soup and relaxes.
 card:spare-bolts:
   en: Spare Bolts
 card:sub:

@@ -74,6 +74,7 @@ const deck = [
     copies: 1,
     filter: () => [],
     contact: (player, target, cards, game) => {
+      game.discard.push(cards[0])
       player.hp += 5
       game.announce('card:armor:contact', { player })
     }
@@ -146,9 +147,22 @@ const deck = [
   },
   {
     id: 'cheap-shot',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'unstoppable',
+    copies: 2,
+    filter: () => [],
+    contact: (player, target, cards, game) => {
+      game.discard.push(cards[0])
+      player.discard = []
+      target.hp -= 1
+      game.announce('card:cheap-shot:contact', {
+        player,
+        target
+      })
+    },
+    play: (player, target, cards, game) => {
+      game.contact(player, target, cards)
+      game.incrementTurn()
+    }
   },
   {
     id: 'crane',
@@ -249,9 +263,35 @@ const deck = [
   },
   {
     id: 'energy-drink',
-    type: 'attack',
+    type: 'support',
     copies: 0,
-    filter: () => []
+    filter: () => [],
+    beforeTurn: (player, game) => {
+      const energyDrink = getCard('energy-drink')
+      const discardFn = () => {
+        game.discard.push(energyDrink)
+        removeOnce(player.conditionCards, energyDrink)
+        removeOnce(player.beforeTurn, () => discardFn)
+        player.hp = Math.min(player.hp + 1, player.maxHp)
+        game.announce('card:energy-drink:before-turn', { player })
+        game.announce('player:discard', {
+          cards: printCards(energyDrink, game.language),
+          player
+        })
+        return true
+      }
+      player.hp = Math.min(player.hp + 1, player.maxHp)
+      player.beforeTurn.push(discardFn)
+      removeOnce(player.beforeTurn, () => energyDrink.beforeTurn)
+      game.announce('card:energy-drink:before-turn', { player })
+      return true
+    },
+    contact: (player, target, cards, game) => {
+      player.hp = Math.min(player.hp + 1, player.maxHp)
+      player.beforeTurn.push(cards[0].beforeTurn)
+      target.conditionCards.push(cards[0])
+      game.announce('card:energy-drink:contact', { player })
+    }
   },
   {
     id: 'gamblin-man',
@@ -289,7 +329,7 @@ const deck = [
         game.discard.push(gasSpill)
         removeOnce(player.conditionCards, gasSpill)
         removeOnce(player.beforeTurn, () => discardFn)
-        game.announce('card:gas-spill:discard', {
+        game.announce('player:discard', {
           cards: printCards(gasSpill, game.language),
           player
         })
@@ -556,9 +596,14 @@ const deck = [
   },
   {
     id: 'soup',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'support',
+    copies: 3,
+    filter: () => [],
+    contact: (player, target, cards, game) => {
+      game.discard.push(cards[0])
+      player.hp = Math.min(player.hp + 1, player.maxHp)
+      game.announce('card:soup:contact', { player })
+    }
   },
   {
     id: 'spare-bolts',
@@ -572,6 +617,7 @@ const deck = [
     copies: 7,
     filter: () => [],
     contact: (player, target, cards, game) => {
+      game.discard.push(cards[0])
       player.hp = Math.min(player.hp + 2, player.maxHp)
       game.announce('card:sub:contact', { player })
     }
