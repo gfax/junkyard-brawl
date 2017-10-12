@@ -1,4 +1,6 @@
-# Junkyard Brawl
+<p align="center">
+  <img src="https://raw.githubusercontent.com/gfax/junkyard-brawl/master/logo.jpg" alt="Junkyard Brawl">
+</p>
 
 [![Build Status](https://travis-ci.org/gfax/junkyard-brawl.svg?branch=master)](https://travis-ci.org/gfax/junkyard-brawl)
 [![codecov](https://codecov.io/gh/gfax/junkyard-brawl/branch/master/graph/badge.svg)](https://codecov.io/gh/gfax/junkyard-brawl)
