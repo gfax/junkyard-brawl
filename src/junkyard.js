@@ -99,14 +99,30 @@ module.exports = class Junkyard {
     )
   }
 
-  contact(player, target, cards) {
+  contact(player, target, cards, discarding = true) {
+    if (typeof discarding !== 'boolean') {
+      throw new Error(`Expected discarding to be boolean, got ${typeof discarding}`)
+    }
     // Before-contact conditions (ie, Deflector)
     target.beforeContact
       .concat([
-        () => cards[0].contact(player, target, cards, this)
+        () => {
+          // Discard any cards returned. Some cards aren't discarded
+          // when played so we only discard what we're given back.
+          const discard = cards[0].contact(player, target, cards, this) || []
+          // A few rare cases where we are duplicating an attack,
+          // ie Mirror, we don't want to re-discard the cards.
+          if (discarding === true) {
+            discard.forEach(card => this.discard.push(card))
+          }
+        }
       ])
       .reduce((bool, condition) => {
-        return bool && condition(player, target, cards, this)
+        // 5th param is the boolean on whether or not to discard
+        // Cards that are proxying contact like "Deflector" need
+        // to carry over this information in the event a "Mirror"
+        // is played and discarding again would create duplicates.
+        return bool && condition(player, target, cards, this, discarding)
       }, true)
     // After-contact conditions (ie, Mirror)
     target.afterContact
@@ -116,29 +132,7 @@ module.exports = class Junkyard {
     this.maybeRemove(target)
   }
 
-  counter(player, cards) {
-    if (!cards) {
-      throw new Error(`Expected cards, got: ${cards}`)
-    }
-    let attacker = this.target
-    if (player === this.target) {
-      [attacker] = this.players
-    }
-    if (cards[0].validateCounter) {
-      if (!cards[0].validateCounter(player, attacker, cards, this)) {
-        return
-      }
-    }
-    // Take the cards out of the player's hand and put
-    // any previous discard into the main discard pile
-    cards.forEach(card => removeOnce(player.hand, card))
-    this.discard = this.discard.concat(player.discard)
-    player.discard = cards
-    cards[0].counter(player, attacker, cards, this)
-  }
-
-  deal(player) {
-    const numberToDeal = player.maxHand - player.hand.length
+  deal(player, numberToDeal = player.maxHand - player.hand.length) {
     if (numberToDeal > 0) {
       times(numberToDeal, () => {
         if (this.deck.length < 1) {
@@ -146,6 +140,11 @@ module.exports = class Junkyard {
         }
         player.hand.push(this.deck.pop())
       })
+      // If the game hasn't started yet, then this is the initial
+      // deal to all the players and we don't need to announce that.
+      if (this.started) {
+        this.announce('player:deal', { number: numberToDeal, player })
+      }
     }
   }
 
@@ -176,10 +175,8 @@ module.exports = class Junkyard {
     if (this.stopped) {
       return
     }
-    this.discard = this.discard.concat(this.players[0].discard)
     this.players[0].discard = []
     if (this.target) {
-      this.discard = this.discard.concat(this.target.discard)
       this.target.discard = []
       // Silently prune dead player and return if the game stopped
       if (this.maybeRemove(this.target, this) && this.stopped) {
@@ -249,10 +246,10 @@ module.exports = class Junkyard {
       return
     }
     if (player === this.target) {
-      this.contact(turnPlayer, player, turnPlayer.discard, this)
+      this.contact(turnPlayer, player, turnPlayer.discard)
     // The target must have played a counter like Grab
     } else if (player === turnPlayer && this.target.discard) {
-      this.contact(this.target, turnPlayer, this.target.discard, this)
+      this.contact(this.target, turnPlayer, this.target.discard)
     }
     this.incrementTurn()
   }
@@ -278,10 +275,8 @@ module.exports = class Junkyard {
     }
     const cards = Deck.parseCards(player, cardRequest)
     // Disaster can (only) be played when there is no target
-    if (!this.target && cards[0].type === 'disaster') {
-      removeOnce(player.hand, cards[0])
-      cards[0].disaster(player, cards, this)
-      return
+    if (!this.target && cards[0].disaster) {
+      return playDisaster(player, cards, this)
     }
     if (this.players[0].id !== playerId && !this.target) {
       this.whisper(player, 'player:not-turn')
@@ -289,15 +284,11 @@ module.exports = class Junkyard {
     }
     // Countering the first play
     if (this.target && this.target === player) {
-      this.counter(player, cards)
-      return
+      return playCounter(player, cards, this)
     }
     let target = null
     if (cards[0].type === 'support') {
-      this.contact(player, player, cards, this)
-      cards.forEach(card => removeOnce(player.hand, card))
-      this.incrementTurn()
-      return
+      return playSupport(player, cards, this)
     }
     // Assume the target is the only other player
     if (this.players.length === 2) {
@@ -310,9 +301,10 @@ module.exports = class Junkyard {
       this.whisper(player, 'player:invalid-target')
       return false
     }
-    // This can probably be factored out and just check
-    // whether a card has a "play" function on it.
-    if (cards[0].type === 'counter' && cards[0].id !== 'grab') {
+    // Card can only be played if it has a play function.
+    // This is typically an Attack or Unstoppable, but
+    // could also be a "Grab" card.
+    if (!cards[0].play) {
       this.whisper(player, 'player:invalid-play')
       return false
     }
@@ -460,6 +452,47 @@ function announceDiscard(player, game) {
     cards: Language.printCards(player.hand, game.language),
     player
   })
+}
+
+function playCounter(player, cards, game) {
+  if (!cards) {
+    throw new Error(`Expected cards, got: ${cards}`)
+  }
+  let attacker = game.target
+  if (player === game.target) {
+    [attacker] = game.players
+  }
+  if (cards[0].validateCounter) {
+    if (!cards[0].validateCounter(player, attacker, cards, game)) {
+      return
+    }
+  }
+  // Take the cards out of the player's hand and put
+  // any previous discard into the main discard pile
+  cards.forEach(card => removeOnce(player.hand, card))
+  // player.discard.forEach(card => game.discard.push(card))
+  player.discard = cards
+  // Discard any cards returned. Some cards aren't discarded
+  // when played so we only discard what we're given back.
+  const discard = cards[0].counter(player, attacker, cards, game) || []
+  discard.forEach(card => game.discard.push(card))
+}
+
+function playDisaster(player, cards, game) {
+  cards.forEach(card => removeOnce(player.hand, card))
+  // Discard any cards returned. Some cards aren't discarded
+  // when played so we only discard what we're given back.
+  const discard = cards[0].disaster(player, cards, game) || []
+  discard.forEach(card => game.discard.push(card))
+}
+
+function playSupport(player, cards, game) {
+  cards.forEach(card => removeOnce(player.hand, card))
+  // Discard any cards returned. Some cards aren't discarded
+  // when played so we only discard what we're given back.
+  const discard = game.contact(player, player, cards) || []
+  discard.forEach(card => game.discard.push(card))
+  game.incrementTurn()
 }
 
 function shuffleDeck(game) {

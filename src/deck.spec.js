@@ -117,28 +117,27 @@ Ava.test('Grab should be playable', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  player1.hand = player1.hand.concat([
-    Deck.getCard('grab'),
-    Deck.getCard('gut-punch')
-  ])
-  player2.hand = player2.hand.concat([
-    Deck.getCard('grab'),
-    Deck.getCard('a-gun')
-  ])
+  const grab = Deck.getCard('grab')
+  const gutPunch = Deck.getCard('gut-punch')
+  const aGun = Deck.getCard('a-gun')
+  player1.hand.push(grab)
+  player1.hand.push(gutPunch)
+  player2.hand.push(grab)
+  player2.hand.push(aGun)
 
-  game.play(player1.id, [Deck.getCard('grab'), Deck.getCard('gut-punch')])
+  game.play(player1.id, [grab, gutPunch])
   game.pass(player2.id)
 
   t.true(announceCallback.calledWith('card:grab:play'))
   t.true(announceCallback.calledWith('card:gut-punch:contact'))
 
-  game.play(player2.id, [Deck.getCard('grab'), Deck.getCard('a-gun')])
+  game.play(player2.id, [grab, aGun])
   game.pass(player1.id)
 
   t.true(announceCallback.calledWith('card:grab:play'))
   t.true(announceCallback.calledWith('card:a-gun:contact'))
 
-  t.truthy(find(game.discard, { id: 'grab' }))
+  t.truthy(find(game.discard, grab))
   t.is(game.discard.length, 4)
 })
 
@@ -291,7 +290,7 @@ Ava.test('A Gun should be able to kill a player', (t) => {
   t.is(game.players.length, 1)
 })
 
-Ava.test('A Gun should thwart counters', (t) => {
+Ava.test('A Gun should be unblockable', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
@@ -302,18 +301,21 @@ Ava.test('A Gun should thwart counters', (t) => {
     Deck.getCard('a-gun')
   ])
   player2.hand = player2.hand.concat([
-    Deck.getCard('grab'),
-    Deck.getCard('gut-punch')
+    Deck.getCard('block')
   ])
 
   game.play(player1.id, [Deck.getCard('grab'), Deck.getCard('a-gun')])
-  game.play(player2.id, [Deck.getCard('grab'), Deck.getCard('gut-punch')])
+  game.play(player2.id, [Deck.getCard('block')])
   t.true(announceCallback.calledWith('player:counter-failed'))
-  t.is(player2.hp, 8)
+  t.is(player2.hp, player2.maxHp - 2)
   t.is(game.turns, 1)
   t.is(game.players[0], player2)
-  t.is(game.discard.length, 4)
+  t.is(game.discard.length, 3)
   t.is(player1.hand.length, player1.maxHand)
+  t.is(player2.hand.length, player2.maxHand)
+  t.truthy(find(game.discard, { id: 'grab' }))
+  t.truthy(find(game.discard, { id: 'a-gun' }))
+  t.truthy(find(game.discard, { id: 'block' }))
 })
 
 Ava.test('Armor should add 5 HP, even past the player\'s max HP', (t) => {
@@ -340,15 +342,16 @@ Ava.test('Avalanche should attack a random player', (t) => {
   game.start()
 
   const [, player] = game.players
-  player.hand.push(Deck.getCard('avalanche'))
-  game.play(player.id, Deck.getCard('avalanche'))
+  const avalanche = Deck.getCard('avalanche')
+  player.hand.push(avalanche)
+  game.play(player.id, [avalanche])
 
   t.is(
     game.players.reduce((acc, plyr) => acc + plyr.hp, 0),
     game.players.reduce((acc, plyr) => acc + plyr.maxHp, 0) - 6
   )
-  t.truthy(find(game.discard, { id: 'avalanche' }))
   t.is(game.discard.length, 1)
+  t.truthy(find(game.discard, avalanche))
   t.is(player.hand.length, player.maxHand)
 })
 
@@ -447,9 +450,10 @@ Ava.test('Crane should dump cards onto a target', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  player1.hand.push(Deck.getCard('crane'))
+  const crane = Deck.getCard('crane')
+  player1.hand.push(crane)
   const [card1, card2, card3] = player1.hand
-  game.play(player1.id, [Deck.getCard('crane'), card1, card2, card3])
+  game.play(player1.id, [crane, card1, card2, card3])
 
   t.is(player2.hand.length, player2.maxHand + 3)
   t.truthy(find(player2.hand, card1))
@@ -459,7 +463,7 @@ Ava.test('Crane should dump cards onto a target', (t) => {
   t.is(player1.hand.length, player1.maxHand)
 })
 
-Ava.test('Crane should cause a player to discard when thwarted', (t) => {
+Ava.test('Crane should be playable with a grab', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
@@ -472,17 +476,19 @@ Ava.test('Crane should cause a player to discard when thwarted', (t) => {
   const grab = Deck.getCard('grab')
   player1.hand.push(grab)
   player1.hand.push(aGun)
+  player3.hand.push(aGun)
   player3.hand.push(grab)
   player3.hand.push(crane)
   const [card1, card2, card3] = player3.hand
   game.play(player1.id, [grab, aGun], player3.id)
   game.play(player3.id, [grab, crane, card1, card2, card3])
+  game.pass(player1.id)
 
   t.is(game.turns, 1)
   t.is(game.players[0], player2)
-  t.is(game.discard.length, 7)
-  t.is(player1.hand.length, player1.maxHand)
-  t.is(player3.hand.length, player3.maxHand - 3)
+  t.is(game.discard.length, 4)
+  t.is(player1.hand.length, player1.maxHand + 3)
+  t.is(player3.hand.length, player3.maxHand + 1)
 })
 
 Ava.test('Deflector should attach to a random player', (t) => {
@@ -538,6 +544,25 @@ Ava.test('Deflector should deflect an attack to another random player', (t) => {
   t.truthy(find(game.discard, deflector))
 })
 
+Ava.test('Deflector should also deflect Avalanches', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const avalanche = Deck.getCard('avalanche')
+  const deflector = Deck.getCard('deflector')
+  player1.hand.push(deflector)
+  player2.hand.push(avalanche)
+  game.play(player1.id, [deflector])
+  game.contact(player2, player1, [avalanche])
+  t.is(player2.hp, player2.maxHp - 6)
+  t.true(announceCallback.calledWith('card:deflector:deflect'))
+  t.true(announceCallback.calledWith('card:avalanche:contact'))
+  t.is(game.discard.length, 2)
+})
+
 Ava.test('Deflector should halt resolving further before-contact conditions', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -576,6 +601,21 @@ Ava.test('Deflector should resolve before-contact conditions across player', (t)
   t.true(announceCallback.calledWith('card:deflector:deflect'))
   t.is(game.turns, 1)
   t.is(player2.hp, player2.maxHp - 2)
+})
+
+Ava.test('Deflector should discard if the player holding it is removed', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1] = game.players
+  const deflector = Deck.getCard('deflector')
+  player1.hand.push(deflector)
+  game.play(player1.id, [deflector])
+  game.removePlayer(player1.id)
+  t.is(game.discard.length, player1.maxHand + 1)
+  t.truthy(find(game.discard, deflector))
+  t.is(game.turns, 0)
 })
 
 Ava.test('Dodge should counter and nullify attacks', (t) => {
@@ -916,6 +956,110 @@ Ava.test('Magnet should steal cards from another player', (t) => {
   t.deepEqual(player1.hand, crazyHand)
 })
 
+Ava.test('Mirror should duplicate attacks', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  player1.hand.push(Deck.getCard('gut-punch'))
+  player2.hand.push(Deck.getCard('mirror'))
+
+  game.play(player1.id, Deck.getCard('gut-punch'))
+  game.play(player2.id, Deck.getCard('mirror'))
+
+  t.true(announceCallback.calledWith('card:gut-punch:contact'))
+  t.true(announceCallback.calledWith('card:mirror:counter'))
+  t.is(player1.hp, player1.maxHp - 2)
+  t.is(player2.hp, player2.maxHp - 2)
+})
+
+Ava.test('Mirror should duplicate unstoppable attacks', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const grab = Deck.getCard('grab')
+  const aGun = Deck.getCard('a-gun')
+  const mirror = Deck.getCard('mirror')
+  player1.hand.push(grab)
+  player1.hand.push(aGun)
+  player2.hand.push(mirror)
+
+  game.play(player1.id, [grab, aGun])
+  game.play(player2.id, [mirror])
+
+  t.true(announceCallback.calledWith('card:a-gun:contact'))
+  t.true(announceCallback.calledWith('card:mirror:counter'))
+  t.is(player1.hp, player1.maxHp - 2)
+  t.is(player2.hp, player2.maxHp - 2)
+  t.is(game.turns, 1)
+  t.is(game.discard.length, 3)
+  t.truthy(find(game.discard, mirror))
+  t.truthy(find(game.discard, grab))
+  t.truthy(find(game.discard, aGun))
+})
+
+Ava.test('Mirror should duplicate support', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const grab = Deck.getCard('grab')
+  const armor = Deck.getCard('armor')
+  const mirror = Deck.getCard('mirror')
+  player1.hand.push(grab)
+  player1.hand.push(armor)
+  player2.hand.push(mirror)
+
+  game.play(player1.id, [grab, armor])
+  game.play(player2.id, [mirror])
+
+  t.true(announceCallback.calledWith('card:armor:contact'))
+  t.true(announceCallback.calledWith('card:mirror:counter'))
+  t.is(game.turns, 1)
+  t.is(player1.hp, player1.maxHp + 5)
+  t.is(player2.hp, player2.maxHp + 5)
+  t.is(game.discard.length, 3)
+  t.truthy(find(game.discard, mirror))
+  t.truthy(find(game.discard, grab))
+  t.truthy(find(game.discard, armor))
+})
+
+Ava.test('Mirror should work with Deflector', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  let [player1] = game.players
+  let player2 = null
+  const deflector = Deck.getCard('deflector')
+  const gutPunch = Deck.getCard('gut-punch')
+  const mirror = Deck.getCard('mirror')
+  player1.hand.push(deflector)
+  game.play(player1.id, deflector)
+  if (player1.conditionCards.length) {
+    game.incrementTurn()
+  }
+  [player1, player2] = game.players
+  player1.hand.push(mirror)
+  player2.hand.push(gutPunch)
+  game.incrementTurn()
+  game.play(player2.id, gutPunch)
+  game.play(player1.id, mirror)
+
+  t.is(game.players[0].id, player1.id, 'Turn should increment after countering')
+  t.is(player2.hp, player1.maxHp)
+  t.is(player1.hp, player2.maxHp - 4)
+  t.is(game.discard.length, 3)
+})
+
 Ava.test('Neck Punch should be playable', (t) => {
   const game = new Junkyard('player1', 'Jay')
   game.addPlayer('player2', 'Kevin')
@@ -970,8 +1114,8 @@ Ava.test('Sub should heal a player and discard', (t) => {
   t.true(announceCallback.calledWith('card:sub:contact'))
   t.is(player2.hp, player2.maxHp - 1)
   t.is(player2.hand.length, player2.maxHand)
-  t.is(game.discard.length, 2)
   t.truthy(find(game.discard, Deck.getCard('sub')))
+  t.is(game.discard.length, 2)
 })
 
 Ava.test('Sub should not heal a player above max health', (t) => {

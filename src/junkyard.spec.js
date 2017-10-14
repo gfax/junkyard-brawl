@@ -331,6 +331,14 @@ Ava.test('contact() should announce if a played died', (t) => {
   t.true(announceCallback.calledWith('player:died'))
 })
 
+Ava.test('contact() should throw an error if the last param is not a boolean', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  t.throws(() => game.contact(player1.id, player2.id, player1.cards[0], {}))
+})
+
 Ava.test('incrementTurn() should remove dead players', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)

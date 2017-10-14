@@ -101,6 +101,8 @@ card:meal-steal:
   en: Meal Steal
 card:mirror:
   en: Mirror
+card:mirror:counter:
+  en: <%= player.name %> takes <%= attacker.name %>'s <%= cards %> and mirrors it!
 card:neck-punch:
   en: Neck Punch
 card:neck-punch:contact:
@@ -169,6 +171,8 @@ player:cannot-rejoin:
   en: You've been dropped from the game, <%= player.name %>. You cannot rejoin.
 player:counter-failed:
   en: <%= player.name %>'s counter has been thwarted! Discarding <%= cards %>.
+player:deal:
+  en: '<%= player.name %> draws <%= number %> card<%= number === 1 ? "" : "s" %>.'
 player:died:
   en: <%= player.name %> has died.
 player:discard:
