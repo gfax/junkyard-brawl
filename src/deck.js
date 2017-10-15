@@ -24,7 +24,6 @@ const deck = [
     copies: 1,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      player.discard = []
       target.hp -= 2
       game.announce('card:a-gun:contact', {
         player,
@@ -50,11 +49,10 @@ const deck = [
       return true
     },
     contact: (player, target, cards, game) => {
-      // Card isn't put in the discard until the missed turn is expended
-      player.discard = []
       target.hp -= 3
       target.missTurns += 1
       target.beforeTurn.push(cards[0].beforeTurn)
+      // Card isn't put in the discard until the missed turn is expended
       target.conditionCards.push(cards[0])
       game.announce('card:acid-coffee:contact', {
         player,
@@ -134,7 +132,6 @@ const deck = [
     copies: 1,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      player.discard = []
       game.discard = game.discard.concat(target.hand)
       target.hand = []
       game.announce('card:bulldozer:contact', {
@@ -154,7 +151,6 @@ const deck = [
     copies: 2,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      player.discard = []
       target.hp -= 1
       game.announce('card:cheap-shot:contact', {
         player,
@@ -172,7 +168,6 @@ const deck = [
     type: 'unstoppable',
     copies: 1,
     contact: (player, target, cards, game) => {
-      player.discard = []
       const [head, ...tail] = cards
       target.hand = target.hand.concat(tail)
       game.announce('card:crane:contact', {
@@ -235,6 +230,8 @@ const deck = [
     },
     counter: (player, attacker, cards, game) => {
       game.discard.push(cards[0])
+      // Empty the discard since this player may not
+      // be a target by the time the turn increments
       player.discard = []
       if (game.getNextPlayer(player.id) === attacker) {
         game.announce('card:dodge:nullify', {
@@ -305,7 +302,6 @@ const deck = [
     copies: 2,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      player.discard = []
       const damage = Math.floor((Math.random() * 6) + 1)
       target.hp -= damage
       game.announce('card:gamblin-man:contact', {
@@ -416,11 +412,10 @@ const deck = [
       return true
     },
     contact: (player, target, cards, game) => {
-      // Card isn't put in the discard until the missed turn is expended
-      player.discard = []
       target.hp -= 2
       target.missTurns += 1
       target.beforeTurn.push(cards[0].beforeTurn)
+      // Card isn't put in the discard until the missed turn is expended
       target.conditionCards.push(cards[0])
       game.announce('card:grease-bucket:contact', {
         player,
@@ -461,7 +456,6 @@ const deck = [
     copies: 10,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      player.discard = []
       target.hp -= 2
       game.announce('card:gut-punch:contact', {
         player,
@@ -507,7 +501,6 @@ const deck = [
     copies: 1,
     contact: (player, target, cards, game) => {
       game.discard = game.discard.concat(cards)
-      player.discard = []
       const numberToSteal = Math.min(cards.length, target.hand.length)
       const stolenCards = shuffle(target.hand).slice(0, numberToSteal)
       stolenCards.forEach((card) => {
@@ -527,9 +520,23 @@ const deck = [
   },
   {
     id: 'mattress',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'counter',
+    copies: 3,
+    filter: () => [],
+    counter: (player, attacker, cards, game) => {
+      const healthBeforeAttack = clone(player.hp)
+      const afterContactFn = (_attacker, target, _cards, _game) => {
+        if (healthBeforeAttack > target.hp) {
+          target.hp = Math.min(healthBeforeAttack, target.hp + 2)
+        }
+        removeOnce(target.afterContact, () => afterContactFn)
+      }
+      player.afterContact.push(afterContactFn)
+      game.announce('card:mattress:counter', { player })
+      game.contact(attacker, player, attacker.discard)
+      game.incrementTurn()
+      return cards
+    }
   },
   {
     id: 'meal-steal',
@@ -692,8 +699,23 @@ const deck = [
   {
     id: 'uppercut',
     type: 'attack',
-    copies: 0,
-    filter: () => []
+    copies: 5,
+    filter: () => [],
+    contact: (player, target, cards, game) => {
+      target.hp -= 5
+      game.announce('card:uppercut:contact', {
+        player,
+        target
+      })
+      return cards
+    },
+    play: (player, target, cards, game) => {
+      game.announce('player:played', {
+        cards: printCards(cards[0], game.language),
+        player,
+        target
+      })
+    }
   },
   {
     id: 'whirlwind',

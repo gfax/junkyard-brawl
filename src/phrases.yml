@@ -97,6 +97,8 @@ card:magnet:contact:
   en: <%= player.name %> steals <%= number %> cards from <%= target.name %>.
 card:mattress:
   en: Mattress
+card:mattress:counter:
+  en: <%= player.name %> throws up an old mattress in defense.
 card:meal-steal:
   en: Meal Steal
 card:mirror:
@@ -143,6 +145,8 @@ card:toolbox:
   en: Toolbox
 card:uppercut:
   en: Uppercut
+card:uppercut:contact:
+  en: <%= target.name %> suffers an uppercut from <%= player.name %>.
 card:whirlwind:
   en: Whirlwind
 card:wrench:

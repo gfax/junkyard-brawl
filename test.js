@@ -9,19 +9,11 @@ const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
 game.addPlayer('player2', 'Kevin')
 game.start()
 
-let [player1] = game.players
-let player2 = null
-const deflector = Deck.getCard('deflector')
-const gutPunch = Deck.getCard('gut-punch')
-const mirror = Deck.getCard('mirror')
-player1.hand.push(deflector)
-game.play(player1.id, deflector)
-if (player1.conditionCards.length) {
-  game.incrementTurn()
-}
-[player1, player2] = game.players
-player1.hand.push(mirror)
-player2.hand.push(gutPunch)
-game.incrementTurn()
-game.play(player2.id, gutPunch)
-game.play(player1.id, mirror)
+const [player1, player2] = game.players
+const uppercut = Deck.getCard('uppercut')
+const mattress = Deck.getCard('mattress')
+player1.hand.push(uppercut)
+player2.hand.push(mattress)
+player2.hp = player2.maxHp + 6
+game.play(player1.id, uppercut)
+game.play(player2.id, mattress)

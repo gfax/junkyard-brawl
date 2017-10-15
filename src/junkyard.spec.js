@@ -112,6 +112,17 @@ Ava.test('start() should not start a with less than two players', (t) => {
   t.false(game.started)
 })
 
+Ava.test('start() should announce if the game has already started', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  announceCallback.reset()
+  game.start()
+  t.true(announceCallback.calledWith('game:invalid-start'))
+  t.true(announceCallback.calledOnce)
+})
+
 Ava.test('start() should show a player his cards on his turn', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()
@@ -336,7 +347,8 @@ Ava.test('contact() should throw an error if the last param is not a boolean', (
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  t.throws(() => game.contact(player1.id, player2.id, player1.cards[0], {}))
+  player1.hand.push(Deck.getCard('gut-punch'))
+  t.throws(() => game.contact(player1.id, player2.id, [Deck.getCard('gut-punch')], {}))
 })
 
 Ava.test('incrementTurn() should remove dead players', (t) => {
