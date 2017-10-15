@@ -10,10 +10,9 @@ game.addPlayer('player2', 'Kevin')
 game.start()
 
 const [player1, player2] = game.players
-const uppercut = Deck.getCard('uppercut')
-const mattress = Deck.getCard('mattress')
-player1.hand.push(uppercut)
-player2.hand.push(mattress)
-player2.hp = player2.maxHp + 6
-game.play(player1.id, uppercut)
-game.play(player2.id, mattress)
+const tire = Deck.getCard('tire')
+const tireIron = Deck.getCard('tire-iron')
+player1.hand.push(tireIron)
+player2.hand.push(tire)
+game.play(player1.id, tireIron)
+game.play(player2.id, tire)

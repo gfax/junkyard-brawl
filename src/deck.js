@@ -680,15 +680,47 @@ const deck = [
   },
   {
     id: 'tire',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'unstoppable',
+    copies: 2,
+    filter: () => [],
+    beforeTurn: (player, game) => {
+      const tire = getCard('tire')
+      game.discard.push(tire)
+      removeOnce(player.conditionCards, tire)
+      removeOnce(player.beforeTurn, () => tire.beforeTurn)
+      return true
+    },
+    contact: (player, target, cards, game) => {
+      target.missTurns += 1
+      target.beforeTurn.push(cards[0].beforeTurn)
+      target.conditionCards.push(cards[0])
+      game.announce('card:tire:contact', {
+        player,
+        target
+      })
+    },
+    play: (player, target, cards, game) => {
+      game.contact(player, target, cards)
+      game.incrementTurn()
+    }
   },
   {
     id: 'tire-iron',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'unstoppable',
+    copies: 1,
+    filter: () => [],
+    contact: (player, target, cards, game) => {
+      target.hp -= 3
+      game.announce('card:tire-iron:contact', {
+        player,
+        target
+      })
+      return cards
+    },
+    play: (player, target, cards, game) => {
+      game.contact(player, target, cards)
+      game.incrementTurn()
+    }
   },
   {
     id: 'toolbox',

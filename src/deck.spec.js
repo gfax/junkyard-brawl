@@ -1317,6 +1317,39 @@ Ava.test('THE BEES should go away when a player heals', (t) => {
   t.true(player2.hp > 8)
 })
 
+Ava.test('Tire should cause a player to miss a turn', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const tire = Deck.getCard('tire')
+
+  game.play(player1.id, tire)
+  t.is(game.turns, 2)
+  t.is(game.discard.length, 1)
+  t.is(player1.hand.length, player1.maxHand)
+  t.true(announceCallback.calledWith('card:tire:contact'))
+  t.is(player2.conditionCards.length, 0)
+  t.truthy(find(game.discard, tire))
+})
+
+Ava.test('Tire Iron should be playable', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const tireIron = Deck.getCard('tire-iron')
+  player1.hand.push(tireIron)
+
+  game.play(player1.id, [tireIron])
+  t.is(player2.hp, player2.maxHp - 3)
+  t.is(game.turns, 1)
+  t.is(game.discard.length, 1)
+  t.truthy(find(game.discard, tireIron))
+  t.is(player1.hand.length, player1.maxHand)
+})
+
 Ava.test('Uppercut should hurt a player pretty good', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)

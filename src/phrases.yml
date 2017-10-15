@@ -139,8 +139,12 @@ card:the-bees:play:
   en: <%= player.name %> drops a bee hive on <%= target.name %>'s head…
 card:tire:
   en: Tire
+card:tire:contact:
+  en: <%= player.name %> throws a tire around <%= target.name %>.
 card:tire-iron:
   en: Tire Iron
+card:tire-iron:contact:
+  en: <%= player.name %> whacks <%= target.name %> upside the head with a tire iron.
 card:toolbox:
   en: Toolbox
 card:uppercut:
