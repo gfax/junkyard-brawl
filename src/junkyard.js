@@ -184,7 +184,14 @@ module.exports = class Junkyard {
       }
       this.target = null
     }
-    this.players = [...this.players.slice(1), this.players[0]]
+    // Player probably played a card like spare bolds,
+    // to they go again instead of rotating players.
+    if (this.players[0].extraTurns) {
+      this.players[0].extraTurns -= 1
+    } else {
+      // Otherwise, rotate the players array
+      this.players = [...this.players.slice(1), this.players[0]]
+    }
     if (this.maybeRemove(this.players[0], this) && this.stopped) {
       return
     }

@@ -270,6 +270,8 @@ A player object consists of the following properties:
   // Array of card objects. Temporary discard of cards
   // to which the other player may need to respond.
   discard: [],
+  // Player gets to go again if they have any extra turns
+  extraTurns: 0,
   // Array of card objects available to the player for play.
   hand: [Array],
   // Current number of health points

@@ -21,6 +21,8 @@ module.exports = class Player {
     this.conditionCards = []
     // Cards in play
     this.discard = []
+    // Player gets to go again if they have any extra turns
+    this.extraTurns = 0
     // Cards in hand
     this.hand = []
     // Starting health

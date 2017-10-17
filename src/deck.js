@@ -621,9 +621,21 @@ const deck = [
   },
   {
     id: 'spare-bolts',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'disaster',
+    copies: 1,
+    filter: () => [],
+    beforeTurn: (player, game) => {
+      const spareBolts = getCard('spare-bolts')
+      game.discard.push(spareBolts)
+      removeOnce(player.beforeTurn, () => spareBolts.beforeTurn)
+      removeOnce(player.conditionCards, spareBolts)
+    },
+    disaster: (player, cards, game) => {
+      player.extraTurns += 1
+      player.beforeTurn.push(cards[0].beforeTurn)
+      player.conditionCards.push(cards[0])
+      game.announce('card:spare-bolts:disaster', { player })
+    }
   },
   {
     id: 'sub',

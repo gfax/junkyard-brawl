@@ -1204,6 +1204,41 @@ Ava.test('Soup should heal a player and discard', (t) => {
   t.truthy(find(game.discard, soup))
 })
 
+Ava.test('Spare Bolts should give a player an extra turn', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player] = game.players
+  const spareBolts = Deck.getCard('spare-bolts')
+  player.hand.push(spareBolts)
+
+  game.play(player.id, spareBolts)
+  game.incrementTurn()
+
+  t.true(announceCallback.calledWith('card:spare-bolts:disaster'))
+  t.is(game.players[0], player)
+  t.is(game.turns, 1)
+  t.is(game.discard.length, 1)
+  t.truthy(find(game.discard, spareBolts))
+})
+
+Ava.test('Spare bolts should discard if the play is removed', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+  const [, player] = game.players
+  const spareBolts = Deck.getCard('spare-bolts')
+  player.hand.push(spareBolts)
+  game.play(player.id, spareBolts)
+  game.removePlayer(player.id)
+
+  t.is(game.discard.length, player.maxHand + 1)
+  t.truthy(find(game.discard, spareBolts))
+})
+
 Ava.test('Sub should heal a player and discard', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -1331,6 +1366,25 @@ Ava.test('Tire should cause a player to miss a turn', (t) => {
   t.is(player1.hand.length, player1.maxHand)
   t.true(announceCallback.calledWith('card:tire:contact'))
   t.is(player2.conditionCards.length, 0)
+  t.truthy(find(game.discard, tire))
+})
+
+Ava.test('Tire should discard if the affected player is removed', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+  const [player1, , player3] = game.players
+  const tire = Deck.getCard('tire')
+
+  game.play(player1.id, tire, player3.id)
+  t.is(game.turns, 1)
+  t.is(game.discard.length, 0)
+  t.is(player1.hand.length, player1.maxHand)
+
+  game.removePlayer(player3.id)
+  t.is(game.discard.length, player3.maxHand + 1)
   t.truthy(find(game.discard, tire))
 })
 

@@ -123,6 +123,8 @@ card:soup:contact:
   en: <%= player.name %> sips a can of soup and relaxes.
 card:spare-bolts:
   en: Spare Bolts
+card:spare-bolts:disaster:
+  en: <%= player.name %> uses some spare bolts and fixes up an extra turn.
 card:sub:
   en: Sub
 card:sub:contact:
