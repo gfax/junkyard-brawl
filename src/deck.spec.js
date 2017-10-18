@@ -1273,6 +1273,40 @@ Ava.test('Sub should not heal a player above max health', (t) => {
   t.true(player1.hp === player1.maxHp)
 })
 
+Ava.test('Surgery should restore a player to max health', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player] = game.players
+  const surgery = Deck.getCard('surgery')
+  player.hand.push(surgery)
+  player.hp = 1
+  game.play(player, surgery)
+
+  t.is(player.hp, player.maxHp)
+  t.true(announceCallback.calledWith('card:surgery:contact'))
+  t.is(player.hand.length, player.maxHand)
+  t.is(game.turns, 1)
+  t.is(game.discard.length, 1)
+})
+
+Ava.test('Surgery should not be playable if the player has >1 hp', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player] = game.players
+  const surgery = Deck.getCard('surgery')
+  player.hand.push(surgery)
+  game.play(player, surgery)
+
+  t.true(whisperCallback.calledWith(player.id, 'card:surgery:invalid-contact'))
+  t.is(player.hand.length, player.maxHand + 1)
+  t.is(game.discard.length, 0)
+})
+
 Ava.test('THE BEES should be playable', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -1377,6 +1411,7 @@ Ava.test('Tire should discard if the affected player is removed', (t) => {
   game.start()
   const [player1, , player3] = game.players
   const tire = Deck.getCard('tire')
+  player1.hand.push(tire)
 
   game.play(player1.id, tire, player3.id)
   t.is(game.turns, 1)

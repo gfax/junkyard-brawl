@@ -290,10 +290,10 @@ const deck = [
       return true
     },
     contact: (player, target, cards, game) => {
-      player.hp = Math.min(player.hp + 1, player.maxHp)
-      player.beforeTurn.push(cards[0].beforeTurn)
+      target.hp = Math.min(player.hp + 1, player.maxHp)
+      target.beforeTurn.push(cards[0].beforeTurn)
       target.conditionCards.push(cards[0])
-      game.announce('card:energy-drink:contact', { player })
+      game.announce('card:energy-drink:contact', { player: target })
     }
   },
   {
@@ -322,7 +322,7 @@ const deck = [
   {
     id: 'gas-spill',
     type: 'disaster',
-    copies: 0,
+    copies: 1,
     filter: () => [],
     beforeTurn: (player, game) => {
       const gasSpill = getCard('gas-spill')
@@ -650,9 +650,21 @@ const deck = [
   },
   {
     id: 'surgery',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'support',
+    copies: 2,
+    filter: () => [],
+    validateContact: (player, target, cards, game) => {
+      if (target.hp === 1) {
+        return true
+      }
+      game.whisper(target, 'card:surgery:invalid-contact')
+      return false
+    },
+    contact: (player, target, cards, game) => {
+      target.hp = target.maxHp
+      game.announce('card:surgery:contact', { player: target })
+      return cards
+    }
   },
   {
     id: 'the-bees',

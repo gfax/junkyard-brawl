@@ -263,6 +263,19 @@ Ava.test('play() should ignore non-player moves', (t) => {
   t.false(announceCallback.called)
 })
 
+Ava.test('play() should expect a target to be specified', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [, player2] = game.players
+  const gutPunch = Deck.getCard('gut-punch')
+  player2.hand.push(gutPunch)
+  game.play(player2.id, gutPunch)
+  t.true(whisperCallback.calledWith(player2.id, 'player:not-turn'))
+})
+
 Ava.test('counter() should throw an error when not passed cards', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)

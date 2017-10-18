@@ -131,6 +131,10 @@ card:sub:contact:
   en: <%= player.name %> eats a sub.
 card:surgery:
   en: Surgery
+card:surgery:contact:
+  en: <%= player.name %> undergoes surgery and is completely restored!
+card:surgery:invalid-contact:
+  en: You can only play surgery when you have 1 HP, <%= player.name %>.
 card:the-bees:
   en: THE BEES
 card:the-bees:before-turn:

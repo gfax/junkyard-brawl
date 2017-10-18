@@ -168,6 +168,9 @@ module.exports = class Junkyard {
   }
 
   getPlayer(id) {
+    if (typeof id === 'object') {
+      return find(this.players, id)
+    }
     return find(this.players, { id })
   }
 
@@ -285,7 +288,7 @@ module.exports = class Junkyard {
     if (!this.target && cards[0].disaster) {
       return playDisaster(player, cards, this)
     }
-    if (this.players[0].id !== playerId && !this.target) {
+    if (this.players[0] !== player && !this.target) {
       this.whisper(player, 'player:not-turn')
       return false
     }
@@ -494,6 +497,13 @@ function playDisaster(player, cards, game) {
 }
 
 function playSupport(player, cards, game) {
+  if (cards[0].validateContact) {
+    // Check the validity of playing this card, for example,
+    // a player's hp must be exactly 1 to play Surgery.
+    if (!cards[0].validateContact(player, player, cards, game)) {
+      return
+    }
+  }
   cards.forEach(card => removeOnce(player.hand, card))
   // Discard any cards returned. Some cards aren't discarded
   // when played so we only discard what we're given back.
