@@ -1182,6 +1182,189 @@ Ava.test('Neck Punch should be playable', (t) => {
   t.is(player1.hp, 7)
 })
 
+Ava.test('Sleep should work with attacks - Gut Punch', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const sleep = Deck.getCard('sleep')
+  const gutPunch = Deck.getCard('gut-punch')
+  player1.hp = 2
+  player1.hand.push(sleep)
+  player1.hand.push(gutPunch)
+  game.play(player1.id, [sleep, gutPunch])
+
+  t.true(announceCallback.calledWith('card:sleep:contact'))
+  t.is(game.turns, 1)
+  t.is(player1.hp, 4)
+  t.is(player2.hp, player2.maxHp)
+  t.is(player1.hand.length, player1.maxHand)
+  t.is(game.discard.length, 2)
+  t.truthy(find(game.discard, sleep))
+  t.truthy(find(game.discard, gutPunch))
+})
+
+Ava.test('Sleep should work with unstoppable attacks - Cheap Shot', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const sleep = Deck.getCard('sleep')
+  const cheapShot = Deck.getCard('cheap-shot')
+  player1.hp = 2
+  player1.hand.push(sleep)
+  player1.hand.push(cheapShot)
+  game.play(player1.id, [sleep, cheapShot])
+
+  t.true(announceCallback.calledWith('card:sleep:contact'))
+  t.is(player1.hp, 3)
+  t.is(player2.hp, player2.maxHp)
+  t.is(player1.hand.length, player1.maxHand)
+  t.is(game.discard.length, 2)
+  t.truthy(find(game.discard, sleep))
+  t.truthy(find(game.discard, cheapShot))
+})
+
+Ava.test('Sleep should work during a grab', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const grab = Deck.getCard('grab')
+  const sleep = Deck.getCard('sleep')
+  const tireIron = Deck.getCard('tire-iron')
+  player1.hp = 2
+  player1.hand.push(grab)
+  player1.hand.push(sleep)
+  player1.hand.push(tireIron)
+  game.play(player1.id, [grab, sleep, tireIron])
+  game.pass(player2.id)
+
+  t.true(announceCallback.calledWith('card:sleep:contact'))
+  t.is(game.turns, 1)
+  t.is(player1.hp, 5)
+  t.is(player2.hp, player2.maxHp)
+  t.is(player1.hand.length, player1.maxHand)
+  t.is(game.discard.length, 3)
+  t.truthy(find(game.discard, sleep))
+  t.truthy(find(game.discard, grab))
+  t.truthy(find(game.discard, tireIron))
+})
+
+Ava.test('Sleep should not heal a player past their max HP', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const sleep = Deck.getCard('sleep')
+  const aGun = Deck.getCard('a-gun')
+  player1.hand.push(sleep)
+  player1.hand.push(aGun)
+  game.play(player1.id, [sleep, aGun])
+
+  t.true(announceCallback.calledWith('card:sleep:contact'))
+  t.is(player1.hp, player1.maxHp)
+  t.is(player2.hp, player2.maxHp)
+  t.is(player1.hand.length, player1.maxHand)
+  t.is(game.discard.length, 2)
+  t.truthy(find(game.discard, sleep))
+  t.truthy(find(game.discard, aGun))
+})
+
+Ava.test('Sleep should not heal a player if the attack does no damage', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const sleep = Deck.getCard('sleep')
+  const tire = Deck.getCard('tire')
+  player1.hp = 2
+  player1.hand.push(sleep)
+  player1.hand.push(tire)
+  game.play(player1.id, [sleep, tire])
+
+  t.true(announceCallback.calledWith('card:sleep:contact'))
+  t.is(player1.hp, 2)
+  t.is(player2.hp, player2.maxHp)
+  t.is(player1.hand.length, player1.maxHand)
+  t.is(game.discard.length, 2)
+  t.truthy(find(game.discard, sleep))
+  t.truthy(find(game.discard, tire))
+})
+
+Ava.test('Sleep should warn when a player plays it wrong', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1] = game.players
+  const sleep = Deck.getCard('sleep')
+  const avalanche = Deck.getCard('avalanche')
+  const soup = Deck.getCard('soup')
+  const grab = Deck.getCard('grab')
+  player1.hp = 2
+  player1.hand.push(sleep)
+  player1.hand.push(avalanche)
+  player1.hand.push(soup)
+  player1.hand.push(grab)
+
+  game.play(player1.id, [sleep])
+  t.true(whisperCallback.calledWith(player1.id, 'card:sleep:invalid-contact'))
+  whisperCallback.reset()
+
+  game.play(player1.id, [sleep, avalanche])
+  t.true(whisperCallback.calledWith(player1.id, 'card:sleep:invalid-contact'))
+  whisperCallback.reset()
+
+  game.play(player1.id, [sleep, soup])
+  t.true(whisperCallback.calledWith(player1.id, 'card:sleep:invalid-contact'))
+  whisperCallback.reset()
+
+  game.play(player1.id, [sleep, grab])
+  t.true(whisperCallback.calledWith(player1.id, 'card:sleep:invalid-contact'))
+  whisperCallback.reset()
+
+  t.is(player1.hp, 2)
+  t.is(player1.hand.length, player1.maxHand + 4)
+  t.is(game.discard.length, 0)
+})
+
+Ava.test('Sleep should warn when a player plays it wrong with Grab', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1] = game.players
+  const grab = Deck.getCard('grab')
+  const sleep = Deck.getCard('sleep')
+  const avalanche = Deck.getCard('avalanche')
+  player1.hp = 2
+  player1.hand.push(grab)
+  player1.hand.push(sleep)
+  player1.hand.push(avalanche)
+  game.play(player1.id, [grab, sleep, avalanche])
+
+  t.true(whisperCallback.calledWith(player1.id, 'card:sleep:invalid-contact'))
+  t.is(game.turns, 0)
+  t.is(player1.hp, 2)
+  t.is(player1.hand.length, player1.maxHand + 3)
+  t.is(game.discard.length, 0)
+})
+
 Ava.test('Soup should heal a player and discard', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -1291,6 +1474,27 @@ Ava.test('Surgery should restore a player to max health', (t) => {
   t.is(game.discard.length, 1)
 })
 
+Ava.test('Surgery should still work when grabbing', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const grab = Deck.getCard('grab')
+  const surgery = Deck.getCard('surgery')
+  player1.hand.push(grab)
+  player1.hand.push(surgery)
+  player1.hp = 1
+  game.play(player1, [grab, surgery])
+  game.pass(player2)
+
+  t.is(player1.hp, player1.maxHp)
+  t.true(announceCallback.calledWith('card:surgery:contact'))
+  t.is(player1.hand.length, player1.maxHand)
+  t.is(game.turns, 1)
+  t.is(game.discard.length, 2)
+})
+
 Ava.test('Surgery should not be playable if the player has >1 hp', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()
@@ -1299,11 +1503,19 @@ Ava.test('Surgery should not be playable if the player has >1 hp', (t) => {
   game.start()
   const [player] = game.players
   const surgery = Deck.getCard('surgery')
+  const grab = Deck.getCard('grab')
   player.hand.push(surgery)
-  game.play(player, surgery)
+  player.hand.push(grab)
 
+  game.play(player, surgery)
   t.true(whisperCallback.calledWith(player.id, 'card:surgery:invalid-contact'))
-  t.is(player.hand.length, player.maxHand + 1)
+  whisperCallback.reset()
+
+  game.play(player, [grab, surgery])
+  t.true(whisperCallback.calledWith(player.id, 'card:surgery:invalid-contact'))
+  whisperCallback.reset()
+
+  t.is(player.hand.length, player.maxHand + 2)
   t.is(game.discard.length, 0)
 })
 

@@ -230,7 +230,7 @@ module.exports = class Junkyard {
   }
 
   pass(playerId) {
-    if (typeof playerId !== 'string') {
+    if (!playerId) {
       throw new Error(`Expected played id when passing, got ${playerId}`)
     }
     if (!this.started) {
@@ -246,7 +246,7 @@ module.exports = class Junkyard {
     if (player !== turnPlayer && player !== this.target) {
       this.whisper(player, 'player:not-turn')
     }
-    if (!this.target && playerId === turnPlayer.id) {
+    if (!this.target && player === turnPlayer) {
       this.whisper(player, 'player:no-passing')
       return
     }

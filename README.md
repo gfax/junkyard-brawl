@@ -118,7 +118,6 @@ Play these on your turn in place of attacking if you so wish.
 - Earthquake (-1) – An earthquake shakes the entire Junkyard! 1 damage to everyone, starting with you.
 - Gas Spill (miss-2) – Random player misses 2 turns.
 - It’s Getting Windy – All players choose a random card from the player preceding them.
-- Propeller (x2) (x2) – Double the effects of a random player’s next successful Attack/Support.
 - Reverse – REVERSE playing order. Skips opponent’s turn if a 2-player game.
 - Spare Bolts – Take an extra turn after your turn. [They're not pack rats – they're just open-minded collectors.]
 - THE BEES (-1) – Random player is stung by bees! Victim holds onto this card and takes 1 damage every turn until using a support card. [Oh no! Not the bees! Not the bees! AAAAHHH!]
@@ -134,7 +133,7 @@ Play these on your turn in place of attacking if you so wish.
 - 5 – Blocks, Uppercuts
 - 3 – Mattresses, Grease Buckets, Soups
 - 2 – Acid Coffees, Cheap Shots, Gamblin' Mans, Guard Dogs, Insurances, Meal Steals, Mirrors, Siphons, Surgeries, Siphons, Tires, Wrenches
-- 1 – A Guns, Armor, Avalanche, Bulldozer, Crane, Deflector, Diesel Spill, Earthquake, Energy Drink, It’s Getting Windy, Magnet, Propeller, Sleep, Spare Bolts, Reverse, The Bees, Tire Iron, Toolbox, Whirlwind
+- 1 – A Gun, Armor, Avalanche, Bulldozer, Crane, Deflector, Diesel Spill, Earthquake, Energy Drink, It’s Getting Windy, Magnet, Sleep, Spare Bolts, Reverse, The Bees, Tire Iron, Toolbox, Whirlwind
 
 ## API
 
@@ -147,12 +146,15 @@ const JunkyardBrawl = require('junkyard-brawl')
 // This will return a new game instance:
 const game = new JunkyardBrawl(userId, userName, announceCallback, whisperCallback, language)
 ```
-| param              | type     ||
-|-                    |-         |- |
-| `userId`            | string   | Unique ID for the user that initiated the game play. This will be the first player and game manager. |
-| `userName`          | string   | Display name of the player, used in battle text. |
-| [`announceCallback`](#announcecallback) | function | Callback that is invoked when there is a public message to be displayed to all users. |
-| [`whisperCallback`](#whispercallback)   | function | Private messages to display to individual users, like what cards they currently have. |
+param                | type     ||
+-------------------- | -------- |-
+`userId`             | string   | Unique ID for the user that initiated the game play. This will be the first player and game manager.
+`userName`           | string   | Display name of the player, used in battle text.
+[`announceCallback`] | function | Callback that is invoked when there is a public message to be displayed to all users.
+[`whisperCallback`]  | function | Private messages to display to individual users, like what cards they currently have.
+
+[`announceCallback`]: #announcecallback
+[`whisperCallback`]: #whispercallback
 
 A game instance consists of the following properties:
 ```js
@@ -198,12 +200,12 @@ const announceCallback = (code, message, messageProps) => console.log(message)
 const game = new JunkyardBrawl(userId, userName, announceCallback, whisperCallback, language)
 ```
 
-| param         | type ||
-|-               |-     |- |
-| `code`         | string   | Message key for the language phrase. |
-| `message`      | string   | Rendered message from the game’s set language. |
-| `messageProps` | object   | Contains the game objects (lodash options) required to re-render the message from the original lodash template.
-| `template`     | function | The original lodash template, in case you want to reformat the message props and render the message yourself. Usage can be found in the [lodash docs](https://lodash.com/docs/4.17.4#template).
+param          | type     ||
+-------------- | -------- |-
+`code`         | string   | Message key for the language phrase.
+`message`      | string   | Rendered message from the game’s set language.
+`messageProps` | object   | Contains the game objects (lodash options) required to re-render the message from the original lodash template.
+`template`     | function | The original lodash template, in case you want to reformat the message props and render the message yourself. Usage can be found in the [lodash docs](https://lodash.com/docs/4.17.4#template).
 
 ### whisperCallback()
 
@@ -217,13 +219,13 @@ const whisperCallback = (player, code, message, messageProps, template) => {
 const game = new JunkyardBrawl(userId, userName, announceCallback, whisperCallback, language)
 ```
 
-| param         | type ||
-|-               |-     |- |
-| `userId`       | string   | ID of the user this message is intended for. |
-| `code`         | string   | Message key for the language phrase. |
-| `message`      | string   | Rendered message from the game’s set language. |
-| `messageProps` | object   | Contains the game objects (lodash options) required to re-render the message from the original lodash template.
-| `template`     | function | The original lodash template, in case you want to reformat the message props and render the message yourself. Usage can be found in the [lodash docs](https://lodash.com/docs/4.17.4#template).
+param          | type     ||
+-------------- | -------- |-
+`userId`       | string   | ID of the user this message is intended for.
+`code`         | string   | Message key for the language phrase.
+`message`      | string   | Rendered message from the game’s set language.
+`messageProps` | object   | Contains the game objects (lodash options) required to re-render the message from the original lodash template.
+`template`     | function | The original lodash template, in case you want to reformat the message props and render the message yourself. Usage can be found in the [lodash docs](https://lodash.com/docs/4.17.4#template).
 
 Example using the template:
 
@@ -332,11 +334,11 @@ const [{ id: playerId, { id: targetId }] = game.players
 game.play(playerId, '2', targetId)
 ```
 
-| param         | type ||
-|-               |-     |- |
-| `playerId`     | string | ID of the user requesting to play. The game can distinguish valid players from invalid players. |
-| `request`      | array|string | The request must either be an array of card objects or a string of card indexes. Card indexes count from 1. So cards[0] and cards[3], would become '1 4'. This is useful for handling chatroom game adapters where a player may say the index of the cards they want to play. |
-| `targetId`     | string | ID of the player being attacked. In a 2-player game, the opposite player is assumed and the parameter is ignored. Likewise, with player moves that don't require a target the parameter is also ignored in such a case. |
+param      | type                      ||
+---------- | ------------------------- |-
+`playerId` | player/string             | The player object for the user requesting to play, or simply the ID of the user that was passed in when the player was added. The game can distinguish valid players from invalid players.
+`request`  | card object/array/string  | The request must either be a card object, an array of card objects, or a string of card indexes. Card indexes count from 1. So cards[0] and cards[3], would become '1 4'. This is useful for handling chatroom game adapters where a player may say the index of the cards they want to play.
+`targetId` | string                    | ID of the player being attacked. In a 2-player game, the opposite player is assumed and the parameter is ignored. Likewise, with player moves that don't require a target the parameter is also ignored in such a case.
 
 ### pass()
 
@@ -351,10 +353,10 @@ game.start()
 const [player1, player2] = game.players
 const gutPunch = Deck.getCard('gut-punch') // Generate an extra card to give to the first player
 player1.hand.push(gutPunch) // You wouldn't actually do this in a real implementation
-game.play(player1.id, [gutPunch]) // Attack the second player
-game.pass(player2.id) // Player doesn't wish to counter the Gut Punch attack.
+game.play(player1, [gutPunch]) // Attack the second player
+game.pass(player2) // Player doesn't wish to counter the Gut Punch attack.
 ```
 
-| param     | type ||
-|-           |-     |- |
-| `playerId` | string | ID of the user wishing to pass on responding the attack. Invalid user requests are ignored or notified as necessary. |
+param      | type   ||
+---------- | ------ |-
+`playerId` | string | The player object for the user wishing to pass on responding to the attack, or simply the ID of the user that was passed in when the player was added. Invalid user requests are ignored or notified as necessary.

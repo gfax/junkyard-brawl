@@ -9,10 +9,12 @@ const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
 game.addPlayer('player2', 'Kevin')
 game.start()
 
-const [player1, player2] = game.players
-const tire = Deck.getCard('tire')
-const tireIron = Deck.getCard('tire-iron')
-player1.hand.push(tireIron)
-player2.hand.push(tire)
-game.play(player1.id, tireIron)
-game.play(player2.id, tire)
+const [player1] = game.players
+const grab = Deck.getCard('grab')
+const sleep = Deck.getCard('sleep')
+const avalanche = Deck.getCard('avalanche')
+player1.hp = 2
+player1.hand.push(grab)
+player1.hand.push(sleep)
+player1.hand.push(avalanche)
+game.play(player1.id, [grab, sleep, avalanche])
