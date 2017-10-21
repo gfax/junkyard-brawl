@@ -275,7 +275,9 @@ const deck = [
         game.discard.push(energyDrink)
         removeOnce(player.conditionCards, energyDrink)
         removeOnce(player.beforeTurn, () => discardFn)
-        player.hp = Math.min(player.hp + 1, player.maxHp)
+        if (player.hp < player.maxHp) {
+          player.hp += 1
+        }
         game.announce('card:energy-drink:before-turn', { player })
         game.announce('player:discard', {
           cards: printCards(energyDrink, game.language),
@@ -283,14 +285,18 @@ const deck = [
         })
         return true
       }
-      player.hp = Math.min(player.hp + 1, player.maxHp)
+      if (player.hp < player.maxHp) {
+        player.hp += 1
+      }
       player.beforeTurn.push(discardFn)
       removeOnce(player.beforeTurn, () => energyDrink.beforeTurn)
       game.announce('card:energy-drink:before-turn', { player })
       return true
     },
     contact: (player, target, cards, game) => {
-      target.hp = Math.min(player.hp + 1, player.maxHp)
+      if (player.hp < player.maxHp) {
+        player.hp += 1
+      }
       target.beforeTurn.push(cards[0].beforeTurn)
       target.conditionCards.push(cards[0])
       game.announce('card:energy-drink:contact', { player: target })
@@ -637,7 +643,9 @@ const deck = [
         brawl.pass(p2)
       }
       const healthDiff = p2.maxHp - p2.hp
-      player.hp = Math.min(player.hp + healthDiff, player.maxHp)
+      if (player.hp < player.maxHp) {
+        player.hp = Math.min(player.hp + healthDiff, player.maxHp)
+      }
       game.announce('card:sleep:contact', {
         number: healthDiff,
         player
@@ -648,8 +656,26 @@ const deck = [
   {
     id: 'siphon',
     type: 'attack',
-    copies: 0,
-    filter: () => []
+    copies: 2,
+    filter: () => [],
+    contact: (player, target, cards, game) => {
+      if (player.hp < player.maxHp) {
+        player.hp += 1
+      }
+      target.hp -= 1
+      game.announce('card:siphon:contact', {
+        player,
+        target
+      })
+      return cards
+    },
+    play: (player, target, cards, game) => {
+      game.announce('player:played', {
+        cards: printCards(cards[0], game.language),
+        player,
+        target
+      })
+    }
   },
   {
     id: 'soup',
@@ -657,7 +683,9 @@ const deck = [
     copies: 3,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      player.hp = Math.min(player.hp + 1, player.maxHp)
+      if (player.hp < player.maxHp) {
+        player.hp += 1
+      }
       game.announce('card:soup:contact', { player })
       return cards
     }
@@ -686,7 +714,9 @@ const deck = [
     copies: 7,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      player.hp = Math.min(player.hp + 2, player.maxHp)
+      if (player.hp < player.maxHp) {
+        player.hp = Math.min(player.hp + 2, player.maxHp)
+      }
       game.announce('card:sub:contact', { player })
       return cards
     }

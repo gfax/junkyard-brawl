@@ -123,6 +123,8 @@ card:sleep:invalid-contact:
   en: Play an attack or unstoppable card along with Sleep, <%= player.name %>.
 card:siphon:
   en: Siphon
+card:siphon:contact:
+  en: <%= player.name %> siphons <%= target.name %>'s gas tank.
 card:soup:
   en: Soup
 card:soup:contact:

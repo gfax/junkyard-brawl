@@ -710,6 +710,40 @@ Ava.test('Energy Drink should heal a player over the course of 3 turns', (t) => 
   t.true(announceCallback.calledWith('player:discard'))
 })
 
+Ava.test('Energy Drink should have no effect on a player at or above their max HP', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player] = game.players
+  const energyDrink = Deck.getCard('energy-drink')
+  player.hand.push(energyDrink)
+  player.hp = player.maxHp + 5
+  game.play(player.id, [energyDrink])
+
+  t.true(announceCallback.calledWith('card:energy-drink:contact'))
+  t.false(announceCallback.calledWith('card:energy-drink:before-turn'))
+  t.is(player.hp, player.maxHp + 5)
+  t.is(player.hand.length, player.maxHand)
+  t.is(game.discard.length, 0)
+
+  game.incrementTurn()
+  game.incrementTurn()
+  t.is(player.hp, player.maxHp + 5)
+  t.is(game.discard.length, 0)
+  t.true(announceCallback.calledWith('card:energy-drink:before-turn'))
+
+  announceCallback.reset()
+  game.incrementTurn()
+  game.incrementTurn()
+  t.is(player.hp, player.maxHp + 5)
+  t.is(game.discard.length, 1)
+  t.truthy(find(game.discard, energyDrink))
+  t.true(announceCallback.calledWith('card:energy-drink:before-turn'))
+  t.true(announceCallback.calledWith('player:discard'))
+})
+
 Ava.test('Earthquake should hurt everybody', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -1040,7 +1074,7 @@ Ava.test('Mattress should work when a player has more than max hp', (t) => {
   t.is(game.discard.length, 2)
 })
 
-Ava.test('Matress shouldn\'t have an affect when there was no damage', (t) => {
+Ava.test('Matress shouldn\'t have an effect when there was no damage', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
@@ -1199,6 +1233,46 @@ Ava.test('Reverse should reverse order of play', (t) => {
   t.deepEqual(game.players, [player4, player3, player2, player1])
   t.is(game.discard.length, 1)
   t.truthy(find(game.discard, reverse))
+})
+
+Ava.test('Siphon should steal health from a player and give to another', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const siphon = Deck.getCard('siphon')
+  player1.hp = 5
+  player1.hand.push(siphon)
+  game.play(player1, siphon)
+  game.pass(player2)
+
+  t.is(player1.hp, 6)
+  t.is(player2.hp, player2.maxHp - 1)
+  t.is(player1.hand.length, player1.maxHand)
+  t.is(game.discard.length, 1)
+  t.truthy(find(game.discard, siphon))
+})
+
+Ava.test('Siphon should not give a player more than their max HP', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const siphon = Deck.getCard('siphon')
+  player1.hp = player1.maxHp + 5
+  player1.hand.push(siphon)
+  game.play(player1, siphon)
+  game.pass(player2)
+
+  t.is(player1.hp, player1.maxHp + 5)
+  t.is(player2.hp, player2.maxHp - 1)
+  t.is(player1.hand.length, player1.maxHand)
+  t.is(game.discard.length, 1)
+  t.truthy(find(game.discard, siphon))
 })
 
 Ava.test('Sleep should work with attacks - Gut Punch', (t) => {
@@ -1384,6 +1458,30 @@ Ava.test('Sleep should warn when a player plays it wrong with Grab', (t) => {
   t.is(game.discard.length, 0)
 })
 
+Ava.test('Sleep should not heal a player above their max HP', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const sleep = Deck.getCard('sleep')
+  const gutPunch = Deck.getCard('gut-punch')
+  player1.hp = player1.maxHp + 5
+  player1.hand.push(sleep)
+  player1.hand.push(gutPunch)
+  game.play(player1.id, [sleep, gutPunch])
+
+  t.true(announceCallback.calledWith('card:sleep:contact'))
+  t.is(game.turns, 1)
+  t.is(player1.hp, player1.maxHp + 5)
+  t.is(player2.hp, player2.maxHp)
+  t.is(player1.hand.length, player1.maxHand)
+  t.is(game.discard.length, 2)
+  t.truthy(find(game.discard, sleep))
+  t.truthy(find(game.discard, gutPunch))
+})
+
 Ava.test('Soup should heal a player and discard', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -1400,9 +1498,27 @@ Ava.test('Soup should heal a player and discard', (t) => {
 
   t.true(announceCallback.calledWith('card:soup:contact'))
   t.is(player1.hp, 4)
-  t.is(player2.hp, player2.maxHp)
+  t.is(player2.hp, player2.maxHp, 'They should still have their max HP.')
   t.is(player2.hand.length, player2.maxHand)
   t.is(game.discard.length, 2)
+  t.truthy(find(game.discard, soup))
+})
+
+Ava.test('Soup should not heal a player above their max HP', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1] = game.players
+  const soup = Deck.getCard('soup')
+  player1.hand.push(soup)
+  player1.hp = player1.maxHp + 5
+
+  game.play(player1.id, soup)
+  t.true(announceCallback.calledWith('card:soup:contact'))
+  t.is(player1.hp, player1.maxHp + 5, 'They should retain their surplus HP.')
+  t.is(player1.hand.length, player1.maxHand)
+  t.is(game.discard.length, 1)
   t.truthy(find(game.discard, soup))
 })
 
@@ -1466,13 +1582,20 @@ Ava.test('Sub should not heal a player above max health', (t) => {
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
   game.start()
-  const [player1] = game.players
-  player1.hand.push(Deck.getCard('sub'))
+  const [player1, player2] = game.players
+  const sub = Deck.getCard('sub')
+  player1.hand.push(sub)
+  player2.hand.push(sub)
+  player2.hp = player2.maxHp + 5
 
-  game.play(player1.id, [Deck.getCard('sub')])
-
+  game.play(player1, sub)
   t.true(announceCallback.calledWith('card:sub:contact'))
-  t.true(player1.hp === player1.maxHp)
+  t.is(player1.hp, player1.maxHp, 'They should still have max health.')
+  announceCallback.reset()
+
+  game.play(player2, sub)
+  t.true(announceCallback.calledWith('card:sub:contact'))
+  t.is(player2.hp, player2.maxHp + 5, 'They should retain their surplus health.')
 })
 
 Ava.test('Surgery should restore a player to max health', (t) => {

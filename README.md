@@ -134,7 +134,7 @@ Play these on your turn in place of attacking if you so wish.
 - 6 – Dodges
 - 5 – Blocks, Uppercuts
 - 3 – Mattresses, Grease Buckets, Soups
-- 2 – Acid Coffees, Cheap Shots, Gamblin' Mans, Guard Dogs, Insurances, Meal Steals, Mirrors, Siphons, Surgeries, Siphons, Tires, Wrenches
+- 2 – Acid Coffees, Cheap Shots, Gamblin' Mans, Guard Dogs, Insurances, Meal Steals, Mirrors, Siphons, Surgeries, Tires, Wrenches
 - 1 – A Gun, Armor, Avalanche, Bulldozer, Crane, Deflector, Diesel Spill, Earthquake, Energy Drink, It’s Getting Windy, Magnet, Sleep, Spare Bolts, Reverse, The Bees, Tire Iron, Toolbox, Whirlwind
 
 ## API
