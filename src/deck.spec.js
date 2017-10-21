@@ -1182,6 +1182,25 @@ Ava.test('Neck Punch should be playable', (t) => {
   t.is(player1.hp, 7)
 })
 
+Ava.test('Reverse should reverse order of play', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.addPlayer('player4', 'Dark')
+  game.start()
+
+  const [player1, player2, player3, player4] = game.players
+  const reverse = Deck.getCard('reverse')
+  player2.hand.push(reverse)
+  game.play(player2, reverse)
+
+  t.true(announceCallback.calledWith('card:reverse:disaster'))
+  t.deepEqual(game.players, [player4, player3, player2, player1])
+  t.is(game.discard.length, 1)
+  t.truthy(find(game.discard, reverse))
+})
+
 Ava.test('Sleep should work with attacks - Gut Punch', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -1649,6 +1668,22 @@ Ava.test('Tire Iron should be playable', (t) => {
   t.is(game.discard.length, 1)
   t.truthy(find(game.discard, tireIron))
   t.is(player1.hand.length, player1.maxHand)
+})
+
+Ava.test('Toolbox should deal a player up to 8 cards', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player] = game.players
+  const toolbox = Deck.getCard('toolbox')
+  player.hand.push(toolbox)
+
+  game.play(player, toolbox)
+  t.true(announceCallback.calledWith('card:toolbox:disaster'))
+  t.is(player.hand.length, 8)
+  t.is(game.discard.length, 1)
+  t.truthy(find(game.discard, toolbox))
 })
 
 Ava.test('Uppercut should hurt a player pretty good', (t) => {

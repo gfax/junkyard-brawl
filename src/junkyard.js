@@ -231,7 +231,7 @@ module.exports = class Junkyard {
 
   pass(playerId) {
     if (!playerId) {
-      throw new Error(`Expected played id when passing, got ${playerId}`)
+      throw new Error(`Expected player or played id when passing, got ${playerId}`)
     }
     if (!this.started) {
       return
@@ -438,8 +438,8 @@ module.exports = class Junkyard {
   }
 
   whisperStats(playerId) {
-    if (typeof playerId !== 'string') {
-      throw new Error(`Expected player id to be a string, got ${playerId}`)
+    if (!playerId) {
+      throw new Error(`Expected player or player id, got ${playerId}`)
     }
     const player = this.getPlayer(playerId)
     if (player) {

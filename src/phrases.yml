@@ -113,6 +113,8 @@ card:propeller:
   en: Propeller
 card:reverse:
   en: Reverse
+card:reverse:disaster:
+  en: <%= player.name %> sparks a rift and reverses the flow of time!
 card:sleep:
   en: Sleep
 card:sleep:contact:
@@ -157,6 +159,8 @@ card:tire-iron:contact:
   en: <%= player.name %> whacks <%= target.name %> upside the head with a tire iron.
 card:toolbox:
   en: Toolbox
+card:toolbox:disaster:
+  en: <%= player.name %> finds a toolbox.
 card:uppercut:
   en: Uppercut
 card:uppercut:contact:

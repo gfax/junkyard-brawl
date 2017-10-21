@@ -592,9 +592,16 @@ const deck = [
   },
   {
     id: 'reverse',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'disaster',
+    copies: 1,
+    filter: () => [],
+    disaster: (player, cards, game) => {
+      game.announce('card:reverse:disaster', { player })
+      const [head, ...tail] = game.players
+      game.players = [head, ...tail.reverse()]
+      game.incrementTurn()
+      return cards
+    }
   },
   {
     id: 'sleep',
@@ -784,9 +791,15 @@ const deck = [
   },
   {
     id: 'toolbox',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'disaster',
+    copies: 1,
+    filter: () => [],
+    disaster: (player, cards, game) => {
+      game.announce('card:toolbox:disaster', { player })
+      game.deal(player, 8 - player.hand.length)
+      game.whisperStats(player)
+      return cards
+    }
   },
   {
     id: 'uppercut',

@@ -26,6 +26,8 @@ A nodejs implementation of the card game Junkyard Brawl.
   - [stop()](#stop)
   - [play()](#play)
   - [pass()](#pass)
+  - [announceStats()](#announcestats)
+  - [whisperStats()](#whisperstats)
 
 ## Installation
 
@@ -118,7 +120,7 @@ Play these on your turn in place of attacking if you so wish.
 - Earthquake (-1) – An earthquake shakes the entire Junkyard! 1 damage to everyone, starting with you.
 - Gas Spill (miss-2) – Random player misses 2 turns.
 - It’s Getting Windy – All players choose a random card from the player preceding them.
-- Reverse – REVERSE playing order. Skips opponent’s turn if a 2-player game.
+- Reverse – REVERSE playing order then immediately skip the current player's turn.
 - Spare Bolts – Take an extra turn after your turn. [They're not pack rats – they're just open-minded collectors.]
 - THE BEES (-1) – Random player is stung by bees! Victim holds onto this card and takes 1 damage every turn until using a support card. [Oh no! Not the bees! Not the bees! AAAAHHH!]
 - Toolbox – Draw until you have 8 cards in your hand.
@@ -357,6 +359,34 @@ game.play(player1, [gutPunch]) // Attack the second player
 game.pass(player2) // Player doesn't wish to counter the Gut Punch attack.
 ```
 
-param      | type   ||
----------- | ------ |-
-`playerId` | string | The player object for the user wishing to pass on responding to the attack, or simply the ID of the user that was passed in when the player was added. Invalid user requests are ignored or notified as necessary.
+param      | type          ||
+---------- | ------------- |-
+`playerId` | player/string | The player object or player/user id for the user wishing to pass on responding to the attack. Invalid user requests are ignored or notified as necessary.
+
+### announceStats()
+
+If the game's stats need to be re-fetched (the stats that display at the beginning of each turn), this method will invoke [`announceCallback()`](#announecallback) with the appropriate information.
+
+```js
+const JunkyardBrawl = require('junkyard-brawl')
+const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCallback, language)
+game.addPlayer('WBE1F94D7', 'Kevin')
+game.start()
+game.announceStats()
+```
+
+### whisperStats()
+
+If a player's personal stats need to be re-fetched, this method will invoke [`whisperCallback()`](#whispercallback) with the appropriate information.
+
+```js
+const JunkyardBrawl = require('junkyard-brawl')
+const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCallback, language)
+const player = game.addPlayer('WBE1F94D7', 'Kevin')
+game.start()
+game.whisperStats(player)
+```
+
+param      | type          ||
+---------- | ------------- |-
+`playerId` | player/string | The player object or player/user id for the user wishing to pass on responding to the attack. Invalid user requests are ignored or notified as necessary.
