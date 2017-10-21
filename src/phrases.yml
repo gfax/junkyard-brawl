@@ -6,7 +6,7 @@ card:a-gun:contact:
 card:acid-coffee:
   en: Acid Coffee
 card:acid-coffee:contact:
-  en: <%= player.name %> pours some battery acid in <%= target.name %>'s coffee.
+  en: <%= player.name %> pours some battery acid in <%= target.name %>'s coffee. Miss 1 turn while queasy.
 card:armor:
   en: Armor
 card:armor:contact:
@@ -62,7 +62,7 @@ card:gamblin-man:contact:
 card:gas-spill:
   en: Gas Spill
 card:gas-spill:contact:
-  en: <%= player.name %> drops a fuel take on <%= target.name %>'s stuff. <%= target.name %> goes to find a hose and ash tray...
+  en: <%= player.name %> drops a fuel take on <%= target.name %>'s stuff. <%= target.name %> goes to find a hose and ash tray... Miss 2 turns.
 card:grab:
   en: Grab
 card:grab:counter:
@@ -74,7 +74,7 @@ card:grab:play:
 card:grease-bucket:
   en: Grease Bucket
 card:grease-bucket:contact:
-  en: <%= player.name %> drops a bucket of grease on <%= target.name %>'s head. <%= target.name %> goes to wash up.
+  en: <%= player.name %> drops a bucket of grease on <%= target.name %>'s head. <%= target.name %> goes to wash up. Miss 1 turn.
 card:guard-dog:
   en: Guard Dog
 card:guard-dog:contact:
@@ -150,7 +150,7 @@ card:the-bees:play:
 card:tire:
   en: Tire
 card:tire:contact:
-  en: <%= player.name %> throws a tire around <%= target.name %>.
+  en: <%= player.name %> throws a tire around <%= target.name %>. Miss 1 turn.
 card:tire-iron:
   en: Tire Iron
 card:tire-iron:contact:
@@ -165,6 +165,8 @@ card:whirlwind:
   en: Whirlwind
 card:wrench:
   en: Wrench
+card:wrench:contact:
+  en: <%= player.name %> throws a wrench in <%= target.name %>'s gears. Miss 2 turns.
 deck:increased:
   en: An extra deck has been shuffle into the game!
 deck:shuffled:

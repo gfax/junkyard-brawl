@@ -818,8 +818,41 @@ const deck = [
   {
     id: 'wrench',
     type: 'attack',
-    copies: 0,
-    filter: () => []
+    copies: 2,
+    filter: () => [],
+    beforeTurn: (player, game) => {
+      const wrench = getCard('wrench')
+      const discardFn = () => {
+        // Now we can discard the card
+        game.discard.push(wrench)
+        removeOnce(player.conditionCards, wrench)
+        removeOnce(player.beforeTurn, () => discardFn)
+        game.announce('player:discard', {
+          cards: printCards(wrench, game.language),
+          player
+        })
+        return true
+      }
+      player.beforeTurn.push(discardFn)
+      removeOnce(player.beforeTurn, () => wrench.beforeTurn)
+      return true
+    },
+    contact: (player, target, cards, game) => {
+      target.missTurns += 2
+      target.beforeTurn.push(cards[0].beforeTurn)
+      target.conditionCards.push(cards[0])
+      game.announce('card:wrench:contact', {
+        player,
+        target
+      })
+    },
+    play: (player, target, cards, game) => {
+      game.announce('player:played', {
+        cards: printCards(cards[0], game.language),
+        player,
+        target
+      })
+    }
   }
 ]
 
