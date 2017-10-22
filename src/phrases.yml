@@ -101,6 +101,12 @@ card:mattress:counter:
   en: <%= player.name %> throws up an old mattress in defense.
 card:meal-steal:
   en: Meal Steal
+card:meal-steal:steal-zero:
+  en: <%= player.name %> rummages through <%= target.name %>'s lunchbox but finds nothing.
+card:meal-steal:steal-one:
+  en: <%= player.name %> steals 1 item from <%= target.name %>'s lunchbox. +<%= hp %>!
+card:meal-steal:steal-multiple:
+  en: <%= player.name %> steals <%= number %> items from <%= target.name %>'s lunchbox. +<%= hp %>!
 card:mirror:
   en: Mirror
 card:mirror:counter:
