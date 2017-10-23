@@ -214,6 +214,24 @@ Ava.test('removePlayer() should stop when there are no players to start a game',
   t.truthy(game.stopped)
 })
 
+Ava.test('getDropout() should return a player that was removed from the game', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  const player = game.addPlayer('player2', 'Kevin')
+  game.removePlayer(player.id)
+  t.deepEqual(game.getDropout(player), player, 'Should handle a player object.')
+  t.deepEqual(game.getDropout(player.id), player, 'Should handle a string ID.')
+  t.is(typeof game.getDropout('player1'), 'undefined', 'Should not return active players')
+})
+
+Ava.test('getPlayer() should return a player that is still in the game', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  const player = game.addPlayer('player2', 'Kevin')
+  t.deepEqual(game.getPlayer(player), player, 'Should handle a player object.')
+  t.deepEqual(game.getPlayer(player.id), player, 'Should handle a string ID.')
+  game.removePlayer(player.id)
+  t.is(typeof game.getPlayer(player), 'undefined', 'Should not return dropouts')
+})
+
 Ava.test('transferManagement() should transfer game management', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)

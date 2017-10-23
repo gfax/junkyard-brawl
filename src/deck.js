@@ -3,6 +3,7 @@ const Player = require('./player')
 const {
   clone,
   find,
+  findNext,
   flow,
   removeOnce,
   sample,
@@ -233,7 +234,7 @@ const deck = [
       // Empty the discard since this player may not
       // be a target by the time the turn increments
       player.discard = []
-      if (game.getNextPlayer(player.id) === attacker) {
+      if (findNext(game.players, player) === attacker) {
         game.announce('card:dodge:nullify', {
           attacker,
           cards: printCards(attacker.discard, game.language),
@@ -242,7 +243,7 @@ const deck = [
         game.incrementTurn()
         return cards
       }
-      game.target = game.getNextPlayer(player.id)
+      game.target = findNext(game.players, player)
       game.announce('card:dodge:new-target', {
         attacker,
         cards: printCards(attacker.discard[0], game.language),
@@ -503,9 +504,28 @@ const deck = [
   },
   {
     id: 'its-getting-windy',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'disaster',
+    copies: 1,
+    filter: () => [],
+    disaster: (player, cards, game) => {
+      game.players
+        .map((plyr) => {
+          if (!plyr.hand.length) {
+            return null
+          }
+          const card = sample(plyr.hand)
+          removeOnce(plyr.hand, card)
+          return card
+        })
+        .forEach((card, idx) => {
+          if (card !== null) {
+            findNext(game.players, game.players[idx]).hand.push(card)
+          }
+        })
+      game.announce('card:its-getting-windy:disaster')
+      game.players.forEach(plyr => game.whisperStats(plyr))
+      return cards
+    }
   },
   {
     id: 'magnet',

@@ -91,6 +91,8 @@ card:insurance:success:
   en: <%= player.name %>'s insurance plan kicks in! Health restored!
 card:its-getting-windy:
   en: It's Getting Windy
+card:its-getting-windy:disaster:
+  en: A strong gust of wind rushes by. Every player passes a random card forward.
 card:magnet:
   en: Magnet
 card:magnet:contact:

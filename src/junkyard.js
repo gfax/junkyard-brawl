@@ -5,8 +5,6 @@ const {
   assign,
   clone,
   find,
-  findIndex,
-  last,
   merge,
   removeOnce,
   shuffle,
@@ -149,13 +147,10 @@ module.exports = class Junkyard {
   }
 
   getDropout(id) {
+    if (typeof id === 'object') {
+      return find(this.dropouts, id)
+    }
     return find(this.dropouts, { id })
-  }
-
-  getNextPlayer(id) {
-    const { players } = this
-    const idx = findIndex(players, { id }) + 1
-    return idx === players.length ? players[0] : players[idx]
   }
 
   getPhrase(code, extraWords) {
@@ -391,10 +386,10 @@ module.exports = class Junkyard {
     this.players = shuffle(this.players)
     this.players.forEach((player) => {
       this.deal(player)
-      // Whisper everyone their stats, except the last player
+      // Whisper everyone their stats, except the next player
       // in the array, because it's about to be their turn and
       // they will get whispered their cards when that happens.
-      if (player !== last(this.players)) {
+      if (player !== this.players[1]) {
         this.whisperStats(player.id)
       }
     })

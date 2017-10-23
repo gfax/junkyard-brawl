@@ -4,8 +4,8 @@ const Util = module.exports = {
   clone: require('lodash.clone'),
   find: require('lodash.find'),
   findIndex: require('lodash.findindex'),
+  findNext,
   flow: require('lodash.flow'),
-  last: require('lodash.last'),
   map: require('lodash.map'),
   merge: require('lodash.merge'),
   removeOnce,
@@ -14,6 +14,11 @@ const Util = module.exports = {
   template: require('lodash.template'),
   times: require('lodash.times'),
   uniq: require('lodash.uniq')
+}
+
+// Return the next item in an array. If there is no next, return the first.
+function findNext(array, item) {
+  return array[(Util.findIndex(array, el => el === item) + 1) % array.length]
 }
 
 // Remove one copy of an item from an array. Similar to lodash's remove(), but
