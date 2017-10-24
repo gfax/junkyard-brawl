@@ -522,7 +522,7 @@ const deck = [
             findNext(game.players, game.players[idx]).hand.push(card)
           }
         })
-      game.announce('card:its-getting-windy:disaster')
+      game.announce('card:its-getting-windy:disaster', { player })
       game.players.forEach(plyr => game.whisperStats(plyr))
       return cards
     }
@@ -904,9 +904,18 @@ const deck = [
   },
   {
     id: 'whirlwind',
-    type: 'attack',
-    copies: 0,
-    filter: () => []
+    type: 'disaster',
+    copies: 1,
+    filter: () => [],
+    disaster: (player, cards, game) => {
+      const tornado = game.players.map(plyr => plyr.hand)
+      game.players.forEach((plyr, idx) => {
+        const nextPlyr = findNext(game.players, plyr)
+        nextPlyr.hand = tornado[idx]
+      })
+      game.announce('card:whirlwind:disaster', { player })
+      return cards
+    }
   },
   {
     id: 'wrench',

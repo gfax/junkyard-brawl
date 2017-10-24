@@ -182,8 +182,8 @@ module.exports = class Junkyard {
       }
       this.target = null
     }
-    // Player probably played a card like spare bolds,
-    // to they go again instead of rotating players.
+    // Player probably played a card like spare bolts,
+    // so they go again instead of rotating players.
     if (this.players[0].extraTurns) {
       this.players[0].extraTurns -= 1
     } else {

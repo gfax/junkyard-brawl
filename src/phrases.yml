@@ -92,7 +92,7 @@ card:insurance:success:
 card:its-getting-windy:
   en: It's Getting Windy
 card:its-getting-windy:disaster:
-  en: A strong gust of wind rushes by. Every player passes a random card forward.
+  en: <%= player.name %> activates a giant fan. Every player passes a random card forward.
 card:magnet:
   en: Magnet
 card:magnet:contact:
@@ -177,6 +177,8 @@ card:uppercut:contact:
   en: <%= target.name %> suffers an uppercut from <%= player.name %>.
 card:whirlwind:
   en: Whirlwind
+card:whirlwind:disaster:
+  en: <%= player.name %> summons the clouds and causes a whirlwind. Every player passes their hand forward.
 card:wrench:
   en: Wrench
 card:wrench:contact:
