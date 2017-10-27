@@ -775,6 +775,39 @@ Ava.test('Earthquake should immediately discard', (t) => {
   t.truthy(find(game.discard, Deck.getCard('earthquake')))
 })
 
+Ava.test('Earthquake should kill people', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player] = game.players
+  player.hp = 1
+  player.hand.push(Deck.getCard('earthquake'))
+  game.play(player.id, Deck.getCard('earthquake'))
+
+  t.truthy(game.stopped)
+  t.is(game.discard.length, player.maxHand + 1)
+})
+
+Ava.test('Earthquake should trigger a no-winner situation', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+
+  const [player1, player2, player3] = game.players
+  player1.hp = 1
+  player2.hp = 1
+  player3.hp = 1
+  player1.hand.push(Deck.getCard('earthquake'))
+  game.play(player1, Deck.getCard('earthquake'))
+
+  t.true(announceCallback.calledWith('game:no-survivors'))
+  t.truthy(game.stopped)
+})
+
 Ava.test('Gamblin\' man should do some random damage between 1 and 6', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -1880,22 +1913,27 @@ Ava.test('THE BEES should go away when a player heals', (t) => {
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
   game.start()
-  const [player1, player2] = game.players
-  player1.hand.push(Deck.getCard('the-bees'))
-  player1.hand.push(Deck.getCard('sub'))
-  player2.hand.push(Deck.getCard('sub'))
+  let [player1, player2] = game.players
+  const gutPunch = Deck.getCard('gut-punch')
+  const sub = Deck.getCard('sub')
+  const theBees = Deck.getCard('the-bees')
+  player1.hand.push(theBees)
+  game.play(player1, theBees)
 
-  game.play(player1.id, [Deck.getCard('the-bees')])
-  game.play(player1.id, [Deck.getCard('sub')])
-  game.play(player2.id, [Deck.getCard('sub')])
-  game.incrementTurn()
-  game.incrementTurn()
-  game.incrementTurn()
-  game.incrementTurn()
+  if (player1.conditionCards.length) {
+    game.incrementTurn();
+    [player1, player2] = game.players
+  }
 
+  player1.hand.push(gutPunch)
+  game.play(player1, gutPunch)
+  game.pass(player2)
+  t.false(announceCallback.calledWith('card:the-bees:healed'))
+
+  player2.hand.push(sub)
+  game.play(player2, sub)
   t.true(announceCallback.calledWith('card:the-bees:healed'))
-  t.true(player1.hp > 8)
-  t.true(player2.hp > 8)
+  t.is(player1.conditionCards.length, 0)
 })
 
 Ava.test('Tire should cause a player to miss a turn', (t) => {

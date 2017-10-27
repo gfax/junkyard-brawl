@@ -193,6 +193,8 @@ game:invalid-start:
   en: <%= game.title %> has already been started.
 game:invalid-number-of-players:
   en: More players need to join before the game can start.
+game:no-survivors:
+  en: Everybody died. There are no winners in this situation, only losers.
 game:stopped:
   en: <%= game.title %> stopped.
 game:transferred:

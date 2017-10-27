@@ -127,7 +127,7 @@ module.exports = class Junkyard {
       .reduce((bool, condition) => {
         return bool && condition(player, target, cards, this)
       }, true)
-    this.maybeRemove(target)
+    this.cleanup()
   }
 
   deal(player, numberToDeal = player.maxHand - player.hand.length) {
@@ -177,7 +177,8 @@ module.exports = class Junkyard {
     if (this.target) {
       this.target.discard = []
       // Silently prune dead player and return if the game stopped
-      if (this.maybeRemove(this.target, this) && this.stopped) {
+      this.cleanup()
+      if (this.stopped) {
         return
       }
       this.target = null
@@ -190,7 +191,8 @@ module.exports = class Junkyard {
       // Otherwise, rotate the players array
       this.players = [...this.players.slice(1), this.players[0]]
     }
-    if (this.maybeRemove(this.players[0], this) && this.stopped) {
+    this.cleanup()
+    if (this.stopped) {
       return
     }
     this.turns += 1
@@ -202,7 +204,8 @@ module.exports = class Junkyard {
     // callback chain is interrupted (ie., perhaps the played died.)
     player.beforeTurn
       .reduce((bool, condition) => bool && condition(player, this), true)
-    if (this.maybeRemove(player, this)) {
+    if (player.hp < 1) {
+      this.cleanup()
       return
     }
     // Maybe skip this player
@@ -216,12 +219,20 @@ module.exports = class Junkyard {
     }
   }
 
-  maybeRemove(player) {
-    if (player.hp < 1) {
-      this.removePlayer(player.id, true)
-      return true
+  // Check for a game tie, otherwise clean up any dead players
+  cleanup() {
+    const survivors = this.players.filter(player => player.hp > 0).length
+    if (survivors === 0) {
+      this.stop(false)
+      this.announce('game:no-survivors')
     }
-    return false
+    // Clone the player array, as it may
+    // shift around when removing players
+    clone(this.players).forEach((player) => {
+      if (player.hp < 1) {
+        this.removePlayer(player.id, true)
+      }
+    })
   }
 
   pass(playerId) {
@@ -240,6 +251,7 @@ module.exports = class Junkyard {
     // Ignore players that aren't currently engaged in a move
     if (player !== turnPlayer && player !== this.target) {
       this.whisper(player, 'player:not-turn')
+      return
     }
     if (!this.target && player === turnPlayer) {
       this.whisper(player, 'player:no-passing')
@@ -397,12 +409,14 @@ module.exports = class Junkyard {
     this.started = new Date()
   }
 
-  stop() {
+  stop(announce = true) {
     if (this.stopped) {
       return
     }
     this.stopped = new Date()
-    this.announce('game:stopped')
+    if (announce) {
+      this.announce('game:stopped')
+    }
   }
 
   transferManagement(playerId) {

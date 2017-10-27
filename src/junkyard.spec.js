@@ -214,6 +214,21 @@ Ava.test('removePlayer() should stop when there are no players to start a game',
   t.truthy(game.stopped)
 })
 
+Ava.test('cleanup() should remove dead players', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+  const [player1, player2, player3] = game.players
+  player1.hp = 0
+  player2.hp = 0
+  player3.hp = 1
+
+  game.cleanup()
+  t.truthy(game.stopped)
+})
+
 Ava.test('getDropout() should return a player that was removed from the game', (t) => {
   const game = new Junkyard('player1', 'Jay')
   const player = game.addPlayer('player2', 'Kevin')
@@ -313,6 +328,38 @@ Ava.test('pass() should ignore requests when the game has not started', (t) => {
   announceCallback.reset()
   game.pass(game.manager.id)
   t.true(announceCallback.notCalled)
+})
+
+Ava.test('pass() should ignore requests from non players', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+  game.removePlayer('player2')
+  const [turnPlayer] = game.players
+  turnPlayer.hand.push(Deck.getCard('gut-punch'))
+  game.play(turnPlayer, Deck.getCard('gut-punch'))
+  announceCallback.reset()
+  game.pass('player2')
+  game.pass('foobaz')
+  t.true(announceCallback.notCalled)
+  t.is(game.turns, 0)
+})
+
+Ava.test('pass() should let a player know it is not their turn to pass', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+  const [player1, player2, player3] = game.players
+  player1.hand.push(Deck.getCard('gut-punch'))
+  game.play(player1, Deck.getCard('gut-punch'), player3)
+  game.pass(player2)
+  t.true(whisperCallback.calledWith(player2.id, 'player:not-turn'))
+  t.is(game.turns, 0)
 })
 
 Ava.test('whisperStats() should whisper stats to a player upon request', (t) => {

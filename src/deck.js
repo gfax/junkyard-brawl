@@ -261,7 +261,7 @@ const deck = [
       game.announce('card:earthquake:disaster', { player })
       game.players.forEach(plyr => (plyr.hp -= 1))
       game.announceStats()
-      game.players.forEach(plyr => game.maybeRemove(plyr))
+      game.cleanup()
       return cards
     }
   },
