@@ -214,6 +214,16 @@ Ava.test('removePlayer() should stop when there are no players to start a game',
   t.truthy(game.stopped)
 })
 
+Ava.test('removePlayer() should announce winner if the last opponent dies', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  game.removePlayer('player2', true)
+  t.true(announceCallback.calledWith('game:winner'))
+  t.false(announceCallback.calledWith('game:stopped'))
+})
+
 Ava.test('cleanup() should remove dead players', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -347,7 +357,19 @@ Ava.test('pass() should ignore requests from non players', (t) => {
   t.is(game.turns, 0)
 })
 
-Ava.test('pass() should let a player know it is not their turn to pass', (t) => {
+Ava.test('pass() should notify turn players they cannot pass', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [turnPlayer] = game.players
+  game.pass(turnPlayer)
+  t.true(whisperCallback.calledWith(turnPlayer.id, 'player:no-passing'))
+  t.is(game.turns, 0)
+})
+
+Ava.test('pass() should notify a player it is not their turn to pass', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
@@ -360,6 +382,40 @@ Ava.test('pass() should let a player know it is not their turn to pass', (t) => 
   game.pass(player2)
   t.true(whisperCallback.calledWith(player2.id, 'player:not-turn'))
   t.is(game.turns, 0)
+})
+
+Ava.test('pass() should notify a player that is it too late to pass', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1] = game.players
+  player1.hand.push(Deck.getCard('gut-punch'))
+  game.play(player1, Deck.getCard('gut-punch'))
+  game.pass(player1)
+  t.true(whisperCallback.calledWith(player1.id, 'player:already-played'))
+  t.is(game.turns, 0)
+})
+
+Ava.test('pass() should allow the turn player to pass when grabbed', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const grab = Deck.getCard('grab')
+  const gutPunch = Deck.getCard('gut-punch')
+  player1.hand.push(gutPunch)
+  player2.hand.push(grab)
+  player2.hand.push(gutPunch)
+
+  game.play(player1, gutPunch)
+  game.play(player2, [grab, gutPunch])
+  game.pass(player1)
+
+  t.is(game.turns, 1)
 })
 
 Ava.test('whisperStats() should whisper stats to a player upon request', (t) => {

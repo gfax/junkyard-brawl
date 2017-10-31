@@ -201,6 +201,8 @@ game:transferred:
   en: Game manager has changed from <%= player.name %> to <%= game.manager.name %>.
 game:turn:
   en: <%= player.name %>'s turn.
+game:winner:
+  en: <%= player.name %> wins!
 player:already-joined:
   en: You've already joined, <%= player.name %>.
 player:already-played:

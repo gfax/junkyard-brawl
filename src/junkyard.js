@@ -253,19 +253,20 @@ module.exports = class Junkyard {
       this.whisper(player, 'player:not-turn')
       return
     }
-    if (!this.target && player === turnPlayer) {
+    // Turn player cannot pass without playing first
+    if (!this.target) {
       this.whisper(player, 'player:no-passing')
       return
     }
-    // Let the target pass, but only if he hasn't played a counter
-    if (player === this.target && player.discard.length) {
+    // Let the target pass, but only if he hasn't played an attack/counter
+    if (player.discard.length) {
       this.whisper(player, 'player:already-played')
       return
     }
     if (player === this.target) {
       this.contact(turnPlayer, player, turnPlayer.discard)
     // The target must have played a counter like Grab
-    } else if (player === turnPlayer && this.target.discard) {
+    } else {
       this.contact(this.target, turnPlayer, this.target.discard)
     }
     this.incrementTurn()
@@ -366,7 +367,10 @@ module.exports = class Junkyard {
     this.announce(`player:${died ? 'died' : 'dropped'}`, { player })
     // No more opponents left
     if (this.started && this.players.length < 2) {
-      this.stop()
+      if (died) {
+        this.announce('game:winner', { player: this.players[0] })
+      }
+      this.stop(!died)
       return
     }
     // Nobody wants to start a game

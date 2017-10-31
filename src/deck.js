@@ -389,6 +389,7 @@ const deck = [
     },
     counter: (player, attacker, cards, game) => {
       game.contact(attacker, player, attacker.discard)
+      attacker.discard = []
       player.discard = cards
       game.announce('card:grab:counter', { attacker, player })
     },
