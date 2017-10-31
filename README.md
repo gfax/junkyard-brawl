@@ -52,19 +52,46 @@ The module is built using ES6 classes, so Node v4 and below isn't supported. Nod
 Junkyard Brawl is a card game played against 2 or more players.
 The objective is to use your cards to beat up the other players and be the last one standing.
 
-**Your Turn:** When it's your turn to play, pick an opponent to attack, or a Support card if you wish to heal. Instead of attacking, you may discard any cards you don’t want. If you have no playable cards, you must discard. You cannot pass! After discarding or playing an attack, your turn is over.
+**Your Turn:**
+At the beginning of your turn, you immediately draw back up to 5 cards if you have less than 5 in your hand.
+When it's your turn to play, pick an Attack card and an opponent to attack, or a Support card if you wish to heal.
+Every card is labeled with a type to let you know how and when it can be played.
+Instead of attacking, you may discard any cards you don’t want.
+If you have no playable cards, you must discard; you cannot pass!
+After discarding or playing an attack, your turn is over.
+At the end of your turn, you do not draw more cards unless your move was discarding or a card you played specifically grants you the privilege to draw cards.
 
-**Discarding:** If you decide on your turn to discard instead of attacking, you may discard any cards, then immediately draw cards until you have 5 cards back in your hand.
+**Discarding:**
+If you decide on your turn to discard instead of attacking, you may discard any cards, then immediately draw cards until you have 5 cards back in your hand.
 
-**Drawing:** At the beginning of your turn, you immediately draw back up to 5 cards if you have less than 5 in your hand. At the end of your move, you do not draw back the cards you used unless your move was discarding or a card you played specifically grants you the privilege to draw cards.
+**Attack Cards and Unstoppable Cards:**
+As the name implies, Attack cards are played against the opponent you wish to attack.
+If the card has a red number next to the name, this tells you how much damage that player will receive if they don’t counter the attack.
+Attack cards may have a "*[miss turns]*" number by their name as well, which tells you how many turns that opponent will lose if they don’t block or dodge it.
+Unstoppable cards, as the name implies, are attacks that the opponent cannot counter.
+They will also have indicators for damage the opponent will receive or amount of turns the opponent will miss.
+Many attack cards have a special function detailed in the card description.
 
-**Attack Cards and Unstoppable Cards:** As the name implies, Attack cards are played against the opponent you wish to attack. If the card has a red number next to the name, this tells you how much damage that player will receive if they don’t counter the attack. Attack cards may have a (purple?) number by their name as well, which tells you how many turns that opponent will lose if they don’t block or dodge it. Unstoppable cards, as the name implies, are attacks that the opponent cannot counter. They will also have indicators for damage the opponent will receive or amount of turns the opponent will miss. Many attack cards have a special function (see card descriptions for details.)
+**You’re Attacked!:**
+You can decide whether to respond to an Attack card, or pass up the chance and simply accept your fate.
+Counter cards are played to negate or mitigate the damage you receive when being attacked.
+If you Counter an attack with a Grab, then you must also play an Attack, Support, or Unstoppable card face down along with it.
+Grabs do not block Attacks, but they offer a chance to counter-attack or heal immediately after you are attacked.
+Your opponent must respond to your Grab by countering your hidden card or by passing and accepting fate.
 
-**You’re Attacked!:** You can decide whether to respond to an Attack card, or pass up the chance and simply accept your fate. Counter cards are played to negate or mitigate the damage you receive when being attacked. If you Counter an attack with a Grab, then you must also play an Attack, Support, or Unstoppable card face down along with it. Grabs do not block Attacks, but they offer a chance to counter-attack or heal immediately after you are attacked. Your opponent must respond to your Grab by countering your hidden card or by passing and accepting fate.
+**Grab Cards:**
+Although they are Counter cards, you can also use them to Grab other players on your own turn.
+Players can’t play a Dodge card when being grabbed.
+You must lay your intended Attack/Unstoppable/Support card underneath the Grab, face down.
+The attacked player doesn’t get to see what card is attacking him until he responds with a Counter or passes.
+If the card that grabbed him turns out to be an Unstoppable attack, any counter card played against the Grab's hidden attack is thwarted and discarded.
 
-**Grab Cards:** Although they are Counter cards, you can also use them to Grab other players on your own turn. Players can’t play a Dodge card when being grabbed. You must lay your intended Attack/Unstoppable/Support card underneath the Grab, face down. The attacked player doesn’t get to see what card is attacking him until he responds with a Counter or passes. If the card that grabbed him turns out to be an Unstoppable attack, any counter card played against the Grab's hidden attack is thwarted and discarded.
-
-**Disaster Cards:** Disaster cards affect either all players or a random player. They do not consume a turn. Play these cards at the beginning of anyone’s turn before any attacks commence. The current-turn player finishes drawing before the effects of the Disaster card are processed. Disaster cards cannot be countered.
+**Disaster Cards:**
+Disaster cards affect either all players or a random player in some way.
+They do not consume a turn.
+Play these cards at the beginning of anyone’s turn before any attacks commence.
+The current-turn player finishes drawing before the effects of the Disaster card are processed.
+Disaster cards cannot be countered.
 
 ## Deck
 
@@ -167,7 +194,7 @@ A game instance consists of the following properties:
   deck: [ ... ],
   // Cards that were played. This is shuffled and put
   // back in the deck when the deck becomes empty.
-  discard: [],
+  discardPile: [],
   // Array of players that have died or forfeited.
   dropouts: [],
   // Language that messages will be displayed in.
@@ -196,6 +223,9 @@ A game instance consists of the following properties:
 
 ### announceCallback()
 
+This is a callback passed in to the constructor on instantiation.
+All public game events and game state changes are passed in here.
+
 ```js
 const JunkyardBrawl = require('junkyard-brawl')
 const announceCallback = (code, message, messageProps) => console.log(message)
@@ -209,7 +239,20 @@ param          | type     ||
 `messageProps` | object   | Contains the game objects (lodash options) required to re-render the message from the original lodash template.
 `template`     | function | The original lodash template, in case you want to reformat the message props and render the message yourself. Usage can be found in the [lodash docs](https://lodash.com/docs/4.17.4#template).
 
+All codes can be found in [src/phrases.yml](https://github.com/gfax/junkyard-brawl/blob/master/src/phrases.yml) along with their translations.
+For easy reference though, here's some important ones:
+
+- `game:created` - A player has initialized a new game. At this point, the game has not yet started and is simply waiting for additional players to join.
+- `game:no-survivors` - The game is over because no one is left alive. It is safe to destroy the game instance at this point.
+- `game:stopped` - The game has been stopped pre-maturely. It is safe to destroy the game instance at this point.
+- `game:transferred` - The game manager (`game.manager`) has been changed to another player.
+- `game:turn` - A new turn has started. The game starts the first time this code is received.
+- `game:winner` - A player has won the game. It is safe to destroy the game instance at this point.
+
 ### whisperCallback()
+
+This is a callback passed in to the constructor on instantiation.
+All private game events are passed in here, like the list of cards a player received.
 
 ```js
 const JunkyardBrawl = require('junkyard-brawl')
@@ -312,7 +355,8 @@ game.start()
 
 ### stop()
 
-If the game needs to be canceled for any reason, it can be stopped so that a game ending message appears and scores can be logged before the game instance is destroyed.
+If the game needs to be canceled for any reason, it can be stopped so that a game-ending
+message appears and scores can be logged before the game instance is destroyed.
 
 
 ```js
@@ -325,15 +369,17 @@ game.stop() // Perhaps the player changed their mind and cancelled the match.
 
 ### play()
 
-Once a game is started, players can play cards. `game.players` contains a rotating array of players, with the first player in the array being the turn-player.
+Once a game is started, players can play cards.
+`game.players` contains a rotating array of players, with the first player in the array being the turn-player.
+[`whisperCallback()`](#whispercallback) will be invoked if a player attempts an invalid play.
 
 ```js
 const JunkyardBrawl = require('junkyard-brawl')
 const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCallback, language)
 game.addPlayer('WBE1F94D7', 'Kevin')
 game.start()
-const [{ id: playerId, { id: targetId }] = game.players
-game.play(playerId, '2', targetId)
+const [player1, player2] = game.players
+game.play(player1, '2', player2)
 ```
 
 param      | type                      ||
@@ -342,9 +388,31 @@ param      | type                      ||
 `request`  | card object/array/string  | The request must either be a card object, an array of card objects, or a string of card indexes. Card indexes count from 1. So cards[0] and cards[3], would become '1 4'. This is useful for handling chatroom game adapters where a player may say the index of the cards they want to play.
 `targetId` | string                    | ID of the player being attacked. In a 2-player game, the opposite player is assumed and the parameter is ignored. Likewise, with player moves that don't require a target the parameter is also ignored in such a case.
 
+### discard()
+
+Instead of playing a card, a player may wish to instead discard on their turn.
+This will remove the requested cards from the player's hand and deal back that many cards to the player.
+[`whisperCallback()`](#whispercallback) will be invoked if a player attempts an invalid discard.
+
+```js
+const JunkyardBrawl = require('junkyard-brawl')
+const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCallback, language)
+game.addPlayer('WBE1F94D7', 'Kevin')
+game.start()
+const [{ id: playerId }] = game.players
+game.discard(playerId, '1 4 2')
+```
+
+param      | type                      ||
+---------- | ------------------------- |-
+`playerId` | player/string             | The player object for the user requesting to play, or simply the ID of the user that was passed in when the player was added. The game can distinguish valid players from invalid players.
+`request`  | card object/array/string  | The request must either be a card object, an array of card objects, or a string of card indexes. Card indexes count from 1. So cards[0] and cards[3], would become '1 4'. If no cards are specified, the player's entire hand will be discarded.
+
 ### pass()
 
-If a player decides to pass their chance to play, this method should be invoked instead of `play()`.
+If a player decides to pass their chance to respond to an attack, this method should be invoked instead of `play()`.
+Remember that a player cannot pass on their turn.
+[`whisperCallback()`](#whispercallback) will be invoked if a player attempts an invalid pass.
 
 ```js
 const JunkyardBrawl = require('junkyard-brawl')

@@ -44,7 +44,7 @@ const deck = [
     filter: () => [],
     beforeTurn: (player, game) => {
       const acidCoffee = getCard('acid-coffee')
-      game.discard.push(acidCoffee)
+      game.discardPile.push(acidCoffee)
       removeOnce(player.conditionCards, acidCoffee)
       removeOnce(player.beforeTurn, () => acidCoffee.beforeTurn)
       return true
@@ -117,7 +117,7 @@ const deck = [
         // But still return the failed counter to be discarded
         return cards
       }
-      attacker.discard.forEach(card => game.discard.push(card))
+      attacker.discard.forEach(card => game.discardPile.push(card))
       game.announce('card:block:counter', {
         attacker,
         cards: printCards(attacker.discard, game.language),
@@ -133,7 +133,7 @@ const deck = [
     copies: 1,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      game.discard = game.discard.concat(target.hand)
+      game.discardPile = game.discardPile.concat(target.hand)
       target.hand = []
       game.announce('card:bulldozer:contact', {
         player,
@@ -196,7 +196,7 @@ const deck = [
       // Relinquish the card once its ability is used up
       removeOnce(target.beforeContact, () => deflector.beforeContact)
       removeOnce(target.conditionCards, () => deflector)
-      game.discard.push(deflector)
+      game.discardPile.push(deflector)
       game.announce('card:deflector:deflect', {
         player,
         target,
@@ -230,7 +230,7 @@ const deck = [
       return true
     },
     counter: (player, attacker, cards, game) => {
-      game.discard.push(cards[0])
+      game.discardPile.push(cards[0])
       // Empty the discard since this player may not
       // be a target by the time the turn increments
       player.discard = []
@@ -273,7 +273,7 @@ const deck = [
     beforeTurn: (player, game) => {
       const energyDrink = getCard('energy-drink')
       const discardFn = () => {
-        game.discard.push(energyDrink)
+        game.discardPile.push(energyDrink)
         removeOnce(player.conditionCards, energyDrink)
         removeOnce(player.beforeTurn, () => discardFn)
         if (player.hp < player.maxHp) {
@@ -335,7 +335,7 @@ const deck = [
       const gasSpill = getCard('gas-spill')
       const discardFn = () => {
         // Now we can discard the card
-        game.discard.push(gasSpill)
+        game.discardPile.push(gasSpill)
         removeOnce(player.conditionCards, gasSpill)
         removeOnce(player.beforeTurn, () => discardFn)
         game.announce('player:discard', {
@@ -420,7 +420,7 @@ const deck = [
     filter: () => [],
     beforeTurn: (player, game) => {
       const greaseBucket = getCard('grease-bucket')
-      game.discard.push(greaseBucket)
+      game.discardPile.push(greaseBucket)
       removeOnce(player.conditionCards, greaseBucket)
       removeOnce(player.beforeTurn, () => greaseBucket.beforeTurn)
       return true
@@ -495,7 +495,7 @@ const deck = [
         player
       })
       attacker.discard[0].contact(attacker, player, attacker.discard, game)
-      game.discard.push(cards[0])
+      game.discardPile.push(cards[0])
       if (player.hp < 1) {
         player.hp = Math.floor(player.maxHp / 2)
         game.announce('card:insurance:success', { player })
@@ -533,7 +533,7 @@ const deck = [
     type: 'unstoppable',
     copies: 1,
     contact: (player, target, cards, game) => {
-      game.discard = game.discard.concat(cards)
+      game.discardPile = game.discardPile.concat(cards)
       const numberToSteal = Math.min(cards.length, target.hand.length)
       const stolenCards = shuffle(target.hand).slice(0, numberToSteal)
       stolenCards.forEach((card) => {
@@ -748,7 +748,7 @@ const deck = [
     filter: () => [],
     beforeTurn: (player, game) => {
       const spareBolts = getCard('spare-bolts')
-      game.discard.push(spareBolts)
+      game.discardPile.push(spareBolts)
       removeOnce(player.beforeTurn, () => spareBolts.beforeTurn)
       removeOnce(player.conditionCards, spareBolts)
     },
@@ -802,7 +802,7 @@ const deck = [
         removeOnce(player.afterContact, () => theBees.afterContact)
         removeOnce(player.conditionCards, theBees)
         // Relinquish the card from the player
-        game.discard.push(theBees)
+        game.discardPile.push(theBees)
         game.announce('card:the-bees:healed', { player })
       }
       return true
@@ -833,7 +833,7 @@ const deck = [
     filter: () => [],
     beforeTurn: (player, game) => {
       const tire = getCard('tire')
-      game.discard.push(tire)
+      game.discardPile.push(tire)
       removeOnce(player.conditionCards, tire)
       removeOnce(player.beforeTurn, () => tire.beforeTurn)
       return true
@@ -927,7 +927,7 @@ const deck = [
       const wrench = getCard('wrench')
       const discardFn = () => {
         // Now we can discard the card
-        game.discard.push(wrench)
+        game.discardPile.push(wrench)
         removeOnce(player.conditionCards, wrench)
         removeOnce(player.beforeTurn, () => discardFn)
         game.announce('player:discard', {
@@ -975,7 +975,7 @@ function getCard(id) {
 }
 
 // Normalize requests into an array of card objects
-function parseCards(player, request) {
+function parseCards(player, request, noCardFilter = false) {
   function checkObject(obj) {
     if (!obj.id || !obj.type) {
       throw new Error('Passed a non-card object.')
@@ -985,6 +985,11 @@ function parseCards(player, request) {
   // Gut Punch filters any card following itself
   // as it is a standalone attack.
   function filterCards(cards) {
+    // Option was passed in to disabled this filter.
+    // User is probably requesting to discard.
+    if (noCardFilter) {
+      return cards
+    }
     const [head, ...tail] = cards
     if (head && head.filter) {
       return [head].concat(head.filter(tail))
@@ -1005,7 +1010,7 @@ function parseCards(player, request) {
   }
   if (Array.isArray(request)) {
     if (!request.length) {
-      throw new Error('Passed an empty array of cards.')
+      return []
     }
     checkObject(request[0])
     // It's already an array of cards so just filter them now

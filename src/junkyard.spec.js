@@ -3,7 +3,7 @@ const Sinon = require('sinon')
 const Deck = require('./deck')
 const Junkyard = require('./junkyard')
 const Player = require('./player')
-const { times } = require('./util')
+const { find, times } = require('./util')
 
 Ava.test('Should allow instantiation', (t) => {
   const game = new Junkyard('player1', 'Jay')
@@ -83,10 +83,10 @@ Ava.test('addPlayer() should trigger discard shuffling', (t) => {
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
   game.deck = []
-  game.discard.push(Deck.getCard('gut-punch'))
+  game.discardPile.push(Deck.getCard('gut-punch'))
   game.start()
 
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
   t.true(announceCallback.calledWith('deck:shuffled'))
 })
 
@@ -179,7 +179,7 @@ Ava.test('removePlayer() should discard player cards', (t) => {
   const [, player] = game.players
   game.removePlayer(player.id)
   t.true(announceCallback.calledWith('player:dropped'))
-  t.is(game.discard.length, player.maxHand)
+  t.is(game.discardPile.length, player.maxHand)
   t.is(player.hand.length, 0)
   t.true(announceCallback.calledWith('player:discard'))
 })
@@ -306,7 +306,7 @@ Ava.test('play() should ignore non-player moves', (t) => {
   t.false(announceCallback.called)
 })
 
-Ava.test('play() should expect a target to be specified', (t) => {
+Ava.test('play() should not accept attacks out of turn', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
@@ -317,6 +317,50 @@ Ava.test('play() should expect a target to be specified', (t) => {
   player2.hand.push(gutPunch)
   game.play(player2.id, gutPunch)
   t.true(whisperCallback.calledWith(player2.id, 'player:not-turn'))
+})
+
+Ava.test('play() should ignore a player if they have already played', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [turnPlayer] = game.players
+  const gutPunch = Deck.getCard('gut-punch')
+  const neckPunch = Deck.getCard('neck-punch')
+  game.play(turnPlayer, gutPunch)
+  announceCallback.reset()
+  whisperCallback.reset()
+
+  game.play(turnPlayer, neckPunch)
+  t.true(announceCallback.notCalled)
+  t.true(whisperCallback.notCalled)
+  t.deepEqual(turnPlayer.discard, [gutPunch])
+})
+
+Ava.test('play() should expect a target when there are 3 or more players', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+  const [turnPlayer] = game.players
+  const gutPunch = Deck.getCard('gut-punch')
+  game.play(turnPlayer, gutPunch)
+  t.true(whisperCallback.calledWith(turnPlayer.id, 'player:invalid-target'))
+})
+
+Ava.test('play() should notify a user when given an invalid card', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [turnPlayer] = game.players
+  const block = Deck.getCard('block')
+  game.play(turnPlayer, block)
+  t.true(whisperCallback.calledWith(turnPlayer.id, 'player:invalid-play'))
 })
 
 Ava.test('counter() should throw an error when not passed cards', (t) => {
@@ -416,6 +460,87 @@ Ava.test('pass() should allow the turn player to pass when grabbed', (t) => {
   game.pass(player1)
 
   t.is(game.turns, 1)
+})
+
+Ava.test('discard() should ignore requests when the game has not started', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  announceCallback.reset()
+  whisperCallback.reset()
+  game.discard(game.manager.id)
+  t.true(announceCallback.notCalled)
+  t.true(whisperCallback.notCalled)
+})
+
+Ava.test('discard() should ignore requests from non players', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+  game.removePlayer('player2')
+  const gutPunch = Deck.getCard('gut-punch')
+  announceCallback.reset()
+  whisperCallback.reset()
+  game.discard('player2', gutPunch)
+  game.discard('foobaz', gutPunch)
+  t.true(announceCallback.notCalled)
+  t.true(whisperCallback.notCalled)
+  t.is(game.turns, 0)
+})
+
+Ava.test('discard() should notify a player when it is not their turn', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [, player2] = game.players
+  const gutPunch = Deck.getCard('gut-punch')
+  player2.hand.push(gutPunch)
+  game.discard(player2, gutPunch)
+  t.true(whisperCallback.calledWith(player2.id, 'player:not-turn'))
+})
+
+Ava.test('discard() should discard the given cards and deal the appropriate amount', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [turnPlayer] = game.players
+  const block = Deck.getCard('block')
+  const gutPunch = Deck.getCard('gut-punch')
+  turnPlayer.hand.push(block)
+  turnPlayer.hand.push(gutPunch)
+
+  game.discard(turnPlayer, [block, gutPunch])
+  t.is(turnPlayer.hand.length, turnPlayer.maxHand)
+  t.is(game.discardPile.length, 2)
+  t.is(game.turns, 1)
+  t.truthy(find(game.discardPile, block))
+  t.truthy(find(game.discardPile, gutPunch))
+})
+
+Ava.test('discard() should discard a player\'s entire hand if no cards were specified', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [turnPlayer] = game.players
+  const block = Deck.getCard('block')
+  const gutPunch = Deck.getCard('gut-punch')
+  turnPlayer.hand = [block, gutPunch, gutPunch, block]
+
+  game.discard(turnPlayer)
+  t.is(turnPlayer.hand.length, turnPlayer.maxHand)
+  t.is(game.discardPile.length, 4)
+  t.is(game.turns, 1)
+  t.truthy(find(game.discardPile, block))
+  t.truthy(find(game.discardPile, gutPunch))
 })
 
 Ava.test('whisperStats() should whisper stats to a player upon request', (t) => {

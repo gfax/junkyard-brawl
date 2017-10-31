@@ -16,4 +16,4 @@ player2.hp = 1
 player3.hp = 1
 
 player1.hand.push(Deck.getCard('earthquake'))
-game.play(player1, Deck.getCard('earthquake'))
+game.discard(player1, Deck.getCard('earthquake'))

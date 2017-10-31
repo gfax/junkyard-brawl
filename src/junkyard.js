@@ -28,7 +28,7 @@ module.exports = class Junkyard {
     // Freshly shuffled cards
     this.deck = Deck.generate()
     // Cards that were discarded
-    this.discard = []
+    this.discardPile = []
     // Players not allowed to rejoin
     this.dropouts = []
     // Language to announce things in
@@ -111,7 +111,7 @@ module.exports = class Junkyard {
           // A few rare cases where we are duplicating an attack,
           // ie Mirror, we don't want to re-discard the cards.
           if (discarding === true) {
-            discard.forEach(card => this.discard.push(card))
+            discard.forEach(card => this.discardPile.push(card))
           }
         }
       ])
@@ -144,6 +144,37 @@ module.exports = class Junkyard {
         this.announce('player:deal', { number: numberToDeal, player })
       }
     }
+  }
+
+  // Allow player to discard on their turn and get better cards.
+  discard(playerId, cardRequest = []) {
+    if (!this.started || this.stopped) {
+      return
+    }
+    const player = this.getPlayer(playerId)
+    // This person is not playing the game
+    if (!player) {
+      return
+    }
+    // Only the turn player can discard
+    if (player !== this.players[0]) {
+      this.whisper(player, 'player:not-turn')
+      return
+    }
+    let cards = Deck.parseCards(player, cardRequest, true)
+    if (!cards.length) {
+      cards = clone(player.hand)
+    }
+    cards.forEach((card) => {
+      removeOnce(player.hand, card)
+      this.discardPile.push(card)
+    })
+    this.announce('player:discard', {
+      cards: Language.printCards(cards, this.language),
+      player
+    })
+    this.deal(player)
+    this.incrementTurn()
   }
 
   getDropout(id) {
@@ -274,7 +305,7 @@ module.exports = class Junkyard {
 
   // This simply processes requests and
   // passes it to the appropriate method.
-  play(playerId, cardRequest, targetId) {
+  play(playerId, cardRequest = [], targetId) {
     if (this.stopped) {
       return
     }
@@ -358,12 +389,12 @@ module.exports = class Junkyard {
     // Announce what cards the player had
     if (player.hand.length) {
       announceDiscard(player, this)
-      this.discard = this.discard.concat(player.hand)
+      this.discardPile = this.discardPile.concat(player.hand)
       player.hand = []
     }
     this.dropouts.push(player)
     // Relinquish all attached cards back to the discard
-    this.discard = this.discard.concat(player.conditionCards)
+    this.discardPile = this.discardPile.concat(player.conditionCards)
     this.announce(`player:${died ? 'died' : 'dropped'}`, { player })
     // No more opponents left
     if (this.started && this.players.length < 2) {
@@ -493,12 +524,12 @@ function playCounter(player, cards, game) {
   // Take the cards out of the player's hand and put
   // any previous discard into the main discard pile
   cards.forEach(card => removeOnce(player.hand, card))
-  // player.discard.forEach(card => game.discard.push(card))
+  // player.discard.forEach(card => game.discardPile.push(card))
   player.discard = cards
   // Discard any cards returned. Some cards aren't discarded
   // when played so we only discard what we're given back.
   const discard = cards[0].counter(player, attacker, cards, game) || []
-  discard.forEach(card => game.discard.push(card))
+  discard.forEach(card => game.discardPile.push(card))
 }
 
 function playDisaster(player, cards, game) {
@@ -506,7 +537,7 @@ function playDisaster(player, cards, game) {
   // Discard any cards returned. Some cards aren't discarded
   // when played so we only discard what we're given back.
   const discard = cards[0].disaster(player, cards, game) || []
-  discard.forEach(card => game.discard.push(card))
+  discard.forEach(card => game.discardPile.push(card))
 }
 
 function playSupport(player, cards, game) {
@@ -521,17 +552,17 @@ function playSupport(player, cards, game) {
   // Discard any cards returned. Some cards aren't discarded
   // when played so we only discard what we're given back.
   const discard = game.contact(player, player, cards) || []
-  discard.forEach(card => game.discard.push(card))
+  discard.forEach(card => game.discardPile.push(card))
   game.incrementTurn()
 }
 
 function shuffleDeck(game) {
-  if (!game.discard.length) {
+  if (!game.discardPile.length) {
     game.deck = game.deck.concat(Deck.generate())
     game.announce('deck:increased')
     return
   }
-  game.deck = game.deck.concat(shuffle(game.discard))
-  game.discard = []
+  game.deck = game.deck.concat(shuffle(game.discardPile))
+  game.discardPile = []
   game.announce('deck:shuffled')
 }

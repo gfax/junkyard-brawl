@@ -61,10 +61,6 @@ Ava.test('parseCards() should throw an error when not passed a request', (t) => 
   t.throws(() => Deck.parseCards(new Player('user1', 'Jay')))
 })
 
-Ava.test('parseCards() should throw an error when passed an empty array', (t) => {
-  t.throws(() => Deck.parseCards(new Player('user1', 'Jay'), []))
-})
-
 Ava.test('parseCards() should throw an error when passed invalid cards', (t) => {
   t.throws(() => Deck.parseCards(
     new Player('user1', 'Jay'),
@@ -74,6 +70,10 @@ Ava.test('parseCards() should throw an error when passed invalid cards', (t) => 
 
 Ava.test('parseCards() should return an empty array when a player has no cards', (t) => {
   t.deepEqual(Deck.parseCards(new Player('user1', 'Jay'), '1 2 3'), [])
+})
+
+Ava.test('parseCards() should return an empty array when passed an empty array', (t) => {
+  t.deepEqual(Deck.parseCards(new Player('user1', 'Jay'), []), [])
 })
 
 Ava.test('parseCards() should parse a card object', (t) => {
@@ -106,8 +106,8 @@ Ava.test('Gut Punch should be playable', (t) => {
   game.play(player.id, [Deck.getCard('gut-punch')])
   game.pass(target.id)
   t.is(target.hp, 8)
-  t.truthy(find(game.discard, { id: 'gut-punch' }))
-  t.is(game.discard.length, 1)
+  t.truthy(find(game.discardPile, { id: 'gut-punch' }))
+  t.is(game.discardPile.length, 1)
 })
 
 Ava.test('Grab should be playable', (t) => {
@@ -137,8 +137,8 @@ Ava.test('Grab should be playable', (t) => {
   t.true(announceCallback.calledWith('card:grab:play'))
   t.true(announceCallback.calledWith('card:a-gun:contact'))
 
-  t.truthy(find(game.discard, grab))
-  t.is(game.discard.length, 4)
+  t.truthy(find(game.discardPile, grab))
+  t.is(game.discardPile.length, 4)
 })
 
 Ava.test('Grab should only play with an attack', (t) => {
@@ -211,7 +211,7 @@ Ava.test('Grab should counter', (t) => {
   t.is(player1.hp, 8)
   t.is(player2.hp, 6)
   t.is(game.turns, 1)
-  t.is(game.discard.length, 6)
+  t.is(game.discardPile.length, 6)
 })
 
 Ava.test('Acid Coffee should make a player miss a turn', (t) => {
@@ -240,10 +240,10 @@ Ava.test('Acid Coffee should delay discarding', (t) => {
   t.is(player1.hand.length, player1.maxHand)
 
   game.pass(player3.id)
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
 
   game.incrementTurn()
-  t.is(game.discard.length, 1)
+  t.is(game.discardPile.length, 1)
 })
 
 Ava.test('Acid Coffee should discard even in the event of death', (t) => {
@@ -259,8 +259,8 @@ Ava.test('Acid Coffee should discard even in the event of death', (t) => {
 
   game.pass(player2.id)
   t.truthy(game.stopped)
-  t.is(game.discard.length, player2.maxHand + 1)
-  t.truthy(find(game.discard, Deck.getCard('acid-coffee')))
+  t.is(game.discardPile.length, player2.maxHand + 1)
+  t.truthy(find(game.discardPile, Deck.getCard('acid-coffee')))
 })
 
 Ava.test('A Gun should be playable', (t) => {
@@ -273,8 +273,8 @@ Ava.test('A Gun should be playable', (t) => {
   game.play(player1.id, [Deck.getCard('a-gun')])
   t.is(player2.hp, player2.maxHp - 2)
   t.is(game.turns, 1)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, { id: 'a-gun' }))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, { id: 'a-gun' }))
   t.is(player1.hand.length, player1.maxHand)
 })
 
@@ -310,12 +310,12 @@ Ava.test('A Gun should be unblockable', (t) => {
   t.is(player2.hp, player2.maxHp - 2)
   t.is(game.turns, 1)
   t.is(game.players[0], player2)
-  t.is(game.discard.length, 3)
+  t.is(game.discardPile.length, 3)
   t.is(player1.hand.length, player1.maxHand)
   t.is(player2.hand.length, player2.maxHand)
-  t.truthy(find(game.discard, { id: 'grab' }))
-  t.truthy(find(game.discard, { id: 'a-gun' }))
-  t.truthy(find(game.discard, { id: 'block' }))
+  t.truthy(find(game.discardPile, { id: 'grab' }))
+  t.truthy(find(game.discardPile, { id: 'a-gun' }))
+  t.truthy(find(game.discardPile, { id: 'block' }))
 })
 
 Ava.test('Armor should add 5 HP, even past the player\'s max HP', (t) => {
@@ -330,7 +330,7 @@ Ava.test('Armor should add 5 HP, even past the player\'s max HP', (t) => {
 
   t.true(announceCallback.calledWith('card:armor:contact'))
   t.is(player.hand.length, player.maxHand)
-  t.is(game.discard.length, 1)
+  t.is(game.discardPile.length, 1)
   t.is(player.hp, player.maxHp + 5)
 })
 
@@ -350,8 +350,8 @@ Ava.test('Avalanche should attack a random player', (t) => {
     game.players.reduce((acc, plyr) => acc + plyr.hp, 0),
     game.players.reduce((acc, plyr) => acc + plyr.maxHp, 0) - 6
   )
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, avalanche))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, avalanche))
   t.is(player.hand.length, player.maxHand)
 })
 
@@ -388,7 +388,7 @@ Ava.test('Block should counter', (t) => {
   t.is(player2.hp, player2.maxHp)
   t.true(announceCallback.calledWith('card:block:counter'))
   t.is(game.turns, 1)
-  t.is(game.discard.length, 2)
+  t.is(game.discardPile.length, 2)
 })
 
 Ava.test('Block should be thwarted by unstoppable cards', (t) => {
@@ -406,7 +406,7 @@ Ava.test('Block should be thwarted by unstoppable cards', (t) => {
   t.is(player2.hp, player2.maxHp - 2)
   t.true(announceCallback.calledWith('player:counter-failed'))
   t.is(game.turns, 1)
-  t.is(game.discard.length, 3)
+  t.is(game.discardPile.length, 3)
 })
 
 Ava.test('Bulldozer should leave a target with no cards', (t) => {
@@ -424,7 +424,7 @@ Ava.test('Bulldozer should leave a target with no cards', (t) => {
   t.is(player3.hand.length, 0)
   t.is(game.turns, 1)
   t.is(player1.hand.length, player1.maxHand)
-  t.is(game.discard.length, player3.maxHand + 1)
+  t.is(game.discardPile.length, player3.maxHand + 1)
 })
 
 Ava.test('Cheap Shot should be playable', (t) => {
@@ -438,8 +438,8 @@ Ava.test('Cheap Shot should be playable', (t) => {
   game.play(player1.id, [cheapShot])
   t.is(player2.hp, player2.maxHp - 1)
   t.is(game.turns, 1)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, cheapShot))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, cheapShot))
   t.is(player1.hand.length, player1.maxHand)
 })
 
@@ -486,7 +486,7 @@ Ava.test('Crane should be playable with a grab', (t) => {
 
   t.is(game.turns, 1)
   t.is(game.players[0], player2)
-  t.is(game.discard.length, 4)
+  t.is(game.discardPile.length, 4)
   t.is(player1.hand.length, player1.maxHand + 3)
   t.is(player3.hand.length, player3.maxHand + 1)
 })
@@ -505,7 +505,7 @@ Ava.test('Deflector should attach to a random player', (t) => {
 
   t.true(announceCallback.calledWith('card:deflector:play'))
   t.true(announceCallback.calledOnce)
-  t.is(game.discard.length, 0, 'card should be with the player, not discarded yet')
+  t.is(game.discardPile.length, 0, 'card should be with the player, not discarded yet')
   t.is(player1.beforeContact.length + player2.beforeContact.length, 1)
   t.is(player1.hand.length, player1.maxHand)
 })
@@ -541,7 +541,7 @@ Ava.test('Deflector should deflect an attack to another random player', (t) => {
 
   t.true(announceCallback.calledWith('card:deflector:deflect'))
   t.is(player1.beforeContact.length + player2.beforeContact.length, 0)
-  t.truthy(find(game.discard, deflector))
+  t.truthy(find(game.discardPile, deflector))
 })
 
 Ava.test('Deflector should also deflect Avalanches', (t) => {
@@ -560,7 +560,7 @@ Ava.test('Deflector should also deflect Avalanches', (t) => {
   t.is(player2.hp, player2.maxHp - 6)
   t.true(announceCallback.calledWith('card:deflector:deflect'))
   t.true(announceCallback.calledWith('card:avalanche:contact'))
-  t.is(game.discard.length, 2)
+  t.is(game.discardPile.length, 2)
 })
 
 Ava.test('Deflector should halt resolving further before-contact conditions', (t) => {
@@ -613,8 +613,8 @@ Ava.test('Deflector should discard if the player holding it is removed', (t) => 
   player1.hand.push(deflector)
   game.play(player1.id, [deflector])
   game.removePlayer(player1.id)
-  t.is(game.discard.length, player1.maxHand + 1)
-  t.truthy(find(game.discard, deflector))
+  t.is(game.discardPile.length, player1.maxHand + 1)
+  t.truthy(find(game.discardPile, deflector))
   t.is(game.turns, 0)
 })
 
@@ -634,7 +634,7 @@ Ava.test('Dodge should counter and nullify attacks', (t) => {
 
   t.true(announceCallback.calledWith('card:dodge:nullify'))
   t.is(game.turns, 1)
-  t.is(game.discard.length, 2)
+  t.is(game.discardPile.length, 2)
 })
 
 Ava.test('Dodge should counter and refer attacks', (t) => {
@@ -653,7 +653,7 @@ Ava.test('Dodge should counter and refer attacks', (t) => {
 
   t.true(announceCallback.calledWith('card:dodge:new-target'))
   t.is(game.turns, 0)
-  t.is(game.discard.length, 1)
+  t.is(game.discardPile.length, 1)
   t.is(game.target, player3)
 })
 
@@ -674,7 +674,7 @@ Ava.test('Dodge should not be playable when grabbed', (t) => {
 
   t.true(whisperCallback.calledWith(player2.id, 'card:dodge:invalid'))
   t.is(game.turns, 0)
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
 })
 
 Ava.test('Energy Drink should heal a player over the course of 3 turns', (t) => {
@@ -693,20 +693,20 @@ Ava.test('Energy Drink should heal a player over the course of 3 turns', (t) => 
   t.false(announceCallback.calledWith('card:energy-drink:before-turn'))
   t.is(player.hp, 3)
   t.is(player.hand.length, player.maxHand)
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
 
   game.incrementTurn()
   game.incrementTurn()
   t.is(player.hp, 4)
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
   t.true(announceCallback.calledWith('card:energy-drink:before-turn'))
 
   announceCallback.reset()
   game.incrementTurn()
   game.incrementTurn()
   t.is(player.hp, 5)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, energyDrink))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, energyDrink))
   t.true(announceCallback.calledWith('card:energy-drink:before-turn'))
   t.true(announceCallback.calledWith('player:discard'))
 })
@@ -727,20 +727,20 @@ Ava.test('Energy Drink should have no effect on a player at or above their max H
   t.false(announceCallback.calledWith('card:energy-drink:before-turn'))
   t.is(player.hp, player.maxHp + 5)
   t.is(player.hand.length, player.maxHand)
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
 
   game.incrementTurn()
   game.incrementTurn()
   t.is(player.hp, player.maxHp + 5)
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
   t.true(announceCallback.calledWith('card:energy-drink:before-turn'))
 
   announceCallback.reset()
   game.incrementTurn()
   game.incrementTurn()
   t.is(player.hp, player.maxHp + 5)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, energyDrink))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, energyDrink))
   t.true(announceCallback.calledWith('card:energy-drink:before-turn'))
   t.true(announceCallback.calledWith('player:discard'))
 })
@@ -771,8 +771,8 @@ Ava.test('Earthquake should immediately discard', (t) => {
   game.play(player.id, Deck.getCard('earthquake'))
 
   t.is(player.hand.length, player.maxHand)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, Deck.getCard('earthquake')))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, Deck.getCard('earthquake')))
 })
 
 Ava.test('Earthquake should kill people', (t) => {
@@ -787,7 +787,7 @@ Ava.test('Earthquake should kill people', (t) => {
   game.play(player.id, Deck.getCard('earthquake'))
 
   t.truthy(game.stopped)
-  t.is(game.discard.length, player.maxHand + 1)
+  t.is(game.discardPile.length, player.maxHand + 1)
 })
 
 Ava.test('Earthquake should trigger a no-winner situation', (t) => {
@@ -824,7 +824,7 @@ Ava.test('Gamblin\' man should do some random damage between 1 and 6', (t) => {
   t.true(player2.hp >= player2.maxHp - 6)
   t.is(game.turns, 1)
   t.is(player1.hand.length, player1.maxHand)
-  t.is(game.discard.length, 1)
+  t.is(game.discardPile.length, 1)
 })
 
 Ava.test('Gas Spill should cause a player to miss 2 turns.', (t) => {
@@ -852,22 +852,22 @@ Ava.test('Gas Spill should delay discarding', (t) => {
   game.play(player1.id, [gasSpill])
   t.is(player1.hand.length, player1.maxHand)
 
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
   if (player1.beforeTurn.length) {
     t.is(player1.missTurns, 2)
     game.incrementTurn()
     game.incrementTurn()
     t.is(player1.missTurns, 1)
-    t.is(game.discard.length, 0)
+    t.is(game.discardPile.length, 0)
     game.incrementTurn()
   } else if (player2.beforeTurn.length) {
     game.incrementTurn()
-    t.is(game.discard.length, 0)
+    t.is(game.discardPile.length, 0)
     game.incrementTurn()
   } else {
     t.fail()
   }
-  t.is(game.discard.length, 1)
+  t.is(game.discardPile.length, 1)
   t.true(announceCallback.calledWith('player:discard'))
 })
 
@@ -881,11 +881,11 @@ Ava.test('Gas Spill should discard when the affected player is removed', (t) => 
   game.players[0].hand.push(gasSpill)
   game.play(game.players[0].id, [gasSpill])
 
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
   const player = find(game.players, plyr => plyr.beforeTurn.length === 1)
   game.removePlayer(player.id)
-  t.is(game.discard.length, player.maxHand + 1)
-  t.truthy(find(game.discard, gasSpill))
+  t.is(game.discardPile.length, player.maxHand + 1)
+  t.truthy(find(game.discardPile, gasSpill))
 })
 
 Ava.test('Grease Bucket should make a player miss a turn', (t) => {
@@ -914,10 +914,10 @@ Ava.test('Grease Bucket should delay discarding', (t) => {
   t.is(player1.hand.length, player1.maxHand)
 
   game.pass(player3.id)
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
 
   game.incrementTurn()
-  t.is(game.discard.length, 1)
+  t.is(game.discardPile.length, 1)
 })
 
 Ava.test('Grease Bucket should discard when a player dies', (t) => {
@@ -931,8 +931,8 @@ Ava.test('Grease Bucket should discard when a player dies', (t) => {
   game.play(player1.id, [Deck.getCard('grease-bucket')])
   game.pass(player2.id)
 
-  t.truthy(find(game.discard, Deck.getCard('grease-bucket')))
-  t.is(game.discard.length, player2.maxHand + 1)
+  t.truthy(find(game.discardPile, Deck.getCard('grease-bucket')))
+  t.is(game.discardPile.length, player2.maxHand + 1)
 })
 
 Ava.test('Insurance should restore a player to half HP', (t) => {
@@ -951,7 +951,7 @@ Ava.test('Insurance should restore a player to half HP', (t) => {
   t.is(player2.hp, Math.floor(player2.maxHp / 2))
   t.true(announceCallback.calledWith('card:insurance:counter'))
   t.true(announceCallback.calledWith('card:insurance:success'))
-  t.truthy(find(game.discard, { id: 'insurance' }))
+  t.truthy(find(game.discardPile, { id: 'insurance' }))
 })
 
 Ava.test('Insurance should work against unstoppable attacks', (t) => {
@@ -1109,9 +1109,9 @@ Ava.test('Mattress should absorb up to 2 hp of damage', (t) => {
   t.is(game.turns, 1)
   t.true(announceCallback.calledWith('card:mattress:counter'))
   t.is(player2.hp, player2.maxHp - 1)
-  t.is(game.discard.length, 2)
-  t.truthy(find(game.discard, neckPunch))
-  t.truthy(find(game.discard, mattress))
+  t.is(game.discardPile.length, 2)
+  t.truthy(find(game.discardPile, neckPunch))
+  t.truthy(find(game.discardPile, mattress))
 })
 
 Ava.test('Mattress should not give a player more hp than they had', (t) => {
@@ -1134,10 +1134,10 @@ Ava.test('Mattress should not give a player more hp than they had', (t) => {
   t.is(game.turns, 1)
   t.true(announceCallback.calledWith('card:mattress:counter'))
   t.is(player2.hp, 5)
-  t.is(game.discard.length, 3)
-  t.truthy(find(game.discard, grab))
-  t.truthy(find(game.discard, cheapShot))
-  t.truthy(find(game.discard, mattress))
+  t.is(game.discardPile.length, 3)
+  t.truthy(find(game.discardPile, grab))
+  t.truthy(find(game.discardPile, cheapShot))
+  t.truthy(find(game.discardPile, mattress))
 })
 
 Ava.test('Mattress should work when a player has more than max hp', (t) => {
@@ -1155,7 +1155,7 @@ Ava.test('Mattress should work when a player has more than max hp', (t) => {
   game.play(player2.id, mattress)
 
   t.is(player2.hp, player2.maxHp + 3)
-  t.is(game.discard.length, 2)
+  t.is(game.discardPile.length, 2)
 })
 
 Ava.test('Matress shouldn\'t have an effect when there was no damage', (t) => {
@@ -1177,7 +1177,7 @@ Ava.test('Matress shouldn\'t have an effect when there was no damage', (t) => {
 
   t.is(player2.hp, 5)
   t.is(game.turns, 1)
-  t.is(game.discard.length, 3)
+  t.is(game.discardPile.length, 3)
 })
 
 Ava.test('Meal Steal should steal multiple cards', (t) => {
@@ -1201,7 +1201,7 @@ Ava.test('Meal Steal should steal multiple cards', (t) => {
   t.is(player1.hand.length, player1.maxHand)
   t.truthy(find(player2.hand, gutPunch))
   t.is(game.turns, 1)
-  t.is(game.discard.length, 4)
+  t.is(game.discardPile.length, 4)
 })
 
 Ava.test('Meal Steal should heal with multiple stolen cards', (t) => {
@@ -1244,7 +1244,7 @@ Ava.test('Meal Steal should steal one card', (t) => {
   t.is(player1.hand.length, player1.maxHand)
   t.truthy(find(player2.hand, gutPunch))
   t.is(game.turns, 1)
-  t.is(game.discard.length, 2)
+  t.is(game.discardPile.length, 2)
 })
 
 Ava.test('Meal Steal should steal zero cards', (t) => {
@@ -1266,7 +1266,7 @@ Ava.test('Meal Steal should steal zero cards', (t) => {
   t.is(player1.hand.length, player1.maxHand)
   t.truthy(find(player2.hand, gutPunch))
   t.is(game.turns, 1)
-  t.is(game.discard.length, 1)
+  t.is(game.discardPile.length, 1)
 })
 
 Ava.test('Meal Steal should have no effect with no stolen cards', (t) => {
@@ -1328,10 +1328,10 @@ Ava.test('Mirror should duplicate unstoppable attacks', (t) => {
   t.is(player1.hp, player1.maxHp - 2)
   t.is(player2.hp, player2.maxHp - 2)
   t.is(game.turns, 1)
-  t.is(game.discard.length, 3)
-  t.truthy(find(game.discard, mirror))
-  t.truthy(find(game.discard, grab))
-  t.truthy(find(game.discard, aGun))
+  t.is(game.discardPile.length, 3)
+  t.truthy(find(game.discardPile, mirror))
+  t.truthy(find(game.discardPile, grab))
+  t.truthy(find(game.discardPile, aGun))
 })
 
 Ava.test('Mirror should duplicate support', (t) => {
@@ -1356,10 +1356,10 @@ Ava.test('Mirror should duplicate support', (t) => {
   t.is(game.turns, 1)
   t.is(player1.hp, player1.maxHp + 5)
   t.is(player2.hp, player2.maxHp + 5)
-  t.is(game.discard.length, 3)
-  t.truthy(find(game.discard, mirror))
-  t.truthy(find(game.discard, grab))
-  t.truthy(find(game.discard, armor))
+  t.is(game.discardPile.length, 3)
+  t.truthy(find(game.discardPile, mirror))
+  t.truthy(find(game.discardPile, grab))
+  t.truthy(find(game.discardPile, armor))
 })
 
 Ava.test('Mirror should work with Deflector', (t) => {
@@ -1388,7 +1388,7 @@ Ava.test('Mirror should work with Deflector', (t) => {
   t.is(game.players[0].id, player1.id, 'Turn should increment after countering')
   t.is(player2.hp, player1.maxHp)
   t.is(player1.hp, player2.maxHp - 4)
-  t.is(game.discard.length, 3)
+  t.is(game.discardPile.length, 3)
 })
 
 Ava.test('Neck Punch should be playable', (t) => {
@@ -1422,8 +1422,8 @@ Ava.test('Reverse should reverse order of play', (t) => {
 
   t.true(announceCallback.calledWith('card:reverse:disaster'))
   t.deepEqual(game.players, [player4, player3, player2, player1])
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, reverse))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, reverse))
 })
 
 Ava.test('Siphon should steal health from a player and give to another', (t) => {
@@ -1442,8 +1442,8 @@ Ava.test('Siphon should steal health from a player and give to another', (t) => 
   t.is(player1.hp, 6)
   t.is(player2.hp, player2.maxHp - 1)
   t.is(player1.hand.length, player1.maxHand)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, siphon))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, siphon))
 })
 
 Ava.test('Siphon should not give a player more than their max HP', (t) => {
@@ -1462,8 +1462,8 @@ Ava.test('Siphon should not give a player more than their max HP', (t) => {
   t.is(player1.hp, player1.maxHp + 5)
   t.is(player2.hp, player2.maxHp - 1)
   t.is(player1.hand.length, player1.maxHand)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, siphon))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, siphon))
 })
 
 Ava.test('Sleep should work with attacks - Gut Punch', (t) => {
@@ -1485,9 +1485,9 @@ Ava.test('Sleep should work with attacks - Gut Punch', (t) => {
   t.is(player1.hp, 4)
   t.is(player2.hp, player2.maxHp)
   t.is(player1.hand.length, player1.maxHand)
-  t.is(game.discard.length, 2)
-  t.truthy(find(game.discard, sleep))
-  t.truthy(find(game.discard, gutPunch))
+  t.is(game.discardPile.length, 2)
+  t.truthy(find(game.discardPile, sleep))
+  t.truthy(find(game.discardPile, gutPunch))
 })
 
 Ava.test('Sleep should work with unstoppable attacks - Cheap Shot', (t) => {
@@ -1508,9 +1508,9 @@ Ava.test('Sleep should work with unstoppable attacks - Cheap Shot', (t) => {
   t.is(player1.hp, 3)
   t.is(player2.hp, player2.maxHp)
   t.is(player1.hand.length, player1.maxHand)
-  t.is(game.discard.length, 2)
-  t.truthy(find(game.discard, sleep))
-  t.truthy(find(game.discard, cheapShot))
+  t.is(game.discardPile.length, 2)
+  t.truthy(find(game.discardPile, sleep))
+  t.truthy(find(game.discardPile, cheapShot))
 })
 
 Ava.test('Sleep should work during a grab', (t) => {
@@ -1535,10 +1535,10 @@ Ava.test('Sleep should work during a grab', (t) => {
   t.is(player1.hp, 5)
   t.is(player2.hp, player2.maxHp)
   t.is(player1.hand.length, player1.maxHand)
-  t.is(game.discard.length, 3)
-  t.truthy(find(game.discard, sleep))
-  t.truthy(find(game.discard, grab))
-  t.truthy(find(game.discard, tireIron))
+  t.is(game.discardPile.length, 3)
+  t.truthy(find(game.discardPile, sleep))
+  t.truthy(find(game.discardPile, grab))
+  t.truthy(find(game.discardPile, tireIron))
 })
 
 Ava.test('Sleep should not heal a player past their max HP', (t) => {
@@ -1558,9 +1558,9 @@ Ava.test('Sleep should not heal a player past their max HP', (t) => {
   t.is(player1.hp, player1.maxHp)
   t.is(player2.hp, player2.maxHp)
   t.is(player1.hand.length, player1.maxHand)
-  t.is(game.discard.length, 2)
-  t.truthy(find(game.discard, sleep))
-  t.truthy(find(game.discard, aGun))
+  t.is(game.discardPile.length, 2)
+  t.truthy(find(game.discardPile, sleep))
+  t.truthy(find(game.discardPile, aGun))
 })
 
 Ava.test('Sleep should not heal a player if the attack does no damage', (t) => {
@@ -1581,9 +1581,9 @@ Ava.test('Sleep should not heal a player if the attack does no damage', (t) => {
   t.is(player1.hp, 2)
   t.is(player2.hp, player2.maxHp)
   t.is(player1.hand.length, player1.maxHand)
-  t.is(game.discard.length, 2)
-  t.truthy(find(game.discard, sleep))
-  t.truthy(find(game.discard, tire))
+  t.is(game.discardPile.length, 2)
+  t.truthy(find(game.discardPile, sleep))
+  t.truthy(find(game.discardPile, tire))
 })
 
 Ava.test('Sleep should warn when a player plays it wrong', (t) => {
@@ -1622,7 +1622,7 @@ Ava.test('Sleep should warn when a player plays it wrong', (t) => {
 
   t.is(player1.hp, 2)
   t.is(player1.hand.length, player1.maxHand + 4)
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
 })
 
 Ava.test('Sleep should warn when a player plays it wrong with Grab', (t) => {
@@ -1646,7 +1646,7 @@ Ava.test('Sleep should warn when a player plays it wrong with Grab', (t) => {
   t.is(game.turns, 0)
   t.is(player1.hp, 2)
   t.is(player1.hand.length, player1.maxHand + 3)
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
 })
 
 Ava.test('Sleep should not heal a player above their max HP', (t) => {
@@ -1668,9 +1668,9 @@ Ava.test('Sleep should not heal a player above their max HP', (t) => {
   t.is(player1.hp, player1.maxHp + 5)
   t.is(player2.hp, player2.maxHp)
   t.is(player1.hand.length, player1.maxHand)
-  t.is(game.discard.length, 2)
-  t.truthy(find(game.discard, sleep))
-  t.truthy(find(game.discard, gutPunch))
+  t.is(game.discardPile.length, 2)
+  t.truthy(find(game.discardPile, sleep))
+  t.truthy(find(game.discardPile, gutPunch))
 })
 
 Ava.test('Soup should heal a player and discard', (t) => {
@@ -1691,8 +1691,8 @@ Ava.test('Soup should heal a player and discard', (t) => {
   t.is(player1.hp, 4)
   t.is(player2.hp, player2.maxHp, 'They should still have their max HP.')
   t.is(player2.hand.length, player2.maxHand)
-  t.is(game.discard.length, 2)
-  t.truthy(find(game.discard, soup))
+  t.is(game.discardPile.length, 2)
+  t.truthy(find(game.discardPile, soup))
 })
 
 Ava.test('Soup should not heal a player above their max HP', (t) => {
@@ -1709,8 +1709,8 @@ Ava.test('Soup should not heal a player above their max HP', (t) => {
   t.true(announceCallback.calledWith('card:soup:contact'))
   t.is(player1.hp, player1.maxHp + 5, 'They should retain their surplus HP.')
   t.is(player1.hand.length, player1.maxHand)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, soup))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, soup))
 })
 
 Ava.test('Spare Bolts should give a player an extra turn', (t) => {
@@ -1728,8 +1728,8 @@ Ava.test('Spare Bolts should give a player an extra turn', (t) => {
   t.true(announceCallback.calledWith('card:spare-bolts:disaster'))
   t.is(game.players[0], player)
   t.is(game.turns, 1)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, spareBolts))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, spareBolts))
 })
 
 Ava.test('Spare bolts should discard if the play is removed', (t) => {
@@ -1744,8 +1744,8 @@ Ava.test('Spare bolts should discard if the play is removed', (t) => {
   game.play(player.id, spareBolts)
   game.removePlayer(player.id)
 
-  t.is(game.discard.length, player.maxHand + 1)
-  t.truthy(find(game.discard, spareBolts))
+  t.is(game.discardPile.length, player.maxHand + 1)
+  t.truthy(find(game.discardPile, spareBolts))
 })
 
 Ava.test('Sub should heal a player and discard', (t) => {
@@ -1764,8 +1764,8 @@ Ava.test('Sub should heal a player and discard', (t) => {
   t.true(announceCallback.calledWith('card:sub:contact'))
   t.is(player2.hp, player2.maxHp - 1)
   t.is(player2.hand.length, player2.maxHand)
-  t.truthy(find(game.discard, Deck.getCard('sub')))
-  t.is(game.discard.length, 2)
+  t.truthy(find(game.discardPile, Deck.getCard('sub')))
+  t.is(game.discardPile.length, 2)
 })
 
 Ava.test('Sub should not heal a player above max health', (t) => {
@@ -1804,7 +1804,7 @@ Ava.test('Surgery should restore a player to max health', (t) => {
   t.true(announceCallback.calledWith('card:surgery:contact'))
   t.is(player.hand.length, player.maxHand)
   t.is(game.turns, 1)
-  t.is(game.discard.length, 1)
+  t.is(game.discardPile.length, 1)
 })
 
 Ava.test('Surgery should still work when grabbing', (t) => {
@@ -1825,7 +1825,7 @@ Ava.test('Surgery should still work when grabbing', (t) => {
   t.true(announceCallback.calledWith('card:surgery:contact'))
   t.is(player1.hand.length, player1.maxHand)
   t.is(game.turns, 1)
-  t.is(game.discard.length, 2)
+  t.is(game.discardPile.length, 2)
 })
 
 Ava.test('Surgery should not be playable if the player has >1 hp', (t) => {
@@ -1849,7 +1849,7 @@ Ava.test('Surgery should not be playable if the player has >1 hp', (t) => {
   whisperCallback.reset()
 
   t.is(player.hand.length, player.maxHand + 2)
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
 })
 
 Ava.test('THE BEES should be playable', (t) => {
@@ -1902,10 +1902,10 @@ Ava.test('THE BEES should sting a player to death', (t) => {
   t.is(game.players.length, 1)
   t.truthy(game.stopped)
   t.truthy(
-    find(game.discard, Deck.getCard('the-bees')),
+    find(game.discardPile, Deck.getCard('the-bees')),
     'it should be cycled back into the game when the player dies'
   )
-  t.is(game.discard.length, player2.maxHand + 1)
+  t.is(game.discardPile.length, player2.maxHand + 1)
 })
 
 Ava.test('THE BEES should go away when a player heals', (t) => {
@@ -1946,11 +1946,11 @@ Ava.test('Tire should cause a player to miss a turn', (t) => {
 
   game.play(player1.id, tire)
   t.is(game.turns, 2)
-  t.is(game.discard.length, 1)
+  t.is(game.discardPile.length, 1)
   t.is(player1.hand.length, player1.maxHand)
   t.true(announceCallback.calledWith('card:tire:contact'))
   t.is(player2.conditionCards.length, 0)
-  t.truthy(find(game.discard, tire))
+  t.truthy(find(game.discardPile, tire))
 })
 
 Ava.test('Tire should discard if the affected player is removed', (t) => {
@@ -1965,12 +1965,12 @@ Ava.test('Tire should discard if the affected player is removed', (t) => {
 
   game.play(player1.id, tire, player3.id)
   t.is(game.turns, 1)
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
   t.is(player1.hand.length, player1.maxHand)
 
   game.removePlayer(player3.id)
-  t.is(game.discard.length, player3.maxHand + 1)
-  t.truthy(find(game.discard, tire))
+  t.is(game.discardPile.length, player3.maxHand + 1)
+  t.truthy(find(game.discardPile, tire))
 })
 
 Ava.test('Tire Iron should be playable', (t) => {
@@ -1984,8 +1984,8 @@ Ava.test('Tire Iron should be playable', (t) => {
   game.play(player1.id, [tireIron])
   t.is(player2.hp, player2.maxHp - 3)
   t.is(game.turns, 1)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, tireIron))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, tireIron))
   t.is(player1.hand.length, player1.maxHand)
 })
 
@@ -2001,8 +2001,8 @@ Ava.test('Toolbox should deal a player up to 8 cards', (t) => {
   game.play(player, toolbox)
   t.true(announceCallback.calledWith('card:toolbox:disaster'))
   t.is(player.hand.length, 8)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, toolbox))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, toolbox))
 })
 
 Ava.test('Uppercut should hurt a player pretty good', (t) => {
@@ -2022,8 +2022,8 @@ Ava.test('Uppercut should hurt a player pretty good', (t) => {
   t.true(announceCallback.calledWith('card:uppercut:contact'))
   t.is(player2.hp, player2.maxHp - 5)
   t.is(game.turns, 1)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, uppercut))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, uppercut))
 })
 
 Ava.test('Whirlwind should swap everybody\'s hands', (t) => {
@@ -2047,8 +2047,8 @@ Ava.test('Whirlwind should swap everybody\'s hands', (t) => {
   t.deepEqual(player1.hand, [neckPunch, neckPunch])
   t.deepEqual(player2.hand, [grab, grab])
   t.deepEqual(player3.hand, [gutPunch, gutPunch])
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, whirlwind))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, whirlwind))
 })
 
 Ava.test('Whirlwind should consider empty hands', (t) => {
@@ -2071,8 +2071,8 @@ Ava.test('Whirlwind should consider empty hands', (t) => {
   t.deepEqual(player1.hand, [neckPunch, neckPunch])
   t.deepEqual(player2.hand, [grab, grab])
   t.deepEqual(player3.hand, [])
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, whirlwind))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, whirlwind))
 })
 
 Ava.test('Wrench should cause a player to miss 2 turns', (t) => {
@@ -2090,13 +2090,13 @@ Ava.test('Wrench should cause a player to miss 2 turns', (t) => {
   game.pass(player2)
   t.true(announceCallback.calledWith('card:wrench:contact'))
   t.is(player1.hand.length, player1.maxHand)
-  t.is(game.discard.length, 0)
+  t.is(game.discardPile.length, 0)
   t.is(game.turns, 2)
 
   game.incrementTurn()
   t.is(game.turns, 4)
-  t.is(game.discard.length, 1)
-  t.truthy(find(game.discard, wrench))
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, wrench))
 })
 
 Ava.test('Wrench should discard if the affected player is removed', (t) => {
@@ -2112,6 +2112,6 @@ Ava.test('Wrench should discard if the affected player is removed', (t) => {
   game.pass(player2)
   game.removePlayer(player2)
 
-  t.is(game.discard.length, player2.maxHand + 1)
-  t.truthy(find(game.discard, wrench))
+  t.is(game.discardPile.length, player2.maxHand + 1)
+  t.truthy(find(game.discardPile, wrench))
 })
