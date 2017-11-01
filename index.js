@@ -1,1 +1,1 @@
-require('./src/junkyard')
+module.exports = require('./src/junkyard')
