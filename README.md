@@ -25,6 +25,7 @@ A nodejs implementation of the card game Junkyard Brawl.
   - [start()](#start)
   - [stop()](#stop)
   - [play()](#play)
+  - [discard()](#discard)
   - [pass()](#pass)
   - [announceStats()](#announcestats)
   - [whisperStats()](#whisperstats)

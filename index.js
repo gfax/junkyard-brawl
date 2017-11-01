@@ -1,1 +1,1 @@
-require('./junkyard')
+require('./src/junkyard')
