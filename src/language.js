@@ -27,12 +27,20 @@ function getSupportedLanguages() {
   return ['en']
 }
 
-function printCards(cards, language) {
+// indexed = false - Earthquake, Block, Grab...
+// indexed = true - 1.) Earthquake 2.) Block 3.) Grab...
+function printCards(cards, language, indexed = false) {
   checkLanguage(language)
   // Ensure parameter is an array, even when one card is passed in
   const cardsToPrint = Array.isArray(cards) ? cards : [cards]
   if (!cardsToPrint.length) {
     return getPhrase('player:no-cards', language)()
+  }
+  if (indexed) {
+    return map(cardsToPrint, (card, idx) => {
+      const cardName = getPhrase(`card:${card.id}`, language)()
+      return `${idx + 1}) ${cardName}`
+    }).join(' ')
   }
   return map(cardsToPrint, (card) => {
     return getPhrase(`card:${card.id}`, language)()

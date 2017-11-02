@@ -500,7 +500,7 @@ module.exports = class Junkyard {
         player,
         'player:stats',
         {
-          cards: Language.printCards(player.hand, this.language)
+          cards: Language.printCards(player.hand, this.language, true)
         }
       )
     }

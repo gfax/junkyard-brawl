@@ -359,6 +359,9 @@ Ava.test('play() should notify a user when given an invalid card', (t) => {
   game.start()
   const [turnPlayer] = game.players
   const block = Deck.getCard('block')
+  turnPlayer.hand.push(block)
+
+  whisperCallback.reset()
   game.play(turnPlayer, block)
   t.true(whisperCallback.calledWith(turnPlayer.id, 'player:invalid-play'))
 })
