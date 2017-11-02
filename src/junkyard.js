@@ -332,6 +332,10 @@ module.exports = class Junkyard {
       return false
     }
     const cards = Deck.parseCards(player, cardRequest)
+    if (!cards[0]) {
+      this.whisper(player, 'player:invalid-play')
+      return
+    }
     // Disaster can (only) be played when there is no target
     if (!this.target && cards[0].disaster) {
       return playDisaster(player, cards, this)

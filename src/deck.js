@@ -967,6 +967,9 @@ function parseCards(player, request, noCardFilter = false) {
   if (typeof request === 'undefined') {
     throw new Error('Cannot parse an undefined request!')
   }
+  if (request === null) {
+    return []
+  }
   // Card object
   if (typeof request === 'object' && !Array.isArray(request)) {
     checkObject(request)

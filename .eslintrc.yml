@@ -44,7 +44,7 @@ rules:
     - last
   complexity:
     - error
-    - max: 12
+    - max: 14
   computed-property-spacing:
     - error
     - never
