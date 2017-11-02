@@ -219,6 +219,8 @@ player:discard:
   en: <%= player.name %> discards <%= cards %>.
 player:dropped:
   en: <%= player.name %> has been removed from the game.
+player:invalid-counter:
+  en: Play a counter card or pass, <%= player.name %>.
 player:invalid-play:
   en: Play an attack or discard, <%= player.name %>.
 player:invalid-target:

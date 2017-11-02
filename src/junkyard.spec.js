@@ -363,12 +363,20 @@ Ava.test('play() should notify a user when given an invalid card', (t) => {
   t.true(whisperCallback.calledWith(turnPlayer.id, 'player:invalid-play'))
 })
 
-Ava.test('counter() should throw an error when not passed cards', (t) => {
+Ava.test('play() should notify a player of an invalid counter', (t) => {
   const announceCallback = Sinon.spy()
-  const game = new Junkyard('player1', 'Jay', announceCallback)
-  const player = game.addPlayer('player2', 'Kevin')
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
   game.start()
-  t.throws(() => game.counter(player))
+  const [player1, player2] = game.players
+  const gutPunch = Deck.getCard('gut-punch')
+  player1.hand.push(gutPunch)
+  player2.hand.push(gutPunch)
+  game.play(player1, gutPunch)
+  game.play(player2, gutPunch)
+
+  t.true(whisperCallback.calledWith(player2.id, 'player:invalid-counter'))
 })
 
 Ava.test('pass() should throw an error when not passed a player id', (t) => {

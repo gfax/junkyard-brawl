@@ -512,6 +512,10 @@ function playCounter(player, cards, game) {
   if (!cards) {
     throw new Error(`Expected cards, got: ${cards}`)
   }
+  if (!cards[0].counter) {
+    game.whisper(player, 'player:invalid-counter')
+    return
+  }
   let attacker = game.target
   if (player === game.target) {
     [attacker] = game.players
