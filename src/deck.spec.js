@@ -169,19 +169,21 @@ Ava.test('Grab should only counter with an attack', (t) => {
   const game = new Junkyard('user1', 'Jay', announceCallback, whisperCallback)
   game.addPlayer('user2', 'Kevin')
   game.start()
-  whisperCallback.reset()
 
   const [player1, player2] = game.players
-  player1.hand.push(Deck.getCard('gut-punch'))
-  player2.hand.push(Deck.getCard('grab'))
-  player2.hand.push(Deck.getCard('grab'))
+  const gutPunch = Deck.getCard('gut-punch')
+  const grab = Deck.getCard('grab')
+  player1.hand.push(gutPunch)
+  player2.hand.push(grab)
+  player2.hand.push(grab)
 
-  game.play(player1.id, [Deck.getCard('gut-punch')])
-  game.play(player2.id, [Deck.getCard('grab')])
-  game.play(player2.id, [Deck.getCard('grab'), Deck.getCard('grab')])
+  game.play(player1.id, gutPunch)
+  whisperCallback.reset()
+  game.play(player2.id, grab)
+  game.play(player2.id, grab, grab)
 
   t.false(announceCallback.calledWith('card:grab:play'))
-  t.true(whisperCallback.called)
+  t.true(whisperCallback.calledWith(player2.id, 'card:grab:invalid-card'))
   t.true(whisperCallback.calledTwice)
 })
 
@@ -270,7 +272,7 @@ Ava.test('A Gun should be playable', (t) => {
   const [player1, player2] = game.players
   player1.hand.push(Deck.getCard('a-gun'))
 
-  game.play(player1.id, [Deck.getCard('a-gun')])
+  game.play(player1, Deck.getCard('a-gun'))
   t.is(player2.hp, player2.maxHp - 2)
   t.is(game.turns, 1)
   t.is(game.discardPile.length, 1)
@@ -286,7 +288,7 @@ Ava.test('A Gun should be able to kill a player', (t) => {
   player1.hand.push(Deck.getCard('a-gun'))
   player2.hp = 2
 
-  game.play(player1.id, [Deck.getCard('a-gun')])
+  game.play(player1, Deck.getCard('a-gun'))
   t.is(game.players.length, 1)
 })
 

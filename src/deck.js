@@ -61,11 +61,7 @@ const deck = [
       })
     },
     play: (player, target, cards, game) => {
-      game.announce('player:played', {
-        cards: printCards(cards[0], game.language),
-        player,
-        target
-      })
+      game.announcePlayed(player, target, cards)
     }
   },
   {
@@ -319,11 +315,7 @@ const deck = [
       return cards
     },
     play: (player, target, cards, game) => {
-      game.announce('player:played', {
-        cards: printCards(cards[0], game.language),
-        player,
-        target
-      })
+      game.announcePlayed(player, target, cards)
     }
   },
   {
@@ -437,11 +429,7 @@ const deck = [
       })
     },
     play: (player, target, cards, game) => {
-      game.announce('player:played', {
-        cards: printCards(cards[0], game.language),
-        player,
-        target
-      })
+      game.announcePlayed(player, target, cards)
     }
   },
   {
@@ -457,11 +445,7 @@ const deck = [
       })
     },
     play: (player, target, cards, game) => {
-      game.announce('player:played', {
-        cards: printCards(cards[0], game.language),
-        player,
-        target
-      })
+      game.announcePlayed(player, target, cards)
     }
   },
   {
@@ -478,11 +462,7 @@ const deck = [
       return cards
     },
     play: (player, target, cards, game) => {
-      game.announce('player:played', {
-        cards: printCards(cards[0], game.language),
-        player,
-        target
-      })
+      game.announcePlayed(player, target, cards)
     }
   },
   {
@@ -640,11 +620,7 @@ const deck = [
       return cards
     },
     play: (player, target, cards, game) => {
-      game.announce('player:played', {
-        cards: printCards(cards[0], game.language),
-        player,
-        target
-      })
+      game.announcePlayed(player, target, cards)
     }
   },
   {
@@ -721,11 +697,7 @@ const deck = [
       return cards
     },
     play: (player, target, cards, game) => {
-      game.announce('player:played', {
-        cards: printCards(cards[0], game.language),
-        player,
-        target
-      })
+      game.announcePlayed(player, target, cards)
     }
   },
   {
@@ -896,11 +868,7 @@ const deck = [
       return cards
     },
     play: (player, target, cards, game) => {
-      game.announce('player:played', {
-        cards: printCards(cards[0], game.language),
-        player,
-        target
-      })
+      game.announcePlayed(player, target, cards)
     }
   },
   {
@@ -950,11 +918,7 @@ const deck = [
       })
     },
     play: (player, target, cards, game) => {
-      game.announce('player:played', {
-        cards: printCards(cards[0], game.language),
-        player,
-        target
-      })
+      game.announcePlayed(player, target, cards)
     }
   }
 ]

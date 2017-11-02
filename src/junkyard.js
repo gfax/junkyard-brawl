@@ -86,6 +86,15 @@ module.exports = class Junkyard {
     )
   }
 
+  announcePlayed(player, target, cards) {
+    this.announce('player:played', {
+      cards: Language.printCards(cards, this.language),
+      player,
+      target
+    })
+    this.whisperStats(target)
+  }
+
   announceStats() {
     const stats = this.players.map((player) => {
       return `${player.name} (${player.hp})`
