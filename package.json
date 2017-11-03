@@ -1,6 +1,6 @@
 {
   "name": "junkyard-brawl",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "NodeJS implementation of the card game Junkyard Brawl",
   "main": "index.js",
   "engines": {
