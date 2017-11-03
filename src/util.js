@@ -6,7 +6,6 @@ const Util = module.exports = {
   findIndex: require('lodash.findindex'),
   findNext,
   flow: require('lodash.flow'),
-  map: require('lodash.map'),
   merge: require('lodash.merge'),
   removeOnce,
   sample: require('lodash.sample'),

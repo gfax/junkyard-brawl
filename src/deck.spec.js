@@ -1160,6 +1160,28 @@ Ava.test('Mattress should work when a player has more than max hp', (t) => {
   t.is(game.discardPile.length, 2)
 })
 
+Ava.test('Mattress should work against a grab', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const grab = Deck.getCard('grab')
+  const gutPunch = Deck.getCard('gut-punch')
+  const mattress = Deck.getCard('mattress')
+
+  player1.hand.push(grab)
+  player1.hand.push(gutPunch)
+  player2.hand.push(mattress)
+
+  game.play(player1, [grab, gutPunch])
+  game.play(player2, mattress)
+
+  t.is(player2.hp, player2.maxHp)
+  t.is(game.discardPile.length, 3)
+  t.is(game.turns, 1)
+})
+
 Ava.test('Matress shouldn\'t have an effect when there was no damage', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)

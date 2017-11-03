@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const yaml = require('js-yaml')
-const { map, template } = require('./util')
+const { template } = require('./util')
 
 let phrases = null
 
@@ -37,12 +37,12 @@ function printCards(cards, language, indexed = false) {
     return getPhrase('player:no-cards', language)()
   }
   if (indexed) {
-    return map(cardsToPrint, (card, idx) => {
+    return cardsToPrint.map((card, idx) => {
       const cardName = getPhrase(`card:${card.id}`, language)()
       return `${idx + 1}) ${cardName}`
     }).join(' ')
   }
-  return map(cardsToPrint, (card) => {
+  return cardsToPrint.map((card) => {
     return getPhrase(`card:${card.id}`, language)()
   }).join(', ')
 }
