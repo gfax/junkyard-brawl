@@ -7,13 +7,15 @@ const whisperCallback = (player, code, text) => console.log(`<${player}> ${text}
 
 const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
 game.addPlayer('player2', 'Kevin')
-game.addPlayer('player3', 'Jimbo')
 game.start()
 
-const [player1, player2, player3] = game.players
-player1.hp = 1
-player2.hp = 1
-player3.hp = 1
-
-player1.hand.push(Deck.getCard('earthquake'))
-game.discard(player1, Deck.getCard('earthquake'))
+const [player1, player2] = game.players
+const grab = Deck.getCard('grab')
+const uppercut = Deck.getCard('uppercut')
+const insurance = Deck.getCard('insurance')
+player1.hand.push(uppercut)
+player1.hand.push(grab)
+player2.hand.push(insurance)
+player2.hp = 5
+game.play(player1.id, [grab, uppercut])
+game.play(player2.id, insurance)

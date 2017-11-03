@@ -470,17 +470,22 @@ const deck = [
     type: 'counter',
     copies: 2,
     filter: () => [],
-    counter: (player, attacker, cards, game) => {
-      game.announce('card:insurance:counter', {
-        player
-      })
-      attacker.discard[0].contact(attacker, player, attacker.discard, game)
-      game.discardPile.push(cards[0])
-      if (player.hp < 1) {
-        player.hp = Math.floor(player.maxHp / 2)
-        game.announce('card:insurance:success', { player })
+    afterContact: (player, target, cards, game) => {
+      if (target.hp < 1) {
+        target.hp = Math.floor(target.maxHp / 2)
+        game.announce('card:insurance:success', { player: target })
       }
+      return true
+    },
+    counter: (player, attacker, cards, game) => {
+      game.announce('card:insurance:counter', { player })
+      player.afterContact.push(cards[0].afterContact)
+      game.contact(attacker, player, attacker.discard)
+      // attacker.discard[0].contact(attacker, player, attacker.discard, game)
+      // game.discardPile.push(cards[0])
+      removeOnce(player.afterContact, () => cards[0].afterContact)
       game.incrementTurn()
+      return cards
     }
   },
   {
