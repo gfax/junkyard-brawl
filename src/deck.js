@@ -432,7 +432,7 @@ const deck = [
   {
     id: 'guard-dog',
     type: 'attack',
-    copies: 1,
+    copies: 2,
     filter: () => [],
     contact: (player, target, cards, game) => {
       target.hp -= 4
@@ -554,7 +554,7 @@ const deck = [
   {
     id: 'meal-steal',
     type: 'attack',
-    copies: 2,
+    copies: 1,
     filter: () => [],
     contact: (player, target, cards, game) => {
       const stolenCards = target.hand
