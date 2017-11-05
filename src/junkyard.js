@@ -344,8 +344,12 @@ module.exports = class Junkyard {
       this.whisper(player, 'player:not-turn')
       return false
     }
-    // Countering the first play
-    if (this.target && this.target === player) {
+    // Countering the current-turn player
+    if (this.target === player) {
+      return playCounter(player, cards, this)
+    }
+    // Countering the target's counter
+    if (this.target && this.target.discard && player === this.players[0]) {
       return playCounter(player, cards, this)
     }
     let target = null

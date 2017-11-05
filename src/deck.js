@@ -384,6 +384,7 @@ const deck = [
       attacker.discard = []
       player.discard = cards
       game.announce('card:grab:counter', { attacker, player })
+      game.whisperStats(attacker)
     },
     validatePlay: (player, target, cards, game) => {
       if (cards.length < 2) {
@@ -392,17 +393,13 @@ const deck = [
       }
       if (cards[1].validateContact) {
         const [, ...tail] = cards
-        if (!cards[1].validateContact(target, player, tail, game)) {
-          return false
-        }
+        return cards[1].validateContact(target, player, tail, game)
       }
       return true
     },
     play: (player, target, cards, game) => {
-      if (target.discard[0]) {
-        game.contact(target, player, target.discard)
-      }
       game.announce('card:grab:play', { player, target })
+      game.whisperStats(target)
     }
   },
   {
@@ -481,8 +478,6 @@ const deck = [
       game.announce('card:insurance:counter', { player })
       player.afterContact.push(cards[0].afterContact)
       game.contact(attacker, player, attacker.discard)
-      // attacker.discard[0].contact(attacker, player, attacker.discard, game)
-      // game.discardPile.push(cards[0])
       removeOnce(player.afterContact, () => cards[0].afterContact)
       game.incrementTurn()
       return cards

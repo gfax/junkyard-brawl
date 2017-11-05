@@ -11,11 +11,10 @@ game.start()
 
 const [player1, player2] = game.players
 const grab = Deck.getCard('grab')
-const uppercut = Deck.getCard('uppercut')
-const insurance = Deck.getCard('insurance')
-player1.hand.push(uppercut)
-player1.hand.push(grab)
-player2.hand.push(insurance)
-player2.hp = 5
-game.play(player1.id, [grab, uppercut])
-game.play(player2.id, insurance)
+const gutPunch = Deck.getCard('gut-punch')
+const block = Deck.getCard('block')
+player1.hand = [block, grab, gutPunch]
+player2.hand = [grab, gutPunch]
+game.play(player1, [grab, gutPunch])
+game.play(player2, [grab, gutPunch])
+game.play(player1, block)

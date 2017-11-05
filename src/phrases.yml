@@ -14,7 +14,7 @@ card:armor:contact:
 card:avalanche:
   en: Avalanche
 card:avalanche:contact:
-  en: <%= player.name %> causes and avalanche to fall on <%= target.name %>.
+  en: <%= player.name %> causes an avalanche to fall on <%= target.name %>.
 card:block:
   en: Block
 card:block:counter:

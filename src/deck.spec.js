@@ -195,25 +195,62 @@ Ava.test('Grab should counter', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  player1.hand = player1.hand.concat([
-    Deck.getCard('grab'),
-    Deck.getCard('grab'),
-    Deck.getCard('gut-punch'),
-    Deck.getCard('gut-punch')
-  ])
-  player2.hand = player2.hand.concat([
-    Deck.getCard('grab'),
-    Deck.getCard('gut-punch')
-  ])
+  const grab = Deck.getCard('grab')
+  const gutPunch = Deck.getCard('gut-punch')
+  player1.hand = [grab, grab, gutPunch, gutPunch]
+  player2.hand = [grab, gutPunch]
 
-  game.play(player1.id, [Deck.getCard('grab'), Deck.getCard('gut-punch')])
-  game.play(player2.id, [Deck.getCard('grab'), Deck.getCard('gut-punch')])
-  game.play(player1.id, [Deck.getCard('grab'), Deck.getCard('gut-punch')])
+  game.play(player1.id, [grab, gutPunch])
+  game.play(player2.id, [grab, gutPunch])
+  game.play(player1.id, [grab, gutPunch])
   game.pass(player2.id)
   t.is(player1.hp, 8)
   t.is(player2.hp, 6)
   t.is(game.turns, 1)
   t.is(game.discardPile.length, 6)
+})
+
+Ava.test('Grab counter should allow another counter', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('user2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const grab = Deck.getCard('grab')
+  const gutPunch = Deck.getCard('gut-punch')
+  const block = Deck.getCard('block')
+  player1.hand = [block, grab, gutPunch]
+  player2.hand = [grab, gutPunch]
+  game.play(player1, [grab, gutPunch])
+  game.play(player2, [grab, gutPunch])
+  game.play(player1, block)
+
+  t.true(announceCallback.calledWith('card:block:counter'))
+  t.is(game.turns, 1)
+})
+
+Ava.test('Grab should whisper stats to target when playing and countering', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('user1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('user2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const grab = Deck.getCard('grab')
+  const gutPunch = Deck.getCard('gut-punch')
+  player1.hand = [grab, gutPunch]
+  player2.hand = [grab, gutPunch]
+
+  whisperCallback.reset()
+  game.play(player1, [grab, gutPunch])
+  t.true(whisperCallback.calledWith(player2.id, 'player:stats'))
+
+  whisperCallback.reset()
+  game.play(player2, [grab, gutPunch])
+  t.true(whisperCallback.calledWith(player1.id, 'player:stats'))
 })
 
 Ava.test('Acid Coffee should make a player miss a turn', (t) => {
