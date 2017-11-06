@@ -502,6 +502,24 @@ Ava.test('Crane should dump cards onto a target', (t) => {
   t.is(player1.hand.length, player1.maxHand)
 })
 
+Ava.test('Crane should be playable with no cards', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+
+  const [player1, player2] = game.players
+  const crane = Deck.getCard('crane')
+  player1.hand = [crane]
+  game.play(player1.id, crane)
+
+  t.is(player2.hand.length, player2.maxHand)
+  t.true(announceCallback.calledWith('card:crane:no-cards'))
+  t.is(player1.hand.length, 0)
+  t.is(game.discardPile.length, 1)
+  t.truthy(find(game.discardPile, crane))
+})
+
 Ava.test('Crane should be playable with a grab', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)

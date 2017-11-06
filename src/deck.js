@@ -167,11 +167,18 @@ const deck = [
     contact: (player, target, cards, game) => {
       const [head, ...tail] = cards
       target.hand = target.hand.concat(tail)
-      game.announce('card:crane:contact', {
-        cards: printCards(tail, game.language),
-        player,
-        target
-      })
+      if (tail.length) {
+        game.announce('card:crane:contact', {
+          cards: printCards(tail, game.language),
+          player,
+          target
+        })
+      } else {
+        game.announce('card:crane:no-cards', {
+          card: printCards(head, game.language),
+          player
+        })
+      }
       game.deal(player, tail.length)
       game.whisperStats(target.id)
       game.whisperStats(player.id)

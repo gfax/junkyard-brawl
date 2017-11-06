@@ -31,6 +31,8 @@ card:crane:
   en: Crane
 card:crane:contact:
   en: <%= player.name %> dumps <%= cards %> onto <%= target.name %>.
+card:crane:no-cards:
+  en: <%= player.name %> throws away a <%= card %>.
 card:deflector:
   en: Deflector
 card:deflector:deflect:
