@@ -231,7 +231,7 @@ Ava.test('Grab counter should allow another counter', (t) => {
   t.is(game.turns, 1)
 })
 
-Ava.test('Grab should whisper stats to target when playing and countering', (t) => {
+Ava.test('Grab should whisper a target their status when playing and countering', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()
   const game = new Junkyard('user1', 'Jay', announceCallback, whisperCallback)
@@ -246,11 +246,11 @@ Ava.test('Grab should whisper stats to target when playing and countering', (t) 
 
   whisperCallback.reset()
   game.play(player1, [grab, gutPunch])
-  t.true(whisperCallback.calledWith(player2.id, 'player:stats'))
+  t.true(whisperCallback.calledWith(player2.id, 'player:status'))
 
   whisperCallback.reset()
   game.play(player2, [grab, gutPunch])
-  t.true(whisperCallback.calledWith(player1.id, 'player:stats'))
+  t.true(whisperCallback.calledWith(player1.id, 'player:status'))
 })
 
 Ava.test('Acid Coffee should make a player miss a turn', (t) => {

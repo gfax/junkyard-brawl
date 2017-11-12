@@ -130,7 +130,7 @@ Ava.test('start() should show a player his cards on his turn', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player] = game.players
-  t.true(whisperCallback.calledWith(player.id, 'player:stats'))
+  t.true(whisperCallback.calledWith(player.id, 'player:status'))
 })
 
 Ava.test('stop() should stop', (t) => {
@@ -418,7 +418,7 @@ Ava.test('play() should announce when waiting for a player response', (t) => {
 
   game.play(player1, gutPunch)
   t.true(announceCallback.calledWith('player:played'))
-  t.true(whisperCallback.calledWith(player2.id, 'player:stats'))
+  t.true(whisperCallback.calledWith(player2.id, 'player:status'))
 })
 
 Ava.test('pass() should throw an error when not passed a player id', (t) => {
@@ -593,7 +593,7 @@ Ava.test('discard() should discard a player\'s entire hand if no cards were spec
   t.truthy(find(game.discardPile, gutPunch))
 })
 
-Ava.test('whisperStats() should whisper stats to a player upon request', (t) => {
+Ava.test('whisperStatus() should whisper stats to a player upon request', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
@@ -601,39 +601,39 @@ Ava.test('whisperStats() should whisper stats to a player upon request', (t) => 
   game.start()
   const [, player2] = game.players
   whisperCallback.reset()
-  game.whisperStats(player2.id)
-  t.true(whisperCallback.calledWith(player2.id, 'player:stats'))
+  game.whisperStatus(player2.id)
+  t.true(whisperCallback.calledWith(player2.id, 'player:status'))
   t.true(whisperCallback.calledOnce)
 })
 
-Ava.test('whisperStats() should let a player know they have no cards', (t) => {
+Ava.test('whisperStatus() should let a player know they have no cards', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
-  game.whisperStats('player1')
+  game.whisperStatus('player1')
   t.true(whisperCallback.calledWith(
     'player1',
-    'player:stats',
+    'player:status',
     Sinon.match(/you have no cards/i)
   ))
 })
 
-Ava.test('whisperStats() should ignore whispering stats to non-players', (t) => {
+Ava.test('whisperStatus() should ignore whispering statuses to non-players', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
   game.addPlayer('player2', 'Kevin')
   game.start()
-  game.whisperStats('foo')
-  game.whisperStats('bar')
-  t.true(whisperCallback.calledTwice)
+  whisperCallback.reset()
+  game.whisperStatus('foo')
+  game.whisperStatus('bar')
+  t.true(whisperCallback.notCalled)
 })
 
-Ava.test('whisperStats() should throw an error when passed a non-string value', (t) => {
+Ava.test('whisperStatus() should throw an error when passed an undefined value', (t) => {
   const game = new Junkyard('player1', 'Jay')
-  t.throws(() => {
-    game.whisperStats(null)
-  })
+  t.throws(() => game.whisperStatus(null))
+  t.throws(() => game.whisperStatus())
 })
 
 Ava.test('contact() should announce if a played died', (t) => {

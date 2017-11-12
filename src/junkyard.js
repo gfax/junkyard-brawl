@@ -92,18 +92,14 @@ module.exports = class Junkyard {
       player,
       target
     })
-    this.whisperStats(target)
+    this.whisperStatus(target)
   }
 
-  announceStats() {
-    const stats = this.players.map((player) => {
+  announceStatus() {
+    const status = this.players.map((player) => {
       return `${player.name} (${player.hp})`
-    })
-    this.announceCallback(
-      'player:stats',
-      stats.join(', '),
-      { game: this }
-    )
+    }).join(', ')
+    this.announceCallback('game:status', status, { game: this })
   }
 
   contact(player, target, cards, discarding = true) {
@@ -237,7 +233,7 @@ module.exports = class Junkyard {
     }
     this.turns += 1
     this.players[0].turns += 1
-    this.announceStats()
+    this.announceStatus()
     const [player] = this.players
     this.deal(player)
     // Condition callbacks should return true or false. If false, the
@@ -255,7 +251,7 @@ module.exports = class Junkyard {
       this.incrementTurn()
     } else {
       this.announce('game:turn', { player })
-      this.whisperStats(player.id)
+      this.whisperStatus(player.id)
     }
   }
 
@@ -454,7 +450,7 @@ module.exports = class Junkyard {
       // in the array, because it's about to be their turn and
       // they will get whispered their cards when that happens.
       if (player !== this.players[1]) {
-        this.whisperStats(player.id)
+        this.whisperStatus(player.id)
       }
     })
     this.incrementTurn()
@@ -498,15 +494,15 @@ module.exports = class Junkyard {
     )
   }
 
-  whisperStats(playerId) {
-    if (!playerId) {
+  whisperStatus(playerId) {
+    if (playerId === null || typeof playerId === 'undefined') {
       throw new Error(`Expected player or player id, got ${playerId}`)
     }
     const player = this.getPlayer(playerId)
     if (player) {
       this.whisper(
         player,
-        'player:stats',
+        'player:status',
         {
           cards: Language.printCards(player.hand, this.language, true)
         }

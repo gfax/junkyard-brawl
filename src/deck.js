@@ -180,8 +180,8 @@ const deck = [
         })
       }
       game.deal(player, tail.length)
-      game.whisperStats(target.id)
-      game.whisperStats(player.id)
+      game.whisperStatus(target.id)
+      game.whisperStatus(player.id)
       return [head]
     },
     play: (player, target, cards, game) => {
@@ -263,7 +263,7 @@ const deck = [
     disaster: (player, cards, game) => {
       game.announce('card:earthquake:disaster', { player })
       game.players.forEach(plyr => (plyr.hp -= 1))
-      game.announceStats()
+      game.announceStatus()
       game.cleanup()
       return cards
     }
@@ -391,7 +391,7 @@ const deck = [
       attacker.discard = []
       player.discard = cards
       game.announce('card:grab:counter', { attacker, player })
-      game.whisperStats(attacker)
+      game.whisperStatus(attacker)
     },
     validatePlay: (player, target, cards, game) => {
       if (cards.length < 2) {
@@ -406,7 +406,7 @@ const deck = [
     },
     play: (player, target, cards, game) => {
       game.announce('card:grab:play', { player, target })
-      game.whisperStats(target)
+      game.whisperStatus(target)
     }
   },
   {
@@ -511,7 +511,7 @@ const deck = [
           }
         })
       game.announce('card:its-getting-windy:disaster', { player })
-      game.players.forEach(plyr => game.whisperStats(plyr))
+      game.players.forEach(plyr => game.whisperStatus(plyr))
       return cards
     }
   },
@@ -857,7 +857,7 @@ const deck = [
     disaster: (player, cards, game) => {
       game.announce('card:toolbox:disaster', { player })
       game.deal(player, 8 - player.hand.length)
-      game.whisperStats(player)
+      game.whisperStatus(player)
       return cards
     }
   },

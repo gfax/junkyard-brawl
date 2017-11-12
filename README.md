@@ -27,8 +27,8 @@ A nodejs implementation of the card game Junkyard Brawl.
   - [play()](#play)
   - [discard()](#discard)
   - [pass()](#pass)
-  - [announceStats()](#announcestats)
-  - [whisperStats()](#whisperstats)
+  - [announceStatus()](#announceStatus)
+  - [whisperStatus()](#whisperstatus)
 
 ## Installation
 
@@ -312,7 +312,7 @@ A player object consists of the following properties:
   beforeTurn: [],
   // Array of cards attached to the player while special conditions are in effect.
   // Not only does this let us see what conditions are currently applied to the player
-  // for the purpose of displaying player stats, but in the event of a pre-mature death
+  // for the purpose of displaying player status, but in the event of a pre-mature death
   // the cards can be quickly collected and put in the discard pile.
   conditionCards: [],
   // Array of card objects. Temporary discard of cards
@@ -432,28 +432,28 @@ param      | type          ||
 ---------- | ------------- |-
 `playerId` | player/string | The player object or player/user id for the user wishing to pass on responding to the attack. Invalid user requests are ignored or notified as necessary.
 
-### announceStats()
+### announceStatus()
 
-If the game's stats need to be re-fetched (the stats that display at the beginning of each turn), this method will invoke [`announceCallback()`](#announecallback) with the appropriate information.
+If the game's status need to be re-fetched (the status that display at the beginning of each turn), this method will invoke [`announceCallback()`](#announecallback) with the code `game:status` and corresponding message and message props.
 
 ```js
 const JunkyardBrawl = require('junkyard-brawl')
 const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCallback, language)
 game.addPlayer('WBE1F94D7', 'Kevin')
 game.start()
-game.announceStats()
+game.announceStatus()
 ```
 
-### whisperStats()
+### whisperStatus()
 
-If a player's personal stats need to be re-fetched, this method will invoke [`whisperCallback()`](#whispercallback) with the appropriate information.
+If a player's personal status need to be re-fetched, this method will invoke [`whisperCallback()`](#whispercallback) with the code `player:status` and corresponding message and message props.
 
 ```js
 const JunkyardBrawl = require('junkyard-brawl')
 const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCallback, language)
 const player = game.addPlayer('WBE1F94D7', 'Kevin')
 game.start()
-game.whisperStats(player)
+game.whisperStatus(player)
 ```
 
 param      | type          ||

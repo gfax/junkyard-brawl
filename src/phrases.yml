@@ -202,7 +202,7 @@ game:stopped:
 game:transferred:
   en: Game manager has changed from <%= player.name %> to <%= game.manager.name %>.
 game:turn:
-  en: <%= player.name %>'s turn.
+  en: It's <%= player.name %>'s turn.
 game:winner:
   en: <%= player.name %> wins!
 player:already-joined:
@@ -243,5 +243,5 @@ player:not-turn:
   en: It's not your turn, <%= player.name %>.
 player:played:
   en: <%= player.name %> plays <%= cards %>. Respond or pass, <%= target.name %>.
-player:stats:
+player:status:
   en: '<%= player.name %> (<%= player.hp %>): <%= cards %>'
