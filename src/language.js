@@ -27,8 +27,8 @@ function getSupportedLanguages() {
   return ['en']
 }
 
-// indexed = false - Earthquake, Block, Grab...
-// indexed = true - 1.) Earthquake 2.) Block 3.) Grab...
+// indexed = false - Guard Dog (-4), Sub (+2), Siphon (-1/+1)...
+// indexed = true - 1.) Guard Dog (-4) 2.) Sub (+2) 3.) Siphon (-1/+1)...
 function printCards(cards, language, indexed = false) {
   checkLanguage(language)
   // Ensure parameter is an array, even when one card is passed in
@@ -38,12 +38,11 @@ function printCards(cards, language, indexed = false) {
   }
   if (indexed) {
     return cardsToPrint.map((card, idx) => {
-      const cardName = getPhrase(`card:${card.id}`, language)()
-      return `${idx + 1}) ${cardName}`
+      return `${idx + 1}) ${getCardName(card, language)}`
     }).join(' ')
   }
   return cardsToPrint.map((card) => {
-    return getPhrase(`card:${card.id}`, language)()
+    return getCardName(card, language)
   }).join(', ')
 }
 
@@ -54,4 +53,22 @@ function checkLanguage(language) {
       `Language "${language}" not supported. Use one of: ${languages}`
     )
   }
+}
+
+function getCardName(card, language) {
+  let name = getPhrase(`card:${card.id}`, language)()
+  if (card.damage || card.hp || card.missTurns) {
+    const stats = []
+    if (card.damage) {
+      stats.push(`-${card.damage}`)
+    }
+    if (card.hp) {
+      stats.push(`+${card.hp}`)
+    }
+    if (card.missTurns) {
+      stats.push(`~${card.missTurns}`)
+    }
+    name += ` (${stats.join('/')})`
+  }
+  return name
 }

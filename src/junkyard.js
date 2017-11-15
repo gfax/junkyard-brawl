@@ -33,8 +33,10 @@ module.exports = class Junkyard {
     this.dropouts = []
     // Language to announce things in
     this.language = language
+    // Starting health and maximum allowed HP for each player
+    this.maxHp = 10
     // Set commencing user as the first player and game manager
-    this.manager = new Player(playerId, playerName)
+    this.manager = new Player(playerId, playerName, this.maxHp)
     // Players currently in the game
     this.players = [this.manager]
     // Time the game started
@@ -69,21 +71,27 @@ module.exports = class Junkyard {
       })
       return
     }
-    const player = new Player(id, name)
+    const player = new Player(id, name, this.maxHp)
     this.players.push(player)
     this.announce('player:joined', { player })
     return player
   }
 
-  announce(code, extraWords = {}) {
+  announce(code, messageProps = {}) {
     // We gotta pass some variables in to build the phrases
     // the extra words are to identify current things like
     // the target or stats.
     this.announceCallback(
       code,
-      this.getPhrase(code, extraWords),
-      merge(extraWords, { game: this })
+      this.getPhrase(code, messageProps),
+      merge(messageProps, { game: this })
     )
+    // Trigger callbacks for bots and other special players
+    this.players.forEach((player) => {
+      if (player.announceCallback) {
+        player.announceCallback(code, messageProps)
+      }
+    })
   }
 
   announcePlayed(player, target, cards) {
@@ -486,6 +494,12 @@ module.exports = class Junkyard {
       game: this,
       player
     }, extraWords)
+    // Bots and other special players may instead
+    // have a custom method for handling event hooks.
+    if (player.whisperCallback) {
+      player.whisperCallback(code)
+      return
+    }
     this.whisperCallback(
       player.id,
       code,

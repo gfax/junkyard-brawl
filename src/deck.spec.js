@@ -58,33 +58,36 @@ Ava.test('parseCards() should throw an error when not given a player', (t) => {
 })
 
 Ava.test('parseCards() should throw an error when not passed a request', (t) => {
-  t.throws(() => Deck.parseCards(new Player('user1', 'Jay')))
+  t.throws(() => Deck.parseCards(new Player('user1', 'Jay', 10)))
 })
 
 Ava.test('parseCards() should throw an error when passed invalid cards', (t) => {
   t.throws(() => Deck.parseCards(
-    new Player('user1', 'Jay'),
+    new Player('user1', 'Jay', 10),
     [{ id: 'gut-punch' }]
   ))
 })
 
 Ava.test('parseCards() should return an empty array when a player has no cards', (t) => {
-  t.deepEqual(Deck.parseCards(new Player('user1', 'Jay'), '1 2 3'), [])
+  t.deepEqual(
+    Deck.parseCards(new Player('user1', 'Jay', 10), '1 2 3'),
+    []
+  )
 })
 
 Ava.test('parseCards() should return an empty array when passed an empty array', (t) => {
-  t.deepEqual(Deck.parseCards(new Player('user1', 'Jay'), []), [])
+  t.deepEqual(Deck.parseCards(new Player('user1', 'Jay', 10), []), [])
 })
 
 Ava.test('parseCards() should parse a card object', (t) => {
   t.deepEqual(
-    Deck.parseCards(new Player('user1', 'Jay'), Deck.getCard('gut-punch')),
+    Deck.parseCards(new Player('user1', 'Jay', 10), Deck.getCard('gut-punch')),
     [Deck.getCard('gut-punch')]
   )
 })
 
 Ava.test('parseCards() should parse a string of numbers', (t) => {
-  const player = new Player('user1', 'Jay')
+  const player = new Player('user1', 'Jay', 10)
   player.hand = [
     Deck.getCard('gut-punch'),
     Deck.getCard('neck-punch'),

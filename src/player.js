@@ -1,7 +1,5 @@
-const maxHp = 10
-
 module.exports = class Player {
-  constructor(id, name) {
+  constructor(id, name, maxHp) {
     if (!id) {
       throw new Error('No player ID provided')
     }

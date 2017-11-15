@@ -22,10 +22,11 @@ const deck = [
   {
     id: 'a-gun',
     type: 'unstoppable',
+    damage: 2,
     copies: 1,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      target.hp -= 2
+      target.hp -= cards[0].damage
       game.announce('card:a-gun:contact', {
         player,
         target
@@ -40,6 +41,8 @@ const deck = [
   {
     id: 'acid-coffee',
     type: 'attack',
+    damage: 3,
+    missTurns: 1,
     copies: 2,
     filter: () => [],
     beforeTurn: (player, game) => {
@@ -50,8 +53,8 @@ const deck = [
       return true
     },
     contact: (player, target, cards, game) => {
-      target.hp -= 3
-      target.missTurns += 1
+      target.hp -= cards[0].damage
+      target.missTurns += cards[0].missTurns
       target.beforeTurn.push(cards[0].beforeTurn)
       // Card isn't put in the discard until the missed turn is expended
       target.conditionCards.push(cards[0])
@@ -67,10 +70,11 @@ const deck = [
   {
     id: 'armor',
     type: 'support',
+    heal: 5,
     copies: 1,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      player.hp += 5
+      player.hp += cards[0].heal
       game.announce('card:armor:contact', { player })
       return cards
     }
@@ -78,10 +82,11 @@ const deck = [
   {
     id: 'avalanche',
     type: 'disaster',
+    damage: 6,
     copies: 1,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      target.hp -= 6
+      target.hp -= cards[0].damage
       game.announce('card:avalanche:contact', {
         player,
         target
@@ -145,10 +150,11 @@ const deck = [
   {
     id: 'cheap-shot',
     type: 'unstoppable',
+    damage: 1,
     copies: 2,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      target.hp -= 1
+      target.hp -= cards[0].damage
       game.announce('card:cheap-shot:contact', {
         player,
         target
@@ -258,11 +264,12 @@ const deck = [
   {
     id: 'earthquake',
     type: 'disaster',
+    damage: 1,
     copies: 1,
     filter: () => [],
     disaster: (player, cards, game) => {
       game.announce('card:earthquake:disaster', { player })
-      game.players.forEach(plyr => (plyr.hp -= 1))
+      game.players.forEach(plyr => (plyr.hp -= cards[0].damage))
       game.announceStatus()
       game.cleanup()
       return cards
@@ -271,6 +278,7 @@ const deck = [
   {
     id: 'energy-drink',
     type: 'support',
+    hp: 3,
     copies: 1,
     filter: () => [],
     beforeTurn: (player, game) => {
@@ -309,6 +317,7 @@ const deck = [
   {
     id: 'gamblin-man',
     type: 'attack',
+    damage: '?',
     copies: 2,
     filter: () => [],
     contact: (player, target, cards, game) => {
@@ -328,6 +337,7 @@ const deck = [
   {
     id: 'gas-spill',
     type: 'disaster',
+    missTurns: 2,
     copies: 1,
     filter: () => [],
     beforeTurn: (player, game) => {
@@ -348,7 +358,7 @@ const deck = [
       return true
     },
     contact: (player, target, cards, game) => {
-      target.missTurns += 2
+      target.missTurns += cards[0].missTurns
       target.beforeTurn.push(cards[0].beforeTurn)
       target.conditionCards.push(cards[0])
       game.announce('card:gas-spill:contact', {
@@ -412,6 +422,8 @@ const deck = [
   {
     id: 'grease-bucket',
     type: 'attack',
+    damage: 2,
+    missTurns: 1,
     copies: 3,
     filter: () => [],
     beforeTurn: (player, game) => {
@@ -422,8 +434,8 @@ const deck = [
       return true
     },
     contact: (player, target, cards, game) => {
-      target.hp -= 2
-      target.missTurns += 1
+      target.hp -= cards[0].damage
+      target.missTurns += cards[0].missTurns
       target.beforeTurn.push(cards[0].beforeTurn)
       // Card isn't put in the discard until the missed turn is expended
       target.conditionCards.push(cards[0])
@@ -439,10 +451,11 @@ const deck = [
   {
     id: 'guard-dog',
     type: 'attack',
+    damage: 4,
     copies: 2,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      target.hp -= 4
+      target.hp -= cards[0].damage
       game.announce('card:guard-dog:contact', {
         player,
         target
@@ -455,10 +468,11 @@ const deck = [
   {
     id: 'gut-punch',
     type: 'attack',
+    damage: 2,
     copies: 10,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      target.hp -= 2
+      target.hp -= cards[0].damage
       game.announce('card:gut-punch:contact', {
         player,
         target
@@ -561,13 +575,14 @@ const deck = [
   {
     id: 'meal-steal',
     type: 'attack',
+    hp: '?',
     copies: 1,
     filter: () => [],
     contact: (player, target, cards, game) => {
       const stolenCards = target.hand
         .filter(card => card.id === 'soup' || card.id === 'sub')
       const totalHp = stolenCards.reduce((hp, card) => {
-        return hp + (card.id === 'soup' ? 1 : 2)
+        return hp + card.hp
       }, 0)
       stolenCards.forEach(card => removeOnce(target.hand, card))
       if (player.hp < player.maxHp) {
@@ -616,10 +631,11 @@ const deck = [
   {
     id: 'neck-punch',
     type: 'attack',
+    damage: 3,
     copies: 10,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      target.hp -= 3
+      target.hp -= cards[0].damage
       game.announce('card:neck-punch:contact', {
         player,
         target
@@ -690,13 +706,15 @@ const deck = [
   {
     id: 'siphon',
     type: 'attack',
+    damage: 1,
+    hp: 1,
     copies: 2,
     filter: () => [],
     contact: (player, target, cards, game) => {
       if (player.hp < player.maxHp) {
-        player.hp += 1
+        player.hp += cards[0].hp
       }
-      target.hp -= 1
+      target.hp -= cards[0].damage
       game.announce('card:siphon:contact', {
         player,
         target
@@ -710,11 +728,12 @@ const deck = [
   {
     id: 'soup',
     type: 'support',
+    hp: 1,
     copies: 3,
     filter: () => [],
     contact: (player, target, cards, game) => {
       if (player.hp < player.maxHp) {
-        player.hp += 1
+        player.hp = Math.min(player.hp + cards[0].hp, player.maxHp)
       }
       game.announce('card:soup:contact', { player })
       return cards
@@ -741,11 +760,12 @@ const deck = [
   {
     id: 'sub',
     type: 'support',
+    hp: 2,
     copies: 7,
     filter: () => [],
     contact: (player, target, cards, game) => {
       if (player.hp < player.maxHp) {
-        player.hp = Math.min(player.hp + 2, player.maxHp)
+        player.hp = Math.min(player.hp + cards[0].hp, player.maxHp)
       }
       game.announce('card:sub:contact', { player })
       return cards
@@ -808,6 +828,7 @@ const deck = [
   {
     id: 'tire',
     type: 'unstoppable',
+    missTurns: 1,
     copies: 2,
     filter: () => [],
     beforeTurn: (player, game) => {
@@ -818,7 +839,7 @@ const deck = [
       return true
     },
     contact: (player, target, cards, game) => {
-      target.missTurns += 1
+      target.missTurns += cards[0].missTurns
       target.beforeTurn.push(cards[0].beforeTurn)
       target.conditionCards.push(cards[0])
       game.announce('card:tire:contact', {
@@ -834,10 +855,11 @@ const deck = [
   {
     id: 'tire-iron',
     type: 'unstoppable',
+    damage: 3,
     copies: 1,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      target.hp -= 3
+      target.hp -= cards[0].damage
       game.announce('card:tire-iron:contact', {
         player,
         target
@@ -864,10 +886,11 @@ const deck = [
   {
     id: 'uppercut',
     type: 'attack',
+    damage: 5,
     copies: 5,
     filter: () => [],
     contact: (player, target, cards, game) => {
-      target.hp -= 5
+      target.hp -= cards[0].damage
       game.announce('card:uppercut:contact', {
         player,
         target
@@ -896,6 +919,7 @@ const deck = [
   {
     id: 'wrench',
     type: 'attack',
+    missTurns: 2,
     copies: 2,
     filter: () => [],
     beforeTurn: (player, game) => {
@@ -916,7 +940,7 @@ const deck = [
       return true
     },
     contact: (player, target, cards, game) => {
-      target.missTurns += 2
+      target.missTurns += cards[0].missTurns
       target.beforeTurn.push(cards[0].beforeTurn)
       target.conditionCards.push(cards[0])
       game.announce('card:wrench:contact', {

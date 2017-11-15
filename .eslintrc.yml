@@ -133,7 +133,7 @@ rules:
   new-cap: error
   new-parens: error
   newline-before-return: off
-  newline-per-chained-call: error
+  newline-per-chained-call: off
   no-alert: error
   no-array-constructor: error
   no-bitwise: error
@@ -337,7 +337,7 @@ rules:
   prefer-promise-reject-errors: error
   prefer-rest-params: error
   prefer-spread: error
-  prefer-template: error
+  prefer-template: off
   quote-props:
     - error
     - as-needed
