@@ -351,6 +351,26 @@ Ava.test('play() should expect a target when there are 3 or more players', (t) =
   t.true(whisperCallback.calledWith(turnPlayer.id, 'player:invalid-target'))
 })
 
+Ava.test('play() should not let a player attack themselves', (t) => {
+  const announceCallback = Sinon.spy()
+  const whisperCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
+  game.addPlayer('player2', 'Kevin')
+  game.addPlayer('player3', 'Jimbo')
+  game.start()
+
+  const [player1] = game.players
+  const grab = Deck.getCard('grab')
+  const gutPunch = Deck.getCard('gut-punch')
+  player1.hand = [grab, gutPunch]
+  game.play(player1, [grab, gutPunch], player1)
+
+  t.true(whisperCallback.calledWith(player1.id, 'player:invalid-target'))
+  t.true(!game.target)
+  t.is(player1.hand.length, 2)
+  t.is(game.discardPile.length, 0)
+})
+
 Ava.test('play() should notify a user when they play no cards', (t) => {
   const announceCallback = Sinon.spy()
   const whisperCallback = Sinon.spy()

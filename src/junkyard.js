@@ -366,8 +366,8 @@ module.exports = class Junkyard {
     } else {
       target = this.getPlayer(targetId)
     }
-    // Make sure a target was specified
-    if (!target) {
+    // Make sure a valid target was specified
+    if (!target || target === player) {
       this.whisper(player, 'player:invalid-target')
       return false
     }

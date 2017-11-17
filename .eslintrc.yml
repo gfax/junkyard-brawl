@@ -42,9 +42,7 @@ rules:
   comma-style:
     - error
     - last
-  complexity:
-    - error
-    - max: 14
+  complexity: error
   computed-property-spacing:
     - error
     - never
