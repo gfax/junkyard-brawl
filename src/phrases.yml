@@ -64,7 +64,7 @@ card:gamblin-man:contact:
 card:gas-spill:
   en: Gas Spill
 card:gas-spill:contact:
-  en: <%= player.name %> drops a fuel take on <%= target.name %>'s stuff. <%= target.name %> goes to find a hose and ash tray... Miss 2 turns.
+  en: <%= player.name %> drops a fuel tank on <%= target.name %>'s stuff. <%= target.name %> goes to find a hose and ash tray... Miss 2 turns.
 card:grab:
   en: Grab
 card:grab:counter:
