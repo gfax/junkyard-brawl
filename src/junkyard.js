@@ -174,7 +174,7 @@ module.exports = class Junkyard {
       this.whisper(player, 'player:not-turn')
       return
     }
-    let cards = Deck.parseCards(player, cardRequest, true)
+    let cards = clone(Deck.parseCards(player, cardRequest, true))
     if (!cards.length) {
       cards = clone(player.hand)
     }
