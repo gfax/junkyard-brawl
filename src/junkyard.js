@@ -461,8 +461,8 @@ module.exports = class Junkyard {
         this.whisperStatus(player.id)
       }
     })
-    this.incrementTurn()
     this.started = new Date()
+    this.incrementTurn()
   }
 
   stop(announce = true) {
