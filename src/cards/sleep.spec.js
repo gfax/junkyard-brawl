@@ -1,7 +1,7 @@
 const Ava = require('ava')
 const Sinon = require('sinon')
 
-const Deck = require('../deck')
+const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
 const { find } = require('../util')
 
@@ -12,8 +12,8 @@ Ava.test('should work with attacks - Gut Punch', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const sleep = Deck.getCard('sleep')
-  const gutPunch = Deck.getCard('gut-punch')
+  const sleep = getCard('sleep')
+  const gutPunch = getCard('gut-punch')
   player1.hp = 2
   player1.hand.push(sleep)
   player1.hand.push(gutPunch)
@@ -36,8 +36,8 @@ Ava.test('should work with unstoppable attacks - Cheap Shot', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const sleep = Deck.getCard('sleep')
-  const cheapShot = Deck.getCard('cheap-shot')
+  const sleep = getCard('sleep')
+  const cheapShot = getCard('cheap-shot')
   player1.hp = 2
   player1.hand.push(sleep)
   player1.hand.push(cheapShot)
@@ -59,9 +59,9 @@ Ava.test('should work during a grab', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const grab = Deck.getCard('grab')
-  const sleep = Deck.getCard('sleep')
-  const tireIron = Deck.getCard('tire-iron')
+  const grab = getCard('grab')
+  const sleep = getCard('sleep')
+  const tireIron = getCard('tire-iron')
   player1.hp = 2
   player1.hand.push(grab)
   player1.hand.push(sleep)
@@ -87,8 +87,8 @@ Ava.test('should not heal a player past their max HP', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const sleep = Deck.getCard('sleep')
-  const aGun = Deck.getCard('a-gun')
+  const sleep = getCard('sleep')
+  const aGun = getCard('a-gun')
   player1.hand.push(sleep)
   player1.hand.push(aGun)
   game.play(player1.id, [sleep, aGun])
@@ -109,8 +109,8 @@ Ava.test('should not heal a player if the attack does no damage', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const sleep = Deck.getCard('sleep')
-  const tire = Deck.getCard('tire')
+  const sleep = getCard('sleep')
+  const tire = getCard('tire')
   player1.hp = 2
   player1.hand.push(sleep)
   player1.hand.push(tire)
@@ -133,10 +133,10 @@ Ava.test('should warn when a player plays it wrong', (t) => {
   game.start()
 
   const [player1] = game.players
-  const sleep = Deck.getCard('sleep')
-  const avalanche = Deck.getCard('avalanche')
-  const soup = Deck.getCard('soup')
-  const grab = Deck.getCard('grab')
+  const sleep = getCard('sleep')
+  const avalanche = getCard('avalanche')
+  const soup = getCard('soup')
+  const grab = getCard('grab')
   player1.hp = 2
   player1.hand.push(sleep)
   player1.hand.push(avalanche)
@@ -172,9 +172,9 @@ Ava.test('should warn when a player plays it wrong with Grab', (t) => {
   game.start()
 
   const [player1] = game.players
-  const grab = Deck.getCard('grab')
-  const sleep = Deck.getCard('sleep')
-  const avalanche = Deck.getCard('avalanche')
+  const grab = getCard('grab')
+  const sleep = getCard('sleep')
+  const avalanche = getCard('avalanche')
   player1.hp = 2
   player1.hand.push(grab)
   player1.hand.push(sleep)
@@ -195,8 +195,8 @@ Ava.test('should not heal a player above their max HP', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const sleep = Deck.getCard('sleep')
-  const gutPunch = Deck.getCard('gut-punch')
+  const sleep = getCard('sleep')
+  const gutPunch = getCard('gut-punch')
   player1.hp = player1.maxHp + 5
   player1.hand.push(sleep)
   player1.hand.push(gutPunch)

@@ -1,7 +1,7 @@
 const Ava = require('ava')
 const Sinon = require('sinon')
 
-const Deck = require('../deck')
+const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
 
 Ava.test('should restore a player to max health', (t) => {
@@ -10,7 +10,7 @@ Ava.test('should restore a player to max health', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player] = game.players
-  const surgery = Deck.getCard('surgery')
+  const surgery = getCard('surgery')
   player.hand.push(surgery)
   player.hp = 1
   game.play(player, surgery)
@@ -28,8 +28,8 @@ Ava.test('should still work when grabbing', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  const grab = Deck.getCard('grab')
-  const surgery = Deck.getCard('surgery')
+  const grab = getCard('grab')
+  const surgery = getCard('surgery')
   player1.hand.push(grab)
   player1.hand.push(surgery)
   player1.hp = 1
@@ -50,8 +50,8 @@ Ava.test('should not be playable if the player has >1 hp', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player] = game.players
-  const surgery = Deck.getCard('surgery')
-  const grab = Deck.getCard('grab')
+  const surgery = getCard('surgery')
+  const grab = getCard('grab')
   player.hand.push(surgery)
   player.hand.push(grab)
 
@@ -65,4 +65,35 @@ Ava.test('should not be playable if the player has >1 hp', (t) => {
 
   t.is(player.hand.length, player.maxHand + 2)
   t.is(game.discardPile.length, 0)
+})
+
+Ava.test('should not return a any plays if the player doesn\'t have 1 hp', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1] = game.players
+  const surgery = getCard('surgery')
+  player1.hand = [surgery]
+  const plays = surgery.validPlays(player1, player1, game)
+  t.true(Array.isArray(plays))
+  t.is(plays.length, 0)
+})
+
+Ava.test('should have max possible weight if playable', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1] = game.players
+  const surgery = getCard('surgery')
+  player1.hand = [surgery]
+  player1.hp = 1
+  const plays = surgery.validPlays(player1, player1, game)
+  t.true(Array.isArray(plays))
+  t.truthy(plays.length)
+  plays.forEach((play) => {
+    t.true(Array.isArray(play.cards))
+    t.truthy(play.cards.length)
+    t.is(typeof play.weight, 'number')
+    t.is(play.weight, player1.maxHp)
+  })
 })

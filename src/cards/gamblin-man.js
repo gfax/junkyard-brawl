@@ -1,4 +1,6 @@
-module.exports = {
+const { baseWeight } = require('../util')
+
+const card = module.exports = {
   id: 'gamblin-man',
   type: 'attack',
   damage: '?',
@@ -16,5 +18,12 @@ module.exports = {
   },
   play: (player, target, cards, game) => {
     game.announcePlayed(player, target, cards)
+  },
+  validPlays: (player, target, game) => {
+    return [{
+      cards: [card],
+      target,
+      weight: baseWeight(player, target, Object.assign(card, { damage: 4 }), game)
+    }]
   }
 }

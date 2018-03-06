@@ -28,5 +28,13 @@ const card = module.exports = {
     player.beforeContact.push(cards[0].beforeContact)
     player.conditionCards.push(cards[0])
     game.announce('card:deflector:play', { player })
+  },
+  validDisasters: (player, game) => {
+    return [{
+      cards: [card],
+      // Keep in mind the scale is from -maxHp - +maxHp. There may be
+      // better disasters to play first so we'll give this 90% weight.
+      weight: player.maxHp * 0.9
+    }]
   }
 }

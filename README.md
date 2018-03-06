@@ -289,6 +289,59 @@ const whisperCallback = (player, code, message, messageProps, template) => {
 }
 ```
 
+## addBot()
+
+Add a bot player to the game.
+Bots have the same properties as players except with the addition of the flag `robot` which is set to `true`.
+Bots also have an `announceCallback` function that allows them to receive and respond to game events with a series of internal methods for each of the different actions players can take.
+
+A bot object consists of the following properties:
+
+```js
+{
+  // Array of functions. Pending conditions to trigger after a player is affected by a card.
+  afterContact: [],
+  // Callback that is invoked by the game whenever there is a game event/announcement.
+  // Each player can have an announceCallback registered to them by simply defining it.
+  announceCallback: Function,
+  // Array of functions. Pending conditions to trigger before a player is affected by a card.
+  beforeContact: [],
+  // Array of functions. Pending conditions to trigger when the player's turn starts.
+  beforeTurn: [],
+  // Array of cards attached to the player while special conditions are in effect.
+  // Not only does this let us see what conditions are currently applied to the player
+  // for the purpose of displaying player status, but in the event of a pre-mature death
+  // the cards can be quickly collected and put in the discard pile.
+  conditionCards: [],
+  // Array of card objects. Temporary discard of cards
+  // to which the other player may need to respond.
+  discard: [],
+  // Player gets to go again if they have any extra turns
+  extraTurns: 0,
+  // Array of card objects available to the player for play.
+  hand: [],
+  // Current number of health points
+  hp: 10,
+  // The unique user ID for the player
+  id: '823142',
+  // Maximum number of cards the player can be dealt, though
+  // some cards may cause the player to have more cards than
+  // this (they just won't be dealt more on their turn.)
+  maxHand: 5,
+  // Maximum number of health points. A player cannot heal any higher than
+  // this number (with the exception of a few cards, such as "Armor").
+  maxHp: 10,
+  // If the player was caused to miss any turns, they are counted here.
+  missTurns: 0
+  // Display name to use for this player in announcements and notifications.
+  name: 'Dark',
+  // Flag so applications can check if this user is a bot
+  robot: true,
+  // Turns the player has taken so far
+  turns: 0
+}
+```
+
 ### addPlayer()
 
 Join a new player to the game. Players can join a game that has already started. Players that have already left the game (though forfeit or death) cannot rejoin.
@@ -306,6 +359,10 @@ A player object consists of the following properties:
 {
   // Array of functions. Pending conditions to trigger after a player is affected by a card.
   afterContact: [],
+  // Callback that is invoked by the game whenever there is a game event/announcement.
+  // Each player can have an announceCallback registered to them by simply defining it.
+  // By default this is undefined.
+  announceCallback: Function,
   // Array of functions. Pending conditions to trigger before a player is affected by a card.
   beforeContact: [],
   // Array of functions. Pending conditions to trigger when the player's turn starts.
@@ -321,7 +378,7 @@ A player object consists of the following properties:
   // Player gets to go again if they have any extra turns
   extraTurns: 0,
   // Array of card objects available to the player for play.
-  hand: [Array],
+  hand: [],
   // Current number of health points
   hp: 10,
   // The unique user ID for the player
@@ -338,7 +395,11 @@ A player object consists of the following properties:
   // Display name to use for this player in announcements and notifications.
   name: 'Kevin',
   // Turns the player has taken so far
-  turns: 0
+  turns: 0,
+  // Callback that is invoked by the game whenever there is a private event/message
+  // to give this player.Each player can have a whisperCallback registered to them
+  // by simply defining it. By default this is undefined.
+  announceCallback: Function,
 }
 ```
 

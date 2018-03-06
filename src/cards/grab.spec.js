@@ -1,7 +1,7 @@
 const Ava = require('ava')
 const Sinon = require('sinon')
 
-const Deck = require('../deck')
+const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
 const { find } = require('../util')
 
@@ -12,9 +12,9 @@ Ava.test('should be playable', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const grab = Deck.getCard('grab')
-  const gutPunch = Deck.getCard('gut-punch')
-  const aGun = Deck.getCard('a-gun')
+  const grab = getCard('grab')
+  const gutPunch = getCard('gut-punch')
+  const aGun = getCard('a-gun')
   player1.hand.push(grab)
   player1.hand.push(gutPunch)
   player2.hand.push(grab)
@@ -46,12 +46,12 @@ Ava.test('should only play with an attack', (t) => {
 
   const [player] = game.players
   player.hand = player.hand.concat([
-    Deck.getCard('grab'),
-    Deck.getCard('grab')
+    getCard('grab'),
+    getCard('grab')
   ])
 
-  game.play(player.id, [Deck.getCard('grab')])
-  game.play(player.id, [Deck.getCard('grab'), Deck.getCard('grab')])
+  game.play(player.id, [getCard('grab')])
+  game.play(player.id, [getCard('grab'), getCard('grab')])
 
   t.false(announceCallback.calledWith('card:grab:play'))
   t.true(whisperCallback.called)
@@ -66,8 +66,8 @@ Ava.test('should only counter with an attack', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const gutPunch = Deck.getCard('gut-punch')
-  const grab = Deck.getCard('grab')
+  const gutPunch = getCard('gut-punch')
+  const grab = getCard('grab')
   player1.hand.push(gutPunch)
   player2.hand.push(grab)
   player2.hand.push(grab)
@@ -90,8 +90,8 @@ Ava.test('should counter', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const grab = Deck.getCard('grab')
-  const gutPunch = Deck.getCard('gut-punch')
+  const grab = getCard('grab')
+  const gutPunch = getCard('gut-punch')
   player1.hand = [grab, grab, gutPunch, gutPunch]
   player2.hand = [grab, gutPunch]
 
@@ -113,9 +113,9 @@ Ava.test('counter should allow another counter', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const grab = Deck.getCard('grab')
-  const gutPunch = Deck.getCard('gut-punch')
-  const block = Deck.getCard('block')
+  const grab = getCard('grab')
+  const gutPunch = getCard('gut-punch')
+  const block = getCard('block')
   player1.hand = [block, grab, gutPunch]
   player2.hand = [grab, gutPunch]
   game.play(player1, [grab, gutPunch])
@@ -134,8 +134,8 @@ Ava.test('should whisper a target their status when playing and countering', (t)
   game.start()
 
   const [player1, player2] = game.players
-  const grab = Deck.getCard('grab')
-  const gutPunch = Deck.getCard('gut-punch')
+  const grab = getCard('grab')
+  const gutPunch = getCard('gut-punch')
   player1.hand = [grab, gutPunch]
   player2.hand = [grab, gutPunch]
 
@@ -146,4 +146,33 @@ Ava.test('should whisper a target their status when playing and countering', (t)
   whisperCallback.reset()
   game.play(player2, [grab, gutPunch])
   t.true(whisperCallback.calledWith(player1.id, 'player:status'))
+})
+
+Ava.test('should have a dynamic counter weight', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const grab = getCard('grab')
+  const gutPunch = getCard('gut-punch')
+  player1.hand = [gutPunch]
+  player2.hand = [grab, gutPunch]
+
+  game.play(player1, player1.hand)
+  let plays = grab.validCounters(player2, player1, game)
+  t.true(Array.isArray(plays))
+  t.truthy(plays.length)
+  plays.forEach((play) => {
+    t.true(Array.isArray(play.cards))
+    t.truthy(play.cards.length)
+    t.is(typeof play.weight, 'number')
+    t.is(play.weight, 2.1)
+  })
+
+  player2.hand.push(grab)
+  plays = grab.validCounters(player2, player1, game)
+  t.truthy(plays.length)
+  plays.forEach((play) => {
+    t.is(play.weight, 2.2)
+  })
 })

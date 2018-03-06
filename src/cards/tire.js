@@ -1,4 +1,4 @@
-const { removeOnce } = require('../util')
+const { baseWeight, removeOnce } = require('../util')
 
 const card = module.exports = {
   id: 'tire',
@@ -24,5 +24,12 @@ const card = module.exports = {
   play: (player, target, cards, game) => {
     game.contact(player, target, cards)
     game.incrementTurn()
+  },
+  validPlays: (player, target, game) => {
+    return [{
+      cards: [card],
+      target,
+      weight: baseWeight(player, target, card, game)
+    }]
   }
 }

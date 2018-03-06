@@ -50,8 +50,8 @@ Ava.test('getCard() should throw an error when requesting an invalid card', (t) 
 
 Ava.test('parseCards() should throw an error when not given a player', (t) => {
   t.throws(() => {
-    Deck.parseCards({ id: 'user2', name: 'Kebbin' }, Deck.getCard('gut-punch'))
-  })
+    Deck.parseCards(null, Deck.getCard('gut-punch'))
+  }, /expected first param/i)
 })
 
 Ava.test('parseCards() should throw an error when not passed a request', (t) => {

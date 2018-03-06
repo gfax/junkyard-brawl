@@ -1,5 +1,5 @@
 const { printCards } = require('../language')
-const { removeOnce } = require('../util')
+const { baseWeight, removeOnce } = require('../util')
 
 const card = module.exports = {
   id: 'wrench',
@@ -34,5 +34,13 @@ const card = module.exports = {
   },
   play: (player, target, cards, game) => {
     game.announcePlayed(player, target, cards)
+  },
+  validPlays: (player, target, game) => {
+    const twoPlayerMultiplier = game.players.length === 2 ? 1.5 : 1
+    return [{
+      cards: [card],
+      target,
+      weight: baseWeight(player, target, card, game) * twoPlayerMultiplier
+    }]
   }
 }

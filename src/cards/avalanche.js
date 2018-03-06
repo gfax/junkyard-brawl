@@ -1,6 +1,6 @@
 const { sample } = require('../util')
 
-module.exports = {
+const card = module.exports = {
   id: 'avalanche',
   type: 'disaster',
   damage: 6,
@@ -17,5 +17,14 @@ module.exports = {
   disaster: (player, cards, game) => {
     const target = sample(game.players)
     game.contact(player, target, cards)
+  },
+  validDisasters: (player, game) => {
+    let weight = 0.75 * game.players.length
+    if (player.hp > 6) {
+      weight += 1
+    }
+    return [
+      { cards: [card], weight }
+    ]
   }
 }

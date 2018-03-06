@@ -1,6 +1,6 @@
-const { removeOnce } = require('../util')
+const { getAttackResults, removeOnce } = require('../util')
 
-module.exports = {
+const card = module.exports = {
   id: 'insurance',
   type: 'counter',
   copies: 2,
@@ -19,5 +19,13 @@ module.exports = {
     removeOnce(player.afterContact, () => cards[0].afterContact)
     game.incrementTurn()
     return cards
+  },
+  validCounters: (player, attacker, game) => {
+    // Determine the damages by simulating playing the card(s)
+    const attackResults = getAttackResults(attacker.discard)
+    return [{
+      cards: [card],
+      weight: player.hp - attackResults.damage <= 0 ? player.maxHp : 0
+    }]
   }
 }

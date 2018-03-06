@@ -1,4 +1,6 @@
-module.exports = {
+const { find } = require('../util')
+
+const card = module.exports = {
   id: 'sub',
   type: 'support',
   hp: 2,
@@ -10,5 +12,21 @@ module.exports = {
     }
     game.announce('card:sub:contact', { player })
     return cards
+  },
+  validPlays: (player, target, game) => {
+    let weight = card.hp
+    // We may want to heal from the bees if we're hurting
+    if (find(player.conditionCards, { id: 'the-bees' })) {
+      weight += player.maxHp - player.hp
+    }
+    // Try to avoid contacting a target with a deflector
+    if (find(target.conditionCards, { id: 'deflector' })) {
+      weight = -weight
+    }
+    return [{
+      cards: [card],
+      target,
+      weight
+    }]
   }
 }

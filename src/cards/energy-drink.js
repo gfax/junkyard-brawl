@@ -1,5 +1,5 @@
 const { printCards } = require('../language')
-const { removeOnce } = require('../util')
+const { find, removeOnce } = require('../util')
 
 const card = module.exports = {
   id: 'energy-drink',
@@ -37,5 +37,24 @@ const card = module.exports = {
     target.beforeTurn.push(cards[0].beforeTurn)
     target.conditionCards.push(cards[0])
     game.announce('card:energy-drink:contact', { player: target })
+  },
+  validPlays: (player, target, game) => {
+    let weight = Math.min(player.maxHp - player.hp + 1, card.hp)
+
+    // Increase the weight based on the player's deficit
+    if (find(player.conditionCards, { id: 'the-bees' })) {
+      weight += player.maxHp - player.hp
+    }
+
+    // Try to avoid contacting a target with a deflector
+    if (find(target.conditionCards, { id: 'deflector' })) {
+      weight = -weight
+    }
+
+    return [{
+      cards: [card],
+      target,
+      weight
+    }]
   }
 }

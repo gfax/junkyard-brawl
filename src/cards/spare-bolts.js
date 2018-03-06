@@ -15,5 +15,11 @@ const card = module.exports = {
     player.beforeTurn.push(cards[0].beforeTurn)
     player.conditionCards.push(cards[0])
     game.announce('card:spare-bolts:disaster', { player })
+  },
+  validDisasters: (player, game) => {
+    return [{
+      cards: [card],
+      weight: player.maxHp - 1
+    }]
   }
 }

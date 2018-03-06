@@ -1,6 +1,7 @@
 const { printCards } = require('../language')
+const { getCardWeight } = require('../util')
 
-module.exports = {
+const card = module.exports = {
   id: 'crane',
   type: 'unstoppable',
   copies: 1,
@@ -27,5 +28,20 @@ module.exports = {
   play: (player, target, cards, game) => {
     game.contact(player, target, cards)
     game.incrementTurn()
+  },
+  validPlays: (player, target, game) => {
+    const cards = player.hand.reduce((acc, el) => {
+      // Avoid infinite recursion
+      if (el.id === 'crane') {
+        return acc
+      }
+      // Append any worthless cards
+      if (getCardWeight(player, target, el, game) <= 2) {
+        return [...acc, el]
+      }
+      return acc
+    }, [card])
+    // The more worthless cards there are the more weight this play has
+    return [{ cards, target, weight: cards.length }]
   }
 }

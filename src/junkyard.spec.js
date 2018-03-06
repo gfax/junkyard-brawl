@@ -29,6 +29,15 @@ Ava.test('constructor() should announce when a game is created', (t) => {
   ))
 })
 
+Ava.test('addBot() should do nothing if the game is stopped', (t) => {
+  const announceCallback = Sinon.spy()
+  const game = new Junkyard('player1', 'Jay', announceCallback)
+  game.stop()
+  announceCallback.reset()
+  game.addBot()
+  t.true(announceCallback.notCalled)
+})
+
 Ava.test('addPlayer() should add multiple players', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
@@ -273,6 +282,22 @@ Ava.test('transferManagement() should transfer game management when removing the
   game.removePlayer('player1')
   t.true(announceCallback.calledWith('game:transferred'))
   t.is(game.manager, player)
+})
+
+Ava.test('transferManagement() should transfer to the first non-robot player', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addBot('Dark')
+  const player = game.addPlayer('player2', 'Kevin')
+  game.removePlayer('player1')
+  t.is(game.manager, player)
+})
+
+Ava.test('transferManagement() should still transfer if all remaining players are bots', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addBot('Dark')
+  game.addBot('Dark2')
+  game.removePlayer('player1')
+  t.true(game.manager.robot)
 })
 
 Ava.test('play() should not accept moves before starting', (t) => {

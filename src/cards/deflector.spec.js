@@ -1,7 +1,7 @@
 const Ava = require('ava')
 const Sinon = require('sinon')
 
-const Deck = require('../deck')
+const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
 const { find } = require('../util')
 
@@ -12,10 +12,10 @@ Ava.test('should attach to a random player', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  player1.hand.push(Deck.getCard('deflector'))
+  player1.hand.push(getCard('deflector'))
 
   announceCallback.reset()
-  game.play(player1.id, [Deck.getCard('deflector')])
+  game.play(player1.id, [getCard('deflector')])
 
   t.true(announceCallback.calledWith('card:deflector:play'))
   t.true(announceCallback.calledOnce)
@@ -31,10 +31,10 @@ Ava.test('should deflect an attack to another random player', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const deflector = Deck.getCard('deflector')
+  const deflector = getCard('deflector')
   player1.hand.push(deflector)
   game.play(player1.id, [deflector])
-  const gutPunch = Deck.getCard('gut-punch')
+  const gutPunch = getCard('gut-punch')
 
   if (player1.beforeContact.length) {
     game.incrementTurn()
@@ -58,15 +58,15 @@ Ava.test('should deflect an attack to another random player', (t) => {
   t.truthy(find(game.discardPile, deflector))
 })
 
-Ava.test('Deflector should also deflect Avalanches', (t) => {
+Ava.test('should also deflect Avalanches', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
   game.start()
 
   const [player1, player2] = game.players
-  const avalanche = Deck.getCard('avalanche')
-  const deflector = Deck.getCard('deflector')
+  const avalanche = getCard('avalanche')
+  const deflector = getCard('deflector')
   player1.hand.push(deflector)
   player2.hand.push(avalanche)
   game.play(player1.id, [deflector])
@@ -77,15 +77,15 @@ Ava.test('Deflector should also deflect Avalanches', (t) => {
   t.is(game.discardPile.length, 2)
 })
 
-Ava.test('Deflector should halt resolving further before-contact conditions', (t) => {
+Ava.test('should halt resolving further before-contact conditions', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
   game.start()
 
   const [player1, player2] = game.players
-  const deflector = Deck.getCard('deflector')
-  const gutPunch = Deck.getCard('gut-punch')
+  const deflector = getCard('deflector')
+  const gutPunch = getCard('gut-punch')
   player2.beforeContact.push(deflector.beforeContact)
   player2.beforeContact.push(deflector.beforeContact)
   player1.hand.push(gutPunch)
@@ -97,15 +97,15 @@ Ava.test('Deflector should halt resolving further before-contact conditions', (t
   t.is(player2.beforeContact.length, 1, 'player should have 1 unresolved beforeContact')
 })
 
-Ava.test('Deflector should resolve before-contact conditions across player', (t) => {
+Ava.test('should resolve before-contact conditions across player', (t) => {
   const announceCallback = Sinon.spy()
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
   game.start()
 
   const [player1, player2] = game.players
-  const deflector = Deck.getCard('deflector')
-  const gutPunch = Deck.getCard('gut-punch')
+  const deflector = getCard('deflector')
+  const gutPunch = getCard('gut-punch')
   player1.beforeContact.push(deflector.beforeContact)
   player2.beforeContact.push(deflector.beforeContact)
   player1.hand.push(gutPunch)
@@ -117,17 +117,34 @@ Ava.test('Deflector should resolve before-contact conditions across player', (t)
   t.is(player2.hp, player2.maxHp - 2)
 })
 
-Ava.test('Deflector should discard if the player holding it is removed', (t) => {
+Ava.test('should discard if the player holding it is removed', (t) => {
   const game = new Junkyard('player1', 'Jay')
   game.addPlayer('player2', 'Kevin')
   game.start()
 
   const [player1] = game.players
-  const deflector = Deck.getCard('deflector')
+  const deflector = getCard('deflector')
   player1.hand.push(deflector)
   game.play(player1.id, [deflector])
   game.removePlayer(player1.id)
   t.is(game.discardPile.length, player1.maxHand + 1)
   t.truthy(find(game.discardPile, deflector))
   t.is(game.turns, 0)
+})
+
+Ava.test('should have a positive weight', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1] = game.players
+  const deflector = getCard('deflector')
+  player1.hand = [deflector]
+  const plays = deflector.validDisasters(player1, game)
+  t.true(Array.isArray(plays))
+  plays.forEach((play) => {
+    t.true(Array.isArray(play.cards))
+    t.truthy(play.cards.length)
+    t.is(typeof play.weight, 'number')
+    t.is(play.weight, player1.maxHp * 0.9)
+  })
 })

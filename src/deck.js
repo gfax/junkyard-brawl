@@ -1,4 +1,3 @@
-const Player = require('./player')
 const {
   find,
   flow,
@@ -93,7 +92,7 @@ function parseCards(player, request, noCardFilter = false) {
     return cards
   }
 
-  if ((player instanceof Player) === false) {
+  if (!player || typeof player !== 'object') {
     throw new Error(`Expected first parameter to be a player, got ${player}`)
   }
   if (typeof request === 'undefined') {

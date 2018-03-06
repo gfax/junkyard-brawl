@@ -1,3 +1,4 @@
+const Bot = require('./bot')
 const Deck = require('./deck')
 const Language = require('./language')
 const Player = require('./player')
@@ -55,6 +56,16 @@ module.exports = class Junkyard {
     this.announce('game:created')
   }
 
+  addBot(name) {
+    if (this.stopped) {
+      return
+    }
+    const bot = new Bot(name, this)
+    this.players.push(bot)
+    this.announce('player:joined', { player: bot })
+    return bot
+  }
+
   addPlayer(id, name) {
     if (this.stopped) {
       return
@@ -78,8 +89,8 @@ module.exports = class Junkyard {
   }
 
   announce(code, messageProps = {}) {
-    // We gotta pass some variables in to build the phrases
-    // the extra words are to identify current things like
+    // We gotta pass some variables in to build the phrases.
+    // The message props are to identify current things like
     // the target or stats.
     this.announceCallback(
       code,
@@ -197,12 +208,12 @@ module.exports = class Junkyard {
     return find(this.dropouts, { id })
   }
 
-  getPhrase(code, extraWords) {
+  getPhrase(code, messageProps) {
     return Language.getPhrase(code, this.language)(
       assign({
         game: this,
         player: (this.players[0] || {}).name
-      }, extraWords)
+      }, messageProps)
     )
   }
 
@@ -480,31 +491,39 @@ module.exports = class Junkyard {
       return
     }
     const oldManager = clone(this.manager)
-    const newManager = this.getPlayer(playerId)
-    if (newManager) {
-      this.manager = newManager
-    } else {
+    // Try making the given player the new manager
+    this.manager = this.getPlayer(playerId)
+    // Otherwise make the first non-robot player the new manager
+    if (!this.manager) {
+      this.manager = this.players.find(plyr => !plyr.robot)
+    }
+    // Otherwise just make the next player the new manager
+    if (!this.manager) {
       [this.manager] = this.players
     }
     this.announce('game:transferred', { player: oldManager })
   }
 
-  whisper(player, code, extraWords = {}) {
-    const words = merge({
+  whisper(player, code, messageProps = {}) {
+    const props = merge({
       game: this,
       player
-    }, extraWords)
+    }, messageProps)
     // Bots and other special players may instead
     // have a custom method for handling event hooks.
     if (player.whisperCallback) {
-      player.whisperCallback(code)
+      player.whisperCallback(
+        code,
+        this.getPhrase(code, props),
+        props
+      )
       return
     }
     this.whisperCallback(
       player.id,
       code,
-      this.getPhrase(code, words),
-      merge(words)
+      this.getPhrase(code, props),
+      props
     )
   }
 

@@ -1,7 +1,7 @@
 const Ava = require('ava')
 const Sinon = require('sinon')
 
-const Deck = require('../deck')
+const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
 const { find } = require('../util')
 
@@ -11,9 +11,9 @@ Ava.test('should make a player miss a turn', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(Deck.getCard('grease-bucket'))
+  player1.hand.push(getCard('grease-bucket'))
 
-  game.play(player1.id, [Deck.getCard('grease-bucket')])
+  game.play(player1.id, [getCard('grease-bucket')])
   game.pass(player2.id)
   t.is(player2.hp, player2.maxHp - 2)
   t.is(game.turns, 2)
@@ -25,9 +25,9 @@ Ava.test('should delay discarding', (t) => {
   game.addPlayer('player3', 'Jimbo')
   game.start()
   const [player1, , player3] = game.players
-  player1.hand.push(Deck.getCard('grease-bucket'))
+  player1.hand.push(getCard('grease-bucket'))
 
-  game.play(player1.id, [Deck.getCard('grease-bucket')], player3.id)
+  game.play(player1.id, [getCard('grease-bucket')], player3.id)
   t.is(player1.hand.length, player1.maxHand)
 
   game.pass(player3.id)
@@ -42,12 +42,35 @@ Ava.test('should discard when a player dies', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(Deck.getCard('grease-bucket'))
+  player1.hand.push(getCard('grease-bucket'))
   player2.hp = 2
 
-  game.play(player1.id, [Deck.getCard('grease-bucket')])
+  game.play(player1.id, [getCard('grease-bucket')])
   game.pass(player2.id)
 
-  t.truthy(find(game.discardPile, Deck.getCard('grease-bucket')))
+  t.truthy(find(game.discardPile, getCard('grease-bucket')))
   t.is(game.discardPile.length, player2.maxHand + 1)
+})
+
+Ava.test('should have a conditional weight', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const greaseBucket = getCard('grease-bucket')
+  player1.hand = [greaseBucket]
+  let plays = greaseBucket.validPlays(player1, player2, game)
+  t.true(Array.isArray(plays))
+  t.truthy(plays.length)
+  plays.forEach((play) => {
+    t.true(Array.isArray(play.cards))
+    t.truthy(play.cards.length)
+    t.is(typeof play.weight, 'number')
+    t.is(play.weight, 2.5)
+  })
+  player2.conditionCards.push(getCard('deflector'))
+  plays = greaseBucket.validPlays(player1, player2, game)
+  plays.forEach((play) => {
+    t.is(play.weight, -2.5)
+  })
 })

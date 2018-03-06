@@ -1,7 +1,7 @@
 const { printCards } = require('../language')
-const { clone } = require('../util')
+const { clone, find } = require('../util')
 
-module.exports = {
+const card = module.exports = {
   id: 'mirror',
   type: 'counter',
   copies: 2,
@@ -18,5 +18,16 @@ module.exports = {
     game.contact(player, attacker, mirroredCards, false)
     game.incrementTurn()
     return cards
+  },
+  validCounters: (player, attacker, game) => {
+    // Weight is proportional to the player's current health
+    let weight = player.hp * 0.75
+    if (find(attacker.conditionCards, { id: 'deflector' })) {
+      weight *= 0.5
+    }
+    return [{
+      cards: [card],
+      weight
+    }]
   }
 }

@@ -33,5 +33,11 @@ const card = module.exports = {
       player,
       target
     })
+  },
+  validDisasters: (player, game) => {
+    return [{
+      cards: [card],
+      weight: game.players.length * 0.75
+    }]
   }
 }

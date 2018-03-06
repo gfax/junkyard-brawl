@@ -1,4 +1,6 @@
-module.exports = {
+const { find } = require('../util')
+
+const card = module.exports = {
   id: 'siphon',
   type: 'attack',
   damage: 1,
@@ -18,5 +20,20 @@ module.exports = {
   },
   play: (player, target, cards, game) => {
     game.announcePlayed(player, target, cards)
+  },
+  validPlays: (player, target, game) => {
+    let weight = card.damage + card.hp
+
+    // Contacting a target with a deflector isn't a bad idea!
+    // Waste their deflector if possible!
+    if (find(target.conditionCards, { id: 'deflector' })) {
+      weight += 3
+    }
+
+    return [{
+      cards: [card],
+      target,
+      weight
+    }]
   }
 }

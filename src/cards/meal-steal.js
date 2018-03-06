@@ -1,6 +1,6 @@
-const { removeOnce } = require('../util')
+const { find, removeOnce } = require('../util')
 
-module.exports = {
+const card = module.exports = {
   id: 'meal-steal',
   type: 'attack',
   hp: '?',
@@ -8,11 +8,11 @@ module.exports = {
   filter: () => [],
   contact: (player, target, cards, game) => {
     const stolenCards = target.hand
-      .filter(card => card.id === 'soup' || card.id === 'sub')
-    const totalHp = stolenCards.reduce((hp, card) => {
-      return hp + card.hp
+      .filter(_card => _card.id === 'soup' || _card.id === 'sub')
+    const totalHp = stolenCards.reduce((hp, _card) => {
+      return hp + _card.hp
     }, 0)
-    stolenCards.forEach(card => removeOnce(target.hand, card))
+    stolenCards.forEach(_card => removeOnce(target.hand, _card))
     if (player.hp < player.maxHp) {
       player.hp = Math.min(player.hp + totalHp, player.maxHp)
     }
@@ -35,5 +35,17 @@ module.exports = {
   play: (player, target, cards, game) => {
     game.contact(player, target, cards)
     game.incrementTurn()
+  },
+  validPlays: (player, target, game) => {
+    let weight = player.maxHp - player.hp
+
+    if (find(player.conditionCards, { id: 'the-bees' })) {
+      weight *= 2
+    }
+
+    return [{
+      cards: [card],
+      weight
+    }]
   }
 }

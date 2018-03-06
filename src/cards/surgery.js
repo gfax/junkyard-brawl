@@ -1,4 +1,4 @@
-module.exports = {
+const card = module.exports = {
   id: 'surgery',
   type: 'support',
   copies: 2,
@@ -14,5 +14,15 @@ module.exports = {
     player.hp = player.maxHp
     game.announce('card:surgery:contact', { player })
     return cards
+  },
+  validPlays: (player, target, game) => {
+    if (target.hp === 1) {
+      return [{
+        cards: [card],
+        target,
+        weight: target.maxHp
+      }]
+    }
+    return []
   }
 }

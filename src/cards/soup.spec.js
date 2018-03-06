@@ -1,7 +1,7 @@
 const Ava = require('ava')
 const Sinon = require('sinon')
 
-const Deck = require('../deck')
+const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
 const { find } = require('../util')
 
@@ -11,7 +11,7 @@ Ava.test('should heal a player and discard', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  const soup = Deck.getCard('soup')
+  const soup = getCard('soup')
   player1.hand.push(soup)
   player1.hp = 3
   player2.hand.push(soup)
@@ -33,7 +33,7 @@ Ava.test('should not heal a player above their max HP', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1] = game.players
-  const soup = Deck.getCard('soup')
+  const soup = getCard('soup')
   player1.hand.push(soup)
   player1.hp = player1.maxHp + 5
 
@@ -43,4 +43,33 @@ Ava.test('should not heal a player above their max HP', (t) => {
   t.is(player1.hand.length, player1.maxHand)
   t.is(game.discardPile.length, 1)
   t.truthy(find(game.discardPile, soup))
+})
+
+Ava.test('should have a conditional weight', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1] = game.players
+  const soup = getCard('soup')
+  player1.hand = [soup]
+  let plays = soup.validPlays(player1, player1, game)
+  t.true(Array.isArray(plays))
+  t.truthy(plays.length)
+  plays.forEach((play) => {
+    t.true(Array.isArray(play.cards))
+    t.truthy(play.cards.length)
+    t.is(typeof play.weight, 'number')
+    t.is(play.weight, soup.hp)
+  })
+  player1.conditionCards = [getCard('deflector')]
+  plays = soup.validPlays(player1, player1, game)
+  plays.forEach((play) => {
+    t.is(play.weight, -soup.hp)
+  })
+  player1.hp = player1.maxHp - 2
+  player1.conditionCards = [getCard('the-bees')]
+  plays = soup.validPlays(player1, player1, game)
+  plays.forEach((play) => {
+    t.is(play.weight, soup.hp + 2)
+  })
 })

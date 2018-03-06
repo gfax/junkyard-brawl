@@ -1,7 +1,7 @@
 const Ava = require('ava')
 const Sinon = require('sinon')
 
-const Deck = require('../deck')
+const { getCard }= require('../deck')
 const Junkyard = require('../junkyard')
 const { find } = require('../util')
 
@@ -12,8 +12,8 @@ Ava.test('should absorb up to 2 hp of damage', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const neckPunch = Deck.getCard('neck-punch')
-  const mattress = Deck.getCard('mattress')
+  const neckPunch = getCard('neck-punch')
+  const mattress = getCard('mattress')
   player1.hand.push(neckPunch)
   player2.hand.push(mattress)
   game.play(player1.id, neckPunch)
@@ -34,9 +34,9 @@ Ava.test('should not give a player more hp than they had', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const grab = Deck.getCard('grab')
-  const cheapShot = Deck.getCard('cheap-shot')
-  const mattress = Deck.getCard('mattress')
+  const grab = getCard('grab')
+  const cheapShot = getCard('cheap-shot')
+  const mattress = getCard('mattress')
   player1.hand.push(grab)
   player1.hand.push(cheapShot)
   player2.hand.push(mattress)
@@ -59,8 +59,8 @@ Ava.test('should work when a player has more than max hp', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const uppercut = Deck.getCard('uppercut')
-  const mattress = Deck.getCard('mattress')
+  const uppercut = getCard('uppercut')
+  const mattress = getCard('mattress')
   player1.hand.push(uppercut)
   player2.hand.push(mattress)
   player2.hp = player2.maxHp + 6
@@ -77,9 +77,9 @@ Ava.test('should work against a grab', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const grab = Deck.getCard('grab')
-  const gutPunch = Deck.getCard('gut-punch')
-  const mattress = Deck.getCard('mattress')
+  const grab = getCard('grab')
+  const gutPunch = getCard('gut-punch')
+  const mattress = getCard('mattress')
 
   player1.hand.push(grab)
   player1.hand.push(gutPunch)
@@ -100,9 +100,9 @@ Ava.test('shouldn\'t have an effect when there was no damage', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const grab = Deck.getCard('grab')
-  const sub = Deck.getCard('sub')
-  const mattress = Deck.getCard('mattress')
+  const grab = getCard('grab')
+  const sub = getCard('sub')
+  const mattress = getCard('mattress')
   player1.hand.push(grab)
   player1.hand.push(sub)
   player2.hand.push(mattress)
@@ -113,4 +113,69 @@ Ava.test('shouldn\'t have an effect when there was no damage', (t) => {
   t.is(player2.hp, 5)
   t.is(game.turns, 1)
   t.is(game.discardPile.length, 3)
+})
+
+Ava.test('should have the weight of the card it is countering', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const mattress = getCard('mattress')
+  player1.hand = [getCard('gut-punch')]
+  player2.hand = [mattress]
+
+  game.play(player1, player1.hand)
+  const plays = mattress.validCounters(player2, player1, game)
+  t.true(Array.isArray(plays))
+  t.truthy(plays.length)
+  plays.forEach((play) => {
+    t.true(Array.isArray(play.cards))
+    t.truthy(play.cards.length)
+    t.is(typeof play.weight, 'number')
+    t.is(play.weight, 2)
+  })
+})
+
+Ava.test('should have the weight against grabs', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const mattress = getCard('mattress')
+  player1.hand = [getCard('grab'), getCard('gut-punch')]
+  player2.hand = [mattress]
+
+  game.play(player1, player1.hand)
+  const plays = mattress.validCounters(player2, player1, game)
+  t.true(Array.isArray(plays))
+  t.truthy(plays.length)
+  plays.forEach((play) => {
+    t.true(Array.isArray(play.cards))
+    t.truthy(play.cards.length)
+    t.is(typeof play.weight, 'number')
+    t.is(play.weight, 2)
+  })
+})
+
+
+Ava.test('should have additional weight if there is a threat of death', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const mattress = getCard('mattress')
+  player1.hand = [getCard('gut-punch')]
+  player2.hand = [mattress]
+  player2.hp = 2
+
+  game.play(player1, player1.hand)
+  const plays = mattress.validCounters(player2, player1, game)
+  t.true(Array.isArray(plays))
+  t.truthy(plays.length)
+  plays.forEach((play) => {
+    t.true(Array.isArray(play.cards))
+    t.truthy(play.cards.length)
+    t.is(typeof play.weight, 'number')
+    t.true(play.weight >= 11)
+  })
 })

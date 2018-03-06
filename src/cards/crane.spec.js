@@ -1,7 +1,7 @@
 const Ava = require('ava')
 const Sinon = require('sinon')
 
-const Deck = require('../deck')
+const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
 const { find } = require('../util')
 
@@ -12,7 +12,7 @@ Ava.test('should dump cards onto a target', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const crane = Deck.getCard('crane')
+  const crane = getCard('crane')
   player1.hand.push(crane)
   const [card1, card2, card3] = player1.hand
   game.play(player1.id, [crane, card1, card2, card3])
@@ -32,7 +32,7 @@ Ava.test('should be playable with no cards', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const crane = Deck.getCard('crane')
+  const crane = getCard('crane')
   player1.hand = [crane]
   game.play(player1.id, crane)
 
@@ -51,9 +51,9 @@ Ava.test('should be playable with a grab', (t) => {
   game.start()
 
   const [player1, player2, player3] = game.players
-  const aGun = Deck.getCard('a-gun')
-  const crane = Deck.getCard('crane')
-  const grab = Deck.getCard('grab')
+  const aGun = getCard('a-gun')
+  const crane = getCard('crane')
+  const grab = getCard('grab')
   player1.hand.push(grab)
   player1.hand.push(aGun)
   player3.hand.push(aGun)
@@ -69,4 +69,62 @@ Ava.test('should be playable with a grab', (t) => {
   t.is(game.discardPile.length, 4)
   t.is(player1.hand.length, player1.maxHand + 3)
   t.is(player3.hand.length, player3.maxHand + 1)
+})
+
+Ava.test('should returns valid plays', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const crane = getCard('crane')
+  player1.hand = [crane]
+  const plays = crane.validPlays(player1, player2, game)
+  t.true(Array.isArray(plays))
+  plays.forEach((play) => {
+    t.true(Array.isArray(play.cards))
+    t.truthy(play.cards.length)
+    t.truthy(play.target)
+    t.is(typeof play.weight, 'number')
+    t.true(play.weight >= 0)
+  })
+})
+
+Ava.test('should have weight when a player has worthless cards', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const crane = getCard('crane')
+  const soup = getCard('soup')
+  player1.hand = [crane, soup]
+  const plays = crane.validPlays(player1, player2, game)
+  t.true(Array.isArray(plays))
+  t.truthy(plays.length)
+  plays.forEach((play) => {
+    t.true(Array.isArray(play.cards))
+    t.truthy(play.cards.length)
+    t.truthy(play.target)
+    t.is(typeof play.weight, 'number')
+    t.true(play.weight >= 1)
+  })
+})
+
+Ava.test('should have less weight when a player has nice cards', (t) => {
+  const game = new Junkyard('player1', 'Jay')
+  game.addPlayer('player2', 'Kevin')
+  game.start()
+  const [player1, player2] = game.players
+  const crane = getCard('crane')
+  const armor = getCard('armor')
+  player1.hand = [crane, armor]
+  const plays = crane.validPlays(player1, player2, game)
+  t.true(Array.isArray(plays))
+  t.truthy(plays.length)
+  plays.forEach((play) => {
+    t.true(Array.isArray(play.cards))
+    t.truthy(play.cards.length)
+    t.truthy(play.target)
+    t.is(typeof play.weight, 'number')
+    t.true(play.weight < 2)
+  })
 })

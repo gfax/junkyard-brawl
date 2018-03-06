@@ -1,4 +1,4 @@
-const { removeOnce } = require('../util')
+const { baseWeight, removeOnce } = require('../util')
 
 const card = module.exports = {
   id: 'acid-coffee',
@@ -26,5 +26,12 @@ const card = module.exports = {
   },
   play: (player, target, cards, game) => {
     game.announcePlayed(player, target, cards)
+  },
+  validPlays: (player, target, game) => {
+    return [{
+      cards: [card],
+      target,
+      weight: baseWeight(player, target, card, game)
+    }]
   }
 }

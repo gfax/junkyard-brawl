@@ -1,4 +1,6 @@
-module.exports = {
+const { getCardWeight } = require('../util')
+
+const card = module.exports = {
   id: 'grab',
   type: 'counter',
   copies: 8,
@@ -27,8 +29,10 @@ module.exports = {
     game.contact(attacker, player, attacker.discard)
     attacker.discard = []
     player.discard = cards
-    game.announce('card:grab:counter', { attacker, player })
-    game.whisperStatus(attacker)
+    card.play(player, attacker, cards, game)
+  },
+  validCounters: (player, attacker, game) => {
+    return card.validPlays(player, attacker, game)
   },
   validatePlay: (player, target, cards, game) => {
     if (cards.length < 2) {
@@ -44,5 +48,24 @@ module.exports = {
   play: (player, target, cards, game) => {
     game.announce('card:grab:play', { player, target })
     game.whisperStatus(target)
+  },
+  validPlays: (player, target, game) => {
+    // The likelyhood that we should use a grab for a play is
+    // increased with the amount of grabs at the player's disposal
+    const grabWeight = player.hand.reduce((acc, el) => {
+      if (el.id === card.id) {
+        return acc + 0.1
+      }
+      return acc
+    }, 0)
+    return player.hand
+      .filter(el => el.type === 'attack')
+      .map((el) => {
+        return {
+          cards: [card, el],
+          target,
+          weight: grabWeight + getCardWeight(player, target, el, game)
+        }
+      })
   }
 }

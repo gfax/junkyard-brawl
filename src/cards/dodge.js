@@ -1,7 +1,7 @@
 const { printCards } = require('../language')
 const { findNext } = require('../util')
 
-module.exports = {
+const card = module.exports = {
   id: 'dodge',
   type: 'counter',
   copies: 6,
@@ -35,5 +35,15 @@ module.exports = {
       player,
       target: game.target
     })
+  },
+  validCounters: (player, attacker, game) => {
+    const [attack] = attacker.discard
+    if (attack.id === 'grab') {
+      return []
+    }
+    return [{
+      cards: [card],
+      weight: player.maxHp - player.hp
+    }]
   }
 }

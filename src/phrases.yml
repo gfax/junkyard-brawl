@@ -67,8 +67,6 @@ card:gas-spill:contact:
   en: <%= player.name %> drops a fuel tank on <%= target.name %>'s stuff. <%= target.name %> goes to find a hose and ash tray... Miss 2 turns.
 card:grab:
   en: Grab
-card:grab:counter:
-  en: <%= player.name %> grabs <%= attacker.name %>. Respond or pass, <%= attacker.name %>.
 card:grab:invalid-card:
   en: You must play an attack when grabbing, <%= player.name %>.
 card:grab:play:
