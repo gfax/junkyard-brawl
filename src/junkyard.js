@@ -414,7 +414,7 @@ module.exports = class Junkyard {
     }
     const player = this.getPlayer(id)
     if (!player) {
-      throw new Error('Cannot remove invalid player: ${id}')
+      throw new Error(`Cannot remove invalid player: ${id}`)
     }
     const wasTurnPlayer = player === this.players[0]
     removeOnce(this.players, player)
