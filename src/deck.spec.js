@@ -13,10 +13,12 @@ Ava.test('generate() should generate a deck', (t) => {
 
 Ava.test('generate() should not contain invalid cards in a deck', (t) => {
   const validTypes = /^(attack|counter|disaster|support|unstoppable)$/
+  const validUuid = /([a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}?)/i
   Deck.generate()
     .forEach((card) => {
-      t.is(typeof card, 'object')
-      t.is(typeof card.id, 'string')
+      t.is(typeof card, 'object', 'card should be an object')
+      t.is(typeof card.id, 'string', 'card.id should be a string')
+      t.truthy(card.uid.match(validUuid), 'card.uid should be a uuid')
       t.true(
         Array.isArray(card.type.match(validTypes)),
         `Card ${card.id} has an invalid type: ${card.type}`
@@ -36,6 +38,14 @@ Ava.test('generate() should not contain invalid cards in a deck', (t) => {
         )
       }
     })
+})
+
+Ava.test('generate() should not contain any duplicate cards in the deck', (t) => {
+  const deck = Deck.generate()
+  const uniq = (el, idx, arr) => {
+    return arr.findIndex(el2 => el2.uid === el.uid) === idx
+  }
+  t.is(deck.length, deck.filter(uniq).length)
 })
 
 Ava.test('getCard() should return a card object', (t) => {

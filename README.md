@@ -190,7 +190,7 @@ A game instance consists of the following properties:
 ```js
 {
   // The announceCallback that was passed in on instantiation.
-  announceCallback: [Function: announceCallback],
+  announceCallback: Function,
   // This is the draw pile - an array of card objects.
   deck: [ ... ],
   // Cards that were played. This is shuffled and put
@@ -218,7 +218,7 @@ A game instance consists of the following properties:
   // Turns played so far this game
   turns: 0,
   // The whisperCallback that was passed in on instantiation.
-  whisperCallback: [Function: whisperCallback]
+  whisperCallback: Function
 }
 ```
 
@@ -399,7 +399,7 @@ A player object consists of the following properties:
   // Callback that is invoked by the game whenever there is a private event/message
   // to give this player.Each player can have a whisperCallback registered to them
   // by simply defining it. By default this is undefined.
-  announceCallback: Function,
+  whisperCallback: Function,
 }
 ```
 

@@ -18,7 +18,8 @@ const Util = module.exports = {
   shuffle: require('lodash.shuffle'),
   template: require('lodash.template'),
   times: require('lodash.times'),
-  uniq: require('lodash.uniq')
+  uniq: require('lodash.uniq'),
+  uuid: require('uuid/v4')
 }
 
 // Calculate the base weight for a card play

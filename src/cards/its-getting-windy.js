@@ -35,7 +35,7 @@ const card = module.exports = {
     // Weight is proportional to their hand's weight
     const weight = player.hand.reduce((acc, _card) => {
       // Avoid infinite recursion
-      if (_card === card) {
+      if (_card.id === card.id) {
         return acc
       }
       return acc + getCardWeight(player, anotherPlayer, _card, game)

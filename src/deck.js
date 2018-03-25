@@ -1,9 +1,11 @@
 const {
+  clone,
   find,
   flow,
   shuffle,
   times,
-  uniq
+  uniq,
+  uuid
 } = require('./util')
 
 module.exports = {
@@ -56,8 +58,9 @@ const deck = [
 
 function generate() {
   return shuffle(deck.reduce((acc, card) => {
-    times(card.copies, () => acc.push(card))
-    return acc
+    return acc.concat(times(card.copies, () => {
+      return Object.assign(clone(card), { uid: uuid() })
+    }))
   }, []))
 }
 
