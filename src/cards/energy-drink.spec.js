@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should heal a player over the course of 3 turns', (t) => {
   const announceCallback = Sinon.spy()
@@ -33,8 +32,9 @@ Ava.test('should heal a player over the course of 3 turns', (t) => {
   game.incrementTurn()
   game.incrementTurn()
   t.is(player.hp, 5)
+  t.is(player.beforeTurn.length, 0)
   t.is(game.discardPile.length, 1)
-  t.truthy(find(game.discardPile, energyDrink))
+  t.truthy(game.discardPile.find(card => card === energyDrink))
   t.true(announceCallback.calledWith('card:energy-drink:before-turn'))
   t.true(announceCallback.calledWith('player:discard'))
 })
@@ -68,7 +68,7 @@ Ava.test('should have no effect on a player at or above their max HP', (t) => {
   game.incrementTurn()
   t.is(player.hp, player.maxHp + 5)
   t.is(game.discardPile.length, 1)
-  t.truthy(find(game.discardPile, energyDrink))
+  t.truthy(game.discardPile.find(card => card === energyDrink))
   t.true(announceCallback.calledWith('card:energy-drink:before-turn'))
   t.true(announceCallback.calledWith('player:discard'))
 })

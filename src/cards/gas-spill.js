@@ -1,5 +1,5 @@
 const { printCards } = require('../language')
-const { removeOnce, sample } = require('../util')
+const { remove, sample } = require('../util')
 
 const card = module.exports = {
   id: 'gas-spill',
@@ -8,11 +8,12 @@ const card = module.exports = {
   copies: 1,
   filter: () => [],
   beforeTurn: (player, game) => {
+    const cardInstance = player.conditionCards.find(el => el.id === card.id)
     const discardFn = () => {
       // Now we can discard the card
-      game.discardPile.push(card)
-      removeOnce(player.conditionCards, card)
-      removeOnce(player.beforeTurn, () => discardFn)
+      game.discardPile.push(cardInstance)
+      remove(player.conditionCards, el => el === cardInstance)
+      remove(player.beforeTurn, el => el === discardFn)
       game.announce('player:discard', {
         cards: printCards(card, game.language),
         player
@@ -20,13 +21,13 @@ const card = module.exports = {
       return true
     }
     player.beforeTurn.push(discardFn)
-    removeOnce(player.beforeTurn, () => card.beforeTurn)
+    remove(player.beforeTurn, el => el === cardInstance.beforeTurn)
     return true
   },
   contact: (player, target, cards, game) => {
     target.missTurns += card.missTurns
     target.beforeTurn.push(card.beforeTurn)
-    target.conditionCards.push(card)
+    target.conditionCards.push(cards[0])
     game.announce('card:gas-spill:contact', {
       player,
       target

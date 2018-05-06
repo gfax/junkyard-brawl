@@ -1,4 +1,4 @@
-const { clone, getCardWeight, removeOnce } = require('../util')
+const { clone, getCardWeight, remove } = require('../util')
 
 const card = module.exports = {
   id: 'mattress',
@@ -11,7 +11,7 @@ const card = module.exports = {
       if (healthBeforeAttack > target.hp) {
         target.hp = Math.min(healthBeforeAttack, target.hp + 2)
       }
-      removeOnce(target.afterContact, () => afterContactFn)
+      remove(target.afterContact, el => el === afterContactFn)
     }
     player.afterContact.push(afterContactFn)
     game.announce('card:mattress:counter', { player })

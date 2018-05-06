@@ -12,7 +12,7 @@ Ava.test('should add 5 HP, even past the player\'s max HP', (t) => {
 
   const [player] = game.players
   player.hand.push(getCard('armor'))
-  game.play(player.id, [getCard('armor')])
+  game.play(player.id, 'armor')
 
   t.true(announceCallback.calledWith('card:armor:contact'))
   t.is(player.hand.length, player.maxHand)

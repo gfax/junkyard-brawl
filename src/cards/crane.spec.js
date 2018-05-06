@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should dump cards onto a target', (t) => {
   const announceCallback = Sinon.spy()
@@ -18,9 +17,9 @@ Ava.test('should dump cards onto a target', (t) => {
   game.play(player1.id, [crane, card1, card2, card3])
 
   t.is(player2.hand.length, player2.maxHand + 3)
-  t.truthy(find(player2.hand, card1))
-  t.truthy(find(player2.hand, card2))
-  t.truthy(find(player2.hand, card3))
+  t.truthy(player2.hand.find(card => card === card1))
+  t.truthy(player2.hand.find(card => card === card2))
+  t.truthy(player2.hand.find(card => card === card3))
   t.true(announceCallback.calledWith('card:crane:contact'))
   t.is(player1.hand.length, player1.maxHand)
 })
@@ -40,7 +39,7 @@ Ava.test('should be playable with no cards', (t) => {
   t.true(announceCallback.calledWith('card:crane:no-cards'))
   t.is(player1.hand.length, 0)
   t.is(game.discardPile.length, 1)
-  t.truthy(find(game.discardPile, crane))
+  t.truthy(game.discardPile.find(card => card === crane))
 })
 
 Ava.test('should be playable with a grab', (t) => {

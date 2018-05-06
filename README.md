@@ -441,13 +441,23 @@ const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCall
 game.addPlayer('WBE1F94D7', 'Kevin')
 game.start()
 const [player1, player2] = game.players
-game.play(player1, '2', player2)
+
+// Third param is optional in a 2-player game where there is only 1 target
+game.play(player1, player1.hand[0], player2)
+// The players can also be reference by id
+game.play('Jay', player1.hand[0], 'Kevin')
+// Or a card uid
+game.play(player1, '0fddb067-2868-45fe-a819-bded3a2e1264', player2)
+// Or the card id
+game.play(player1, 'gut-punch', player2)
+// And play multiple cards
+game.play(player1, ['0fd..', 'e5b..'], player2)
 ```
 
 param      | type                      ||
 ---------- | ------------------------- |-
 `playerId` | player/string             | The player object for the user requesting to play, or simply the ID of the user that was passed in when the player was added. The game can distinguish valid players from invalid players.
-`request`  | card object/array/string  | The request must either be a card object, an array of card objects, or a string of card indexes. Card indexes count from 1. So cards[0] and cards[3], would become '1 4'. This is useful for handling chatroom game adapters where a player may say the index of the cards they want to play.
+`request`  | object/array/string  | The request must either be an object containing the card uid or id, an array of such objects, or a string of card uids or ids. Note that uids are preferred as a player may have multiples of the same card in hand and the uids is the only way to guarantee the correct one is being selected.
 `targetId` | string                    | ID of the player being attacked. In a 2-player game, the opposite player is assumed and the parameter is ignored. Likewise, with player moves that don't require a target the parameter is also ignored in such a case.
 
 ### discard()
@@ -461,14 +471,14 @@ const JunkyardBrawl = require('junkyard-brawl')
 const game = new JunkyardBrawl('W0C2A5BA6', 'Jay', announceCallback, whisperCallback, language)
 game.addPlayer('WBE1F94D7', 'Kevin')
 game.start()
-const [{ id: playerId }] = game.players
-game.discard(playerId, '1 4 2')
+const [player] = game.players
+game.discard(player.id, player.hand)
 ```
 
 param      | type                      ||
 ---------- | ------------------------- |-
 `playerId` | player/string             | The player object for the user requesting to play, or simply the ID of the user that was passed in when the player was added. The game can distinguish valid players from invalid players.
-`request`  | card object/array/string  | The request must either be a card object, an array of card objects, or a string of card indexes. Card indexes count from 1. So cards[0] and cards[3], would become '1 4'. If no cards are specified, the player's entire hand will be discarded.
+`request`  | object/array/string  | The supported request types are the same as those supported by [game.play()](#play). The request must either be an object containing the card uid or id, an array of such objects, or a string of card uids or ids. Note that uids are preferred as a player may have multiples of the same card in hand and the uids is the only way to guarantee the correct one is being selected. See [play()](#play) for more examples.
 
 ### pass()
 

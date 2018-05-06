@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should cause a player to miss a turn', (t) => {
   const announceCallback = Sinon.spy()
@@ -12,6 +11,7 @@ Ava.test('should cause a player to miss a turn', (t) => {
   game.start()
   const [player1, player2] = game.players
   const tire = getCard('tire')
+  player1.hand.push(tire)
 
   game.play(player1.id, tire)
   t.is(game.turns, 2)
@@ -19,7 +19,7 @@ Ava.test('should cause a player to miss a turn', (t) => {
   t.is(player1.hand.length, player1.maxHand)
   t.true(announceCallback.calledWith('card:tire:contact'))
   t.is(player2.conditionCards.length, 0)
-  t.truthy(find(game.discardPile, tire))
+  t.truthy(game.discardPile.find(el => el === tire))
 })
 
 Ava.test('should discard if the affected player is removed', (t) => {
@@ -39,7 +39,7 @@ Ava.test('should discard if the affected player is removed', (t) => {
 
   game.removePlayer(player3.id)
   t.is(game.discardPile.length, player3.maxHand + 1)
-  t.truthy(find(game.discardPile, tire))
+  t.truthy(game.discardPile.find(el => el === tire))
 })
 
 Ava.test('should have a conditional weight', (t) => {

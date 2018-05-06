@@ -1,4 +1,4 @@
-const { getAttackResults, removeOnce } = require('../util')
+const { getAttackResults, remove } = require('../util')
 
 const card = module.exports = {
   id: 'insurance',
@@ -16,7 +16,7 @@ const card = module.exports = {
     game.announce('card:insurance:counter', { player })
     player.afterContact.push(cards[0].afterContact)
     game.contact(attacker, player, attacker.discard)
-    removeOnce(player.afterContact, () => cards[0].afterContact)
+    remove(player.afterContact, el => el === cards[0].afterContact)
     game.incrementTurn()
     return cards
   },

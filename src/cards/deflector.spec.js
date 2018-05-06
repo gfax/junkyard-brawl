@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should attach to a random player', (t) => {
   const announceCallback = Sinon.spy()
@@ -12,10 +11,11 @@ Ava.test('should attach to a random player', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  player1.hand.push(getCard('deflector'))
+  const deflector = getCard('deflector')
+  player1.hand.push(deflector)
 
   announceCallback.reset()
-  game.play(player1.id, [getCard('deflector')])
+  game.play(player1.id, deflector)
 
   t.true(announceCallback.calledWith('card:deflector:play'))
   t.true(announceCallback.calledOnce)
@@ -55,7 +55,7 @@ Ava.test('should deflect an attack to another random player', (t) => {
 
   t.true(announceCallback.calledWith('card:deflector:deflect'))
   t.is(player1.beforeContact.length + player2.beforeContact.length, 0)
-  t.truthy(find(game.discardPile, deflector))
+  t.truthy(game.discardPile.find(card => card === deflector))
 })
 
 Ava.test('should also deflect Avalanches', (t) => {
@@ -128,7 +128,7 @@ Ava.test('should discard if the player holding it is removed', (t) => {
   game.play(player1.id, [deflector])
   game.removePlayer(player1.id)
   t.is(game.discardPile.length, player1.maxHand + 1)
-  t.truthy(find(game.discardPile, deflector))
+  t.truthy(game.discardPile.find(card => card === deflector))
   t.is(game.turns, 0)
 })
 

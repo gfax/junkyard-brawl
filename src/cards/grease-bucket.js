@@ -1,4 +1,4 @@
-const { baseWeight, removeOnce } = require('../util')
+const { baseWeight, remove } = require('../util')
 
 const card = module.exports = {
   id: 'grease-bucket',
@@ -8,9 +8,10 @@ const card = module.exports = {
   copies: 3,
   filter: () => [],
   beforeTurn: (player, game) => {
-    game.discardPile.push(card)
-    removeOnce(player.conditionCards, card)
-    removeOnce(player.beforeTurn, () => card.beforeTurn)
+    const cardInstance = player.conditionCards.find(el => el.id === card.id)
+    remove(player.conditionCards, el => el === cardInstance)
+    remove(player.beforeTurn, el => el.beforeTurn === cardInstance.beforeTurn)
+    game.discardPile.push(cardInstance)
     return true
   },
   contact: (player, target, cards, game) => {

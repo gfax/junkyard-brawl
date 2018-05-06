@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should attack a random player', (t) => {
   const announceCallback = Sinon.spy()
@@ -15,14 +14,14 @@ Ava.test('should attack a random player', (t) => {
   const [, player] = game.players
   const avalanche = getCard('avalanche')
   player.hand.push(avalanche)
-  game.play(player.id, [avalanche])
+  game.play(player, avalanche)
 
   t.is(
     game.players.reduce((acc, plyr) => acc + plyr.hp, 0),
     game.players.reduce((acc, plyr) => acc + plyr.maxHp, 0) - 6
   )
   t.is(game.discardPile.length, 1)
-  t.truthy(find(game.discardPile, avalanche))
+  t.truthy(game.discardPile.find(card => card === avalanche))
   t.is(player.hand.length, player.maxHand)
 })
 
@@ -37,8 +36,9 @@ Ava.test('should be able to kill a random player', (t) => {
   player1.hp = 6
   player2.hp = 6
   player3.hp = 6
-  player2.hand.push(getCard('avalanche'))
-  game.play(player2.id, getCard('avalanche'))
+  const avalanche = getCard('avalanche')
+  player2.hand = [avalanche]
+  game.play(player2, avalanche)
 
   t.true(announceCallback.calledWith('player:died'))
   t.is(game.players.length, 2)

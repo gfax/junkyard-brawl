@@ -1,6 +1,6 @@
 const Ava = require('ava')
 const Sinon = require('sinon')
-const Deck = require('./deck')
+const { getCard } = require('./deck')
 const Junkyard = require('./junkyard')
 const Player = require('./player')
 const { find, times } = require('./util')
@@ -92,7 +92,7 @@ Ava.test('addPlayer() should trigger discard shuffling', (t) => {
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
   game.deck = []
-  game.discardPile.push(Deck.getCard('gut-punch'))
+  game.discardPile.push(getCard('gut-punch'))
   game.start()
 
   t.is(game.discardPile.length, 0)
@@ -153,7 +153,7 @@ Ava.test('stop() should stop', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   game.transferManagement('player2')
-  game.play('player1', [Deck.getCard('gut-punch')])
+  game.play('player1', [getCard('gut-punch')])
   game.removePlayer('player2')
   t.false(game.started)
   t.is(announceCallback.callCount, callCount)
@@ -315,7 +315,7 @@ Ava.test('play() should not accept cards out of turn', (t) => {
   const game = new Junkyard('player1', 'Jay', announceCallback, whisperCallback)
   game.addPlayer('player2', 'Kevin')
   const [, player2] = game.players
-  const card = Deck.getCard('gut-punch')
+  const card = getCard('gut-punch')
   player2.hand.push(card)
   game.play(player2.id, [card])
   t.true(whisperCallback.calledWith('player2', 'player:not-started'))
@@ -327,7 +327,7 @@ Ava.test('play() should ignore non-player moves', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   announceCallback.reset()
-  game.play('foo', [Deck.getCard('gut-punch')])
+  game.play('foo', [getCard('gut-punch')])
   t.false(announceCallback.called)
 })
 
@@ -338,7 +338,7 @@ Ava.test('play() should not accept attacks out of turn', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [, player2] = game.players
-  const gutPunch = Deck.getCard('gut-punch')
+  const gutPunch = getCard('gut-punch')
   player2.hand.push(gutPunch)
   game.play(player2.id, gutPunch)
   t.true(whisperCallback.calledWith(player2.id, 'player:not-turn'))
@@ -351,8 +351,10 @@ Ava.test('play() should ignore a player if they have already played', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [turnPlayer] = game.players
-  const gutPunch = Deck.getCard('gut-punch')
-  const neckPunch = Deck.getCard('neck-punch')
+  const gutPunch = getCard('gut-punch')
+  const neckPunch = getCard('neck-punch')
+  turnPlayer.hand.push(gutPunch)
+  turnPlayer.hand.push(neckPunch)
   game.play(turnPlayer, gutPunch)
   announceCallback.reset()
   whisperCallback.reset()
@@ -371,7 +373,8 @@ Ava.test('play() should expect a target when there are 3 or more players', (t) =
   game.addPlayer('player3', 'Jimbo')
   game.start()
   const [turnPlayer] = game.players
-  const gutPunch = Deck.getCard('gut-punch')
+  const gutPunch = getCard('gut-punch')
+  turnPlayer.hand.push(gutPunch)
   game.play(turnPlayer, gutPunch)
   t.true(whisperCallback.calledWith(turnPlayer.id, 'player:invalid-target'))
 })
@@ -385,8 +388,8 @@ Ava.test('play() should not let a player attack themselves', (t) => {
   game.start()
 
   const [player1] = game.players
-  const grab = Deck.getCard('grab')
-  const gutPunch = Deck.getCard('gut-punch')
+  const grab = getCard('grab')
+  const gutPunch = getCard('gut-punch')
   player1.hand = [grab, gutPunch]
   game.play(player1, [grab, gutPunch], player1)
 
@@ -407,12 +410,6 @@ Ava.test('play() should notify a user when they play no cards', (t) => {
   game.play(turnPlayer)
   t.true(whisperCallback.calledWith(turnPlayer.id, 'player:invalid-play'))
   whisperCallback.reset()
-  game.play(turnPlayer, null)
-  t.true(whisperCallback.calledWith(turnPlayer.id, 'player:invalid-play'))
-  whisperCallback.reset()
-  game.play(turnPlayer, '')
-  t.true(whisperCallback.calledWith(turnPlayer.id, 'player:invalid-play'))
-  whisperCallback.reset()
   game.play(turnPlayer, [])
   t.true(whisperCallback.calledWith(turnPlayer.id, 'player:invalid-play'))
   whisperCallback.reset()
@@ -425,7 +422,7 @@ Ava.test('play() should notify a user when given an invalid card', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [turnPlayer] = game.players
-  const block = Deck.getCard('block')
+  const block = getCard('block')
   turnPlayer.hand.push(block)
 
   whisperCallback.reset()
@@ -440,7 +437,7 @@ Ava.test('play() should notify a player of an invalid counter', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  const gutPunch = Deck.getCard('gut-punch')
+  const gutPunch = getCard('gut-punch')
   player1.hand.push(gutPunch)
   player2.hand.push(gutPunch)
   game.play(player1, gutPunch)
@@ -456,7 +453,7 @@ Ava.test('play() should announce when waiting for a player response', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  const gutPunch = Deck.getCard('gut-punch')
+  const gutPunch = getCard('gut-punch')
   player1.hand.push(gutPunch)
   announceCallback.reset()
   whisperCallback.reset()
@@ -487,8 +484,8 @@ Ava.test('pass() should ignore requests from non players', (t) => {
   game.start()
   game.removePlayer('player2')
   const [turnPlayer] = game.players
-  turnPlayer.hand.push(Deck.getCard('gut-punch'))
-  game.play(turnPlayer, Deck.getCard('gut-punch'))
+  turnPlayer.hand.push(getCard('gut-punch'))
+  game.play(turnPlayer, getCard('gut-punch'))
   announceCallback.reset()
   game.pass('player2')
   game.pass('foobaz')
@@ -516,8 +513,8 @@ Ava.test('pass() should notify a player it is not their turn to pass', (t) => {
   game.addPlayer('player3', 'Jimbo')
   game.start()
   const [player1, player2, player3] = game.players
-  player1.hand.push(Deck.getCard('gut-punch'))
-  game.play(player1, Deck.getCard('gut-punch'), player3)
+  player1.hand.push(getCard('gut-punch'))
+  game.play(player1, getCard('gut-punch'), player3)
   game.pass(player2)
   t.true(whisperCallback.calledWith(player2.id, 'player:not-turn'))
   t.is(game.turns, 0)
@@ -530,8 +527,9 @@ Ava.test('pass() should notify a player that is it too late to pass', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1] = game.players
-  player1.hand.push(Deck.getCard('gut-punch'))
-  game.play(player1, Deck.getCard('gut-punch'))
+  const gutPunch = getCard('gut-punch')
+  player1.hand.push(gutPunch)
+  game.play(player1, gutPunch)
   game.pass(player1)
   t.true(whisperCallback.calledWith(player1.id, 'player:already-played'))
   t.is(game.turns, 0)
@@ -544,8 +542,8 @@ Ava.test('pass() should allow the turn player to pass when grabbed', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  const grab = Deck.getCard('grab')
-  const gutPunch = Deck.getCard('gut-punch')
+  const grab = getCard('grab')
+  const gutPunch = getCard('gut-punch')
   player1.hand.push(gutPunch)
   player2.hand.push(grab)
   player2.hand.push(gutPunch)
@@ -576,7 +574,7 @@ Ava.test('discard() should ignore requests from non players', (t) => {
   game.addPlayer('player3', 'Jimbo')
   game.start()
   game.removePlayer('player2')
-  const gutPunch = Deck.getCard('gut-punch')
+  const gutPunch = getCard('gut-punch')
   announceCallback.reset()
   whisperCallback.reset()
   game.discard('player2', gutPunch)
@@ -593,7 +591,7 @@ Ava.test('discard() should notify a player when it is not their turn', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [, player2] = game.players
-  const gutPunch = Deck.getCard('gut-punch')
+  const gutPunch = getCard('gut-punch')
   player2.hand.push(gutPunch)
   game.discard(player2, gutPunch)
   t.true(whisperCallback.calledWith(player2.id, 'player:not-turn'))
@@ -606,8 +604,8 @@ Ava.test('discard() should discard the given cards and deal the appropriate amou
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [turnPlayer] = game.players
-  const block = Deck.getCard('block')
-  const gutPunch = Deck.getCard('gut-punch')
+  const block = getCard('block')
+  const gutPunch = getCard('gut-punch')
   turnPlayer.hand.push(block)
   turnPlayer.hand.push(gutPunch)
 
@@ -626,16 +624,20 @@ Ava.test('discard() should discard a player\'s entire hand if no cards were spec
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [turnPlayer] = game.players
-  const block = Deck.getCard('block')
-  const gutPunch = Deck.getCard('gut-punch')
-  turnPlayer.hand = [block, gutPunch, gutPunch, block]
+  const block1 = getCard('block')
+  const block2 = getCard('block')
+  const gutPunch1 = getCard('gut-punch')
+  const gutPunch2 = getCard('gut-punch')
+  turnPlayer.hand = [block1, gutPunch1, gutPunch2, block2]
 
-  game.discard(turnPlayer)
+  game.discard(turnPlayer, turnPlayer.hand)
   t.is(turnPlayer.hand.length, turnPlayer.maxHand)
   t.is(game.discardPile.length, 4)
   t.is(game.turns, 1)
-  t.truthy(find(game.discardPile, block))
-  t.truthy(find(game.discardPile, gutPunch))
+  t.truthy(game.discardPile.find(el => el === block1))
+  t.truthy(game.discardPile.find(el => el === block2))
+  t.truthy(game.discardPile.find(el => el === gutPunch1))
+  t.truthy(game.discardPile.find(el => el === gutPunch2))
 })
 
 Ava.test('whisperStatus() should whisper stats to a player upon request', (t) => {
@@ -687,10 +689,11 @@ Ava.test('contact() should announce if a played died', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(Deck.getCard('gut-punch'))
+  const gutPunch = getCard('gut-punch')
+  player1.hand.push(gutPunch)
   player2.hp = 2
 
-  game.play(player1.id, [Deck.getCard('gut-punch')])
+  game.play(player1.id, gutPunch)
   t.false(announceCallback.calledWith('player:died'))
   game.pass(player2.id)
   t.true(announceCallback.calledWith('player:died'))
@@ -701,8 +704,9 @@ Ava.test('contact() should throw an error if the last param is not a boolean', (
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(Deck.getCard('gut-punch'))
-  t.throws(() => game.contact(player1.id, player2.id, [Deck.getCard('gut-punch')], {}))
+  const gutPunch = getCard('gut-punch')
+  player1.hand.push(gutPunch)
+  t.throws(() => game.contact(player1.id, player2.id, [gutPunch], {}))
 })
 
 Ava.test('incrementTurn() should remove dead players', (t) => {
@@ -711,10 +715,11 @@ Ava.test('incrementTurn() should remove dead players', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(Deck.getCard('gut-punch'))
+  const gutPunch = getCard('gut-punch')
+  player1.hand.push(gutPunch)
   player2.hp = 2
 
-  game.play(player1.id, [Deck.getCard('gut-punch')])
+  game.play(player1.id, gutPunch)
   game.pass(player2.id)
   t.is(game.players.length, 1)
   t.truthy(game.stopped)
@@ -723,16 +728,22 @@ Ava.test('incrementTurn() should remove dead players', (t) => {
 Ava.test('incrementTurn() should deal players back up to a full hand', (t) => {
   const game = new Junkyard('player1', 'Jay')
   game.addPlayer('player2', 'Kevin')
-  game.players.forEach(player => player.hand.push(Deck.getCard('gut-punch')))
+  game.players.forEach(player => player.hand.push(getCard('gut-punch')))
   game.start()
 
   const [player1, player2] = game.players
   t.is(player1.hand.length, player1.maxHand)
 
-  game.play(player1.id, Deck.getCard('gut-punch'))
-  game.pass(player2.id)
-  game.play(player2.id, Deck.getCard('gut-punch'))
-  game.pass(player1.id)
+  const gutPunch1 = getCard('gut-punch')
+  const gutPunch2 = getCard('gut-punch')
+  player1.hand = [gutPunch1]
+  player2.hand = [gutPunch2]
 
+  game.play(player1.id, gutPunch1)
+  game.pass(player2.id)
+  t.is(player1.hand.length, 0)
+
+  game.play(player2.id, gutPunch2)
+  game.pass(player1.id)
   t.is(player1.hand.length, player1.maxHand)
 })

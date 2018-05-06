@@ -12,13 +12,14 @@ Ava.test('should leave a target with no cards', (t) => {
   game.start()
 
   const [player1, , player3] = game.players
-  player1.hand.push(getCard('bulldozer'))
-  game.play(player1.id, getCard('bulldozer'), player3.id)
+  const bulldozer = getCard('bulldozer')
+  player1.hand = [bulldozer]
+  game.play(player1.id, player1.hand, player3.id)
 
   t.true(announceCallback.calledWith('card:bulldozer:contact'))
   t.is(player3.hand.length, 0)
   t.is(game.turns, 1)
-  t.is(player1.hand.length, player1.maxHand)
+  t.is(player1.hand.length, 0)
   t.is(game.discardPile.length, player3.maxHand + 1)
 })
 

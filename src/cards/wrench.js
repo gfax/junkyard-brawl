@@ -1,5 +1,5 @@
 const { printCards } = require('../language')
-const { baseWeight, removeOnce } = require('../util')
+const { baseWeight, remove } = require('../util')
 
 const card = module.exports = {
   id: 'wrench',
@@ -9,10 +9,11 @@ const card = module.exports = {
   filter: () => [],
   beforeTurn: (player, game) => {
     const discardFn = () => {
-      // Now we can discard the card
-      game.discardPile.push(card)
-      removeOnce(player.conditionCards, card)
-      removeOnce(player.beforeTurn, () => discardFn)
+      // Now we can finally discard the card
+      const cardInstance = player.conditionCards.find(el => el.id === card.id)
+      game.discardPile.push(cardInstance)
+      remove(player.conditionCards, el => el === cardInstance)
+      remove(player.beforeTurn, el => el === discardFn)
       game.announce('player:discard', {
         cards: printCards(card, game.language),
         player
@@ -20,7 +21,7 @@ const card = module.exports = {
       return true
     }
     player.beforeTurn.push(discardFn)
-    removeOnce(player.beforeTurn, () => card.beforeTurn)
+    remove(player.beforeTurn, el => el === card.beforeTurn)
     return true
   },
   contact: (player, target, cards, game) => {

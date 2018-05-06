@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should hurt everybody', (t) => {
   const announceCallback = Sinon.spy()
@@ -12,8 +11,9 @@ Ava.test('should hurt everybody', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  player1.hand.push(getCard('earthquake'))
-  game.play(player1.id, getCard('earthquake'))
+  const earthquake = getCard('earthquake')
+  player1.hand.push(earthquake)
+  game.play(player1.id, earthquake)
 
   t.true(announceCallback.calledWith('card:earthquake:disaster'))
   t.is(player1.hp, player1.maxHp - 1)
@@ -27,12 +27,13 @@ Ava.test('should immediately discard', (t) => {
   game.start()
 
   const [player] = game.players
-  player.hand.push(getCard('earthquake'))
-  game.play(player.id, getCard('earthquake'))
+  const earthquake = getCard('earthquake')
+  player.hand.push(earthquake)
+  game.play(player.id, earthquake)
 
   t.is(player.hand.length, player.maxHand)
   t.is(game.discardPile.length, 1)
-  t.truthy(find(game.discardPile, getCard('earthquake')))
+  t.truthy(game.discardPile.find(card => card === earthquake))
 })
 
 Ava.test('should kill people', (t) => {
@@ -43,8 +44,9 @@ Ava.test('should kill people', (t) => {
 
   const [player] = game.players
   player.hp = 1
-  player.hand.push(getCard('earthquake'))
-  game.play(player.id, getCard('earthquake'))
+  const earthquake = getCard('earthquake')
+  player.hand.push(earthquake)
+  game.play(player.id, earthquake)
 
   t.truthy(game.stopped)
   t.is(game.discardPile.length, player.maxHand + 1)
@@ -61,8 +63,9 @@ Ava.test('should trigger a no-winner situation', (t) => {
   player1.hp = 1
   player2.hp = 1
   player3.hp = 1
-  player1.hand.push(getCard('earthquake'))
-  game.play(player1, getCard('earthquake'))
+  const earthquake = getCard('earthquake')
+  player1.hand.push(earthquake)
+  game.play(player1, earthquake)
 
   t.true(announceCallback.calledWith('game:no-survivors'))
   t.truthy(game.stopped)

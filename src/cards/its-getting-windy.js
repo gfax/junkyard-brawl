@@ -1,4 +1,4 @@
-const { find, findNext, getCardWeight, removeOnce, sample } = require('../util')
+const { find, findNext, getCardWeight, remove, sample } = require('../util')
 
 const card = module.exports = {
   id: 'its-getting-windy',
@@ -18,7 +18,7 @@ const card = module.exports = {
           return null
         }
         const randomCard = sampleCard(plyr)
-        removeOnce(find(game.players, { id: plyr.id }).hand, randomCard)
+        remove(find(game.players, { id: plyr.id }).hand, el => el === randomCard)
         return randomCard
       })
       .forEach((crd, idx) => {

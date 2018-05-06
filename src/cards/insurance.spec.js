@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should restore a player to half HP', (t) => {
   const announceCallback = Sinon.spy()
@@ -12,16 +11,18 @@ Ava.test('should restore a player to half HP', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  player1.hand.push(getCard('gut-punch'))
-  player2.hand.push(getCard('insurance'))
+  const gutPunch = getCard('gut-punch')
+  const insurance = getCard('insurance')
+  player1.hand.push(gutPunch)
+  player2.hand.push(insurance)
   player2.hp = 2
-  game.play(player1.id, getCard('gut-punch'))
-  game.play(player2.id, getCard('insurance'))
+  game.play(player1.id, gutPunch)
+  game.play(player2.id, insurance)
 
   t.is(player2.hp, Math.floor(player2.maxHp / 2))
   t.true(announceCallback.calledWith('card:insurance:counter'))
   t.true(announceCallback.calledWith('card:insurance:success'))
-  t.truthy(find(game.discardPile, { id: 'insurance' }))
+  t.truthy(game.discardPile.find(el => el === insurance))
   t.true(!game.stopped)
   t.is(game.turns, 1)
 })
@@ -46,7 +47,7 @@ Ava.test('should work with grabs', (t) => {
   t.is(player2.hp, Math.floor(player2.maxHp / 2))
   t.true(announceCallback.calledWith('card:insurance:counter'))
   t.true(announceCallback.calledWith('card:insurance:success'))
-  t.truthy(find(game.discardPile, { id: 'insurance' }))
+  t.truthy(game.discardPile.find(el => el === insurance))
   t.true(!game.stopped)
   t.is(game.turns, 1)
 })
@@ -58,12 +59,15 @@ Ava.test('should work against unstoppable attacks', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  player1.hand.push(getCard('grab'))
-  player1.hand.push(getCard('a-gun'))
-  player2.hand.push(getCard('insurance'))
+  const grab = getCard('grab')
+  const aGun = getCard('a-gun')
+  const insurance = getCard('insurance')
+  player1.hand.push(grab)
+  player1.hand.push(aGun)
+  player2.hand.push(insurance)
   player2.hp = 1
-  game.play(player1.id, [getCard('grab'), getCard('a-gun')])
-  game.play(player2.id, getCard('insurance'))
+  game.play(player1.id, [grab, aGun])
+  game.play(player2.id, insurance)
 
   t.is(player2.hp, Math.floor(player2.maxHp / 2))
   t.true(announceCallback.calledWith('card:insurance:counter'))
@@ -79,10 +83,12 @@ Ava.test('should do nothing when a player lives', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  player1.hand.push(getCard('gut-punch'))
-  player2.hand.push(getCard('insurance'))
-  game.play(player1.id, getCard('gut-punch'))
-  game.play(player2.id, getCard('insurance'))
+  const gutPunch = getCard('gut-punch')
+  const insurance = getCard('insurance')
+  player1.hand.push(gutPunch)
+  player2.hand.push(insurance)
+  game.play(player1.id, gutPunch)
+  game.play(player2.id, insurance)
 
   t.is(player2.hp, player2.maxHp - 2)
   t.true(announceCallback.calledWith('card:insurance:counter'))

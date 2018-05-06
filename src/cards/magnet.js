@@ -1,4 +1,4 @@
-const { getCardWeight, removeOnce, shuffle } = require('../util')
+const { getCardWeight, remove, shuffle } = require('../util')
 
 const card = module.exports = {
   id: 'magnet',
@@ -9,7 +9,7 @@ const card = module.exports = {
     const numberToSteal = Math.min(cards.length, target.hand.length)
     const stolenCards = shuffle(target.hand).slice(0, numberToSteal)
     stolenCards.forEach((_card) => {
-      removeOnce(target.hand, _card)
+      remove(target.hand, el => el === _card)
       player.hand.push(_card)
     })
     game.announce('card:magnet:contact', {

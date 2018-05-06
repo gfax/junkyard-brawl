@@ -11,15 +11,16 @@ Ava.test('should do some random damage between 1 and 6', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  player1.hand.push(getCard('gamblin-man'))
-  game.play(player1.id, getCard('gamblin-man'))
+  const gamblinMan = getCard('gamblin-man')
+  player1.hand = [gamblinMan]
+  game.play(player1.id, player1.hand)
   game.pass(player2.id)
 
   t.true(announceCallback.calledWith('card:gamblin-man:contact'))
   t.true(player2.hp <= player2.maxHp - 1)
   t.true(player2.hp >= player2.maxHp - 6)
   t.is(game.turns, 1)
-  t.is(player1.hand.length, player1.maxHand)
+  t.is(player1.hand.length, 0)
   t.is(game.discardPile.length, 1)
 })
 

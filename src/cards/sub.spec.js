@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should heal a player and discard', (t) => {
   const announceCallback = Sinon.spy()
@@ -11,17 +10,19 @@ Ava.test('should heal a player and discard', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(getCard('neck-punch'))
-  player2.hand.push(getCard('sub'))
+  const neckPunch = getCard('neck-punch')
+  const sub = getCard('sub')
+  player1.hand.push(neckPunch)
+  player2.hand.push(sub)
 
-  game.play(player1.id, [getCard('neck-punch')])
+  game.play(player1.id, [neckPunch])
   game.pass(player2.id)
-  game.play(player2.id, [getCard('sub')])
+  game.play(player2.id, [sub])
 
   t.true(announceCallback.calledWith('card:sub:contact'))
   t.is(player2.hp, player2.maxHp - 1)
   t.is(player2.hand.length, player2.maxHand)
-  t.truthy(find(game.discardPile, getCard('sub')))
+  t.truthy(game.discardPile.find(el => el === sub))
   t.is(game.discardPile.length, 2)
 })
 

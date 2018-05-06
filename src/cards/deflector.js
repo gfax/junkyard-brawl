@@ -1,5 +1,5 @@
 const { printCards } = require('../language')
-const { removeOnce, sample } = require('../util')
+const { remove, sample } = require('../util')
 
 const card = module.exports = {
   id: 'deflector',
@@ -8,9 +8,10 @@ const card = module.exports = {
   filter: () => [],
   beforeContact: (player, target, cards, game, discarding) => {
     // Relinquish the card once its ability is used up
-    removeOnce(target.beforeContact, () => card.beforeContact)
-    removeOnce(target.conditionCards, () => card)
-    game.discardPile.push(card)
+    const cardInstance = target.conditionCards.find(el => el.id === card.id)
+    remove(target.beforeContact, el => el === card.beforeContact)
+    remove(target.conditionCards, el => el === cardInstance)
+    game.discardPile.push(cardInstance)
     game.announce('card:deflector:deflect', {
       player,
       target,

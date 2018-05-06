@@ -13,7 +13,7 @@ const Util = module.exports = {
   getPlayerDisasters,
   getPlayerPlays,
   merge: require('lodash.merge'),
-  removeOnce,
+  remove,
   sample: require('lodash.sample'),
   shuffle: require('lodash.shuffle'),
   template: require('lodash.template'),
@@ -132,10 +132,10 @@ function getPlayerPlays(player, game) {
     }, [])
     .sort((playA, playB) => playB.weight - playA.weight)
 }
-// Remove one copy of an item from an array. Similar to lodash's remove(), but
-// we don't want to remove all copies a user may have of a card, for instance.
-function removeOnce(array, predicate) {
-  const idx = Util.findIndex(array, predicate)
+
+// Remove one copy of a matched item from an array given a predicate function
+function remove(array, fn) {
+  const idx = array.findIndex(fn)
   if (idx !== -1) {
     array.splice(idx, 1)
   }

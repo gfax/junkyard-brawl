@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should be playable', (t) => {
   const announceCallback = Sinon.spy()
@@ -32,7 +31,7 @@ Ava.test('should be playable', (t) => {
   t.true(announceCallback.calledWith('card:grab:play'))
   t.true(announceCallback.calledWith('card:a-gun:contact'))
 
-  t.truthy(find(game.discardPile, grab))
+  t.truthy(game.discardPile.find(card => card === grab))
   t.is(game.discardPile.length, 4)
 })
 
@@ -45,13 +44,12 @@ Ava.test('should only play with an attack', (t) => {
   whisperCallback.reset()
 
   const [player] = game.players
-  player.hand = player.hand.concat([
-    getCard('grab'),
-    getCard('grab')
-  ])
+  const grab1 = getCard('grab')
+  const grab2 = getCard('grab')
+  player.hand = player.hand.concat([grab1, grab2])
 
-  game.play(player.id, [getCard('grab')])
-  game.play(player.id, [getCard('grab'), getCard('grab')])
+  game.play(player.id, [grab1])
+  game.play(player.id, [grab1, grab2])
 
   t.false(announceCallback.calledWith('card:grab:play'))
   t.true(whisperCallback.called)
@@ -90,14 +88,18 @@ Ava.test('should counter', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  const grab = getCard('grab')
-  const gutPunch = getCard('gut-punch')
-  player1.hand = [grab, grab, gutPunch, gutPunch]
-  player2.hand = [grab, gutPunch]
+  const grab1 = getCard('grab')
+  const grab2 = getCard('grab')
+  const grab3 = getCard('grab')
+  const gutPunch1 = getCard('gut-punch')
+  const gutPunch2 = getCard('gut-punch')
+  const gutPunch3 = getCard('gut-punch')
+  player1.hand = [grab1, grab3, gutPunch1, gutPunch3]
+  player2.hand = [grab2, gutPunch2]
 
-  game.play(player1.id, [grab, gutPunch])
-  game.play(player2.id, [grab, gutPunch])
-  game.play(player1.id, [grab, gutPunch])
+  game.play(player1.id, [grab1, gutPunch1])
+  game.play(player2.id, [grab2, gutPunch2])
+  game.play(player1.id, [grab3, gutPunch3])
   game.pass(player2.id)
   t.is(player1.hp, 8)
   t.is(player2.hp, 6)

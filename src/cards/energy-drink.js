@@ -1,5 +1,5 @@
 const { printCards } = require('../language')
-const { find, removeOnce } = require('../util')
+const { find, remove } = require('../util')
 
 const card = module.exports = {
   id: 'energy-drink',
@@ -8,10 +8,11 @@ const card = module.exports = {
   copies: 1,
   filter: () => [],
   beforeTurn: (player, game) => {
+    const cardInstance = player.conditionCards.find(el => el.id === card.id)
     const discardFn = () => {
-      game.discardPile.push(card)
-      removeOnce(player.conditionCards, card)
-      removeOnce(player.beforeTurn, () => discardFn)
+      game.discardPile.push(cardInstance)
+      remove(player.conditionCards, el => el === cardInstance)
+      remove(player.beforeTurn, el => el === discardFn)
       if (player.hp < player.maxHp) {
         player.hp += 1
       }
@@ -26,7 +27,7 @@ const card = module.exports = {
       player.hp += 1
     }
     player.beforeTurn.push(discardFn)
-    removeOnce(player.beforeTurn, () => card.beforeTurn)
+    remove(player.beforeTurn, el => cardInstance.beforeTurn)
     game.announce('card:energy-drink:before-turn', { player })
     return true
   },

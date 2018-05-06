@@ -29,9 +29,13 @@ Ava.test('should require a game object to be passed on instantiation', (t) => {
 Ava.test('should make some reasonable moves', (t) => {
   const game = new Junkyard('human1', 'Jay')
   const bot = game.addBot('Dark')
-  const neckPunch = getCard('neck-punch')
-  const uppercut = getCard('uppercut')
-  bot.hand = [neckPunch, neckPunch, neckPunch, neckPunch, uppercut]
+  bot.hand = [
+    getCard('neck-punch'),
+    getCard('neck-punch'),
+    getCard('neck-punch'),
+    getCard('neck-punch'),
+    getCard('uppercut')
+  ]
   game.start()
   if (game.players[0].id === 'human1') {
     game.incrementTurn()
@@ -42,8 +46,13 @@ Ava.test('should make some reasonable moves', (t) => {
 Ava.test('should discard if it has a crappy hand', (t) => {
   const game = new Junkyard('human1', 'Jay')
   const bot = game.addBot('Dark')
-  const soup = getCard('soup')
-  bot.hand = [soup, soup, soup, soup, soup]
+  bot.hand = [
+    getCard('soup'),
+    getCard('soup'),
+    getCard('soup'),
+    getCard('soup'),
+    getCard('soup')
+  ]
   game.start()
   // Stuck on player's turn, increment turn so bot can move
   if (!game.turns) {
@@ -56,9 +65,13 @@ Ava.test('should discard if it has a crappy hand', (t) => {
 Ava.test('should counter when reasonable to do so', (t) => {
   const game = new Junkyard('human1', 'Jay')
   const bot = game.addBot('Dark')
-  const block = getCard('block')
-  const uppercut = getCard('uppercut')
-  bot.hand = [block, uppercut, uppercut, uppercut, uppercut]
+  bot.hand = [
+    getCard('block'),
+    getCard('uppercut'),
+    getCard('uppercut'),
+    getCard('uppercut'),
+    getCard('uppercut')
+  ]
   bot.hp = 4
   game.start()
   // Stuck on player responding, increment turn so bot can move
@@ -66,6 +79,7 @@ Ava.test('should counter when reasonable to do so', (t) => {
     game.incrementTurn()
   }
 
+  const uppercut = getCard('uppercut')
   game.players[0].hand.push(uppercut)
   game.play('human1', uppercut)
   t.truthy(find(game.discardPile, { id: 'block' }))
@@ -75,9 +89,13 @@ Ava.test('should use disaster cards when it makes sense', (t) => {
   const game = new Junkyard('human1', 'Jay')
   const spy = Sinon.spy(game, 'play')
   const bot = game.addBot('Dark')
-  const deflector = getCard('deflector')
-  const uppercut = getCard('uppercut')
-  bot.hand = [deflector, uppercut, uppercut, uppercut, uppercut]
+  bot.hand = [
+    getCard('deflector'),
+    getCard('uppercut'),
+    getCard('uppercut'),
+    getCard('uppercut'),
+    getCard('uppercut')
+  ]
   game.start()
 
   t.true(spy.called)
@@ -90,14 +108,20 @@ Ava.test('should pass if there is no choice', (t) => {
   const game = new Junkyard('human1', 'Jay')
   const spy = Sinon.spy(game, 'pass')
   const bot = game.addBot('Dark')
-  const uppercut = getCard('uppercut')
-  bot.hand = [uppercut, uppercut, uppercut, uppercut, uppercut]
+  bot.hand = [
+    getCard('uppercut'),
+    getCard('uppercut'),
+    getCard('uppercut'),
+    getCard('uppercut'),
+    getCard('uppercut')
+  ]
   game.start()
   // Stuck on player responding, increment turn so bot can move
   while (game.players[0] === bot) {
     game.incrementTurn()
   }
 
+  const uppercut = getCard('uppercut')
   game.players[0].hand.push(uppercut)
   game.play('human1', uppercut)
   t.true(spy.calledOnce)

@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should make a player miss a turn', (t) => {
   const announceCallback = Sinon.spy()
@@ -11,9 +10,10 @@ Ava.test('should make a player miss a turn', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(getCard('grease-bucket'))
+  const greaseBucket = getCard('grease-bucket')
+  player1.hand.push(greaseBucket)
 
-  game.play(player1.id, [getCard('grease-bucket')])
+  game.play(player1.id, [greaseBucket])
   game.pass(player2.id)
   t.is(player2.hp, player2.maxHp - 2)
   t.is(game.turns, 2)
@@ -25,9 +25,10 @@ Ava.test('should delay discarding', (t) => {
   game.addPlayer('player3', 'Jimbo')
   game.start()
   const [player1, , player3] = game.players
-  player1.hand.push(getCard('grease-bucket'))
+  const greaseBucket = getCard('grease-bucket')
+  player1.hand.push(greaseBucket)
 
-  game.play(player1.id, [getCard('grease-bucket')], player3.id)
+  game.play(player1.id, [greaseBucket], player3.id)
   t.is(player1.hand.length, player1.maxHand)
 
   game.pass(player3.id)
@@ -35,6 +36,7 @@ Ava.test('should delay discarding', (t) => {
 
   game.incrementTurn()
   t.is(game.discardPile.length, 1)
+  t.truthy(game.discardPile.find(el => el === greaseBucket))
 })
 
 Ava.test('should discard when a player dies', (t) => {
@@ -42,13 +44,14 @@ Ava.test('should discard when a player dies', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(getCard('grease-bucket'))
+  const greaseBucket = getCard('grease-bucket')
+  player1.hand = [greaseBucket]
   player2.hp = 2
 
-  game.play(player1.id, [getCard('grease-bucket')])
+  game.play(player1.id, greaseBucket)
   game.pass(player2.id)
 
-  t.truthy(find(game.discardPile, getCard('grease-bucket')))
+  t.truthy(game.discardPile.find(card => card === greaseBucket))
   t.is(game.discardPile.length, player2.maxHand + 1)
 })
 

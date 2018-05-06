@@ -52,6 +52,7 @@ Ava.test('getCard() should return a card object', (t) => {
   const card = Deck.getCard('gut-punch')
   t.is(card.id, 'gut-punch')
   t.is(card.type, 'attack')
+  t.true(typeof card.uid === 'string')
 })
 
 Ava.test('getCard() should throw an error when requesting an invalid card', (t) => {
@@ -65,43 +66,73 @@ Ava.test('parseCards() should throw an error when not given a player', (t) => {
 })
 
 Ava.test('parseCards() should throw an error when not passed a request', (t) => {
-  t.throws(() => Deck.parseCards(new Player('user1', 'Jay', 10)))
+  const player = new Player('user1', 'Jay', 10)
+  player.hand.push(Deck.getCard('gut-punch'))
+  t.throws(() => Deck.parseCards(player))
 })
 
 Ava.test('parseCards() should throw an error when passed invalid cards', (t) => {
-  t.throws(() => Deck.parseCards(
-    new Player('user1', 'Jay', 10),
-    [{ id: 'gut-punch' }]
-  ))
+  const player = new Player('user1', 'Jay', 10)
+  player.hand.push(Deck.getCard('gut-punch'))
+  t.throws(() => Deck.parseCards(player, ''))
 })
 
 Ava.test('parseCards() should return an empty array when a player has no cards', (t) => {
-  t.deepEqual(
-    Deck.parseCards(new Player('user1', 'Jay', 10), '1 2 3'),
-    []
-  )
+  const player = new Player('user1', 'Jay', 10)
+  t.deepEqual(Deck.parseCards(player, ''), [])
 })
 
 Ava.test('parseCards() should return an empty array when passed an empty array', (t) => {
-  t.deepEqual(Deck.parseCards(new Player('user1', 'Jay', 10), []), [])
+  const player = new Player('user1', 'Jay', 10)
+  t.deepEqual(Deck.parseCards(player, []), [])
 })
 
-Ava.test('parseCards() should parse a card object', (t) => {
+Ava.test('parseCards() should parse card objects', (t) => {
+  const player = new Player('user1', 'Jay', 10)
+  const gutPunch = Deck.getCard('gut-punch')
+  const neckPunch = Deck.getCard('neck-punch')
+  player.hand = [gutPunch, neckPunch]
+  t.deepEqual(Deck.parseCards(player, gutPunch), [gutPunch])
+  t.deepEqual(Deck.parseCards(player, [gutPunch]), [gutPunch])
   t.deepEqual(
-    Deck.parseCards(new Player('user1', 'Jay', 10), Deck.getCard('gut-punch')),
-    [Deck.getCard('gut-punch')]
+    Deck.parseCards(player, player.hand, true),
+    [gutPunch, neckPunch]
   )
 })
 
-Ava.test('parseCards() should parse a string of numbers', (t) => {
+Ava.test('parseCards() should parse cards by uid', (t) => {
   const player = new Player('user1', 'Jay', 10)
-  player.hand = [
-    Deck.getCard('gut-punch'),
-    Deck.getCard('neck-punch'),
-    Deck.getCard('guard-dog')
-  ]
+  const gutPunch = Deck.getCard('gut-punch')
+  const neckPunch = Deck.getCard('neck-punch')
+  player.hand = [gutPunch, neckPunch]
+  t.deepEqual(Deck.parseCards(player, gutPunch.uid), [gutPunch])
+  t.deepEqual(Deck.parseCards(player, [gutPunch.uid]), [gutPunch])
   t.deepEqual(
-    Deck.parseCards(player, ' 2 1'),
-    [Deck.getCard('neck-punch')]
+    Deck.parseCards(player, [gutPunch.uid, neckPunch.uid], true),
+    [gutPunch, neckPunch]
+  )
+})
+
+Ava.test('parseCards() should parse cards by id', (t) => {
+  const player = new Player('user1', 'Jay', 10)
+  const gutPunch = Deck.getCard('gut-punch')
+  const neckPunch = Deck.getCard('neck-punch')
+  player.hand = [gutPunch, neckPunch]
+  t.deepEqual(Deck.parseCards(player, gutPunch.id), [gutPunch])
+  t.deepEqual(Deck.parseCards(player, [gutPunch.id]), [gutPunch])
+  t.deepEqual(
+    Deck.parseCards(player, [gutPunch.id, neckPunch.id], true),
+    [gutPunch, neckPunch]
+  )
+})
+
+Ava.test('parseCards() should filter card objects by default', (t) => {
+  const player = new Player('user1', 'Jay', 10)
+  const gutPunch = Deck.getCard('gut-punch')
+  const neckPunch = Deck.getCard('neck-punch')
+  player.hand = [gutPunch, neckPunch]
+  t.deepEqual(
+    Deck.parseCards(player, player.hand),
+    [gutPunch]
   )
 })

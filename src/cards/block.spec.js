@@ -10,11 +10,11 @@ Ava.test('should counter', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(getCard('gut-punch'))
-  player2.hand.push(getCard('block'))
+  player1.hand = [getCard('gut-punch')]
+  player2.hand = [getCard('block')]
 
-  game.play(player1.id, [getCard('gut-punch')])
-  game.play(player2.id, [getCard('block')])
+  game.play(player1.id, player1.hand)
+  game.play(player2.id, player2.hand)
   t.is(player2.hp, player2.maxHp)
   t.true(announceCallback.calledWith('card:block:counter'))
   t.is(game.turns, 1)
@@ -27,12 +27,11 @@ Ava.test('should be thwarted by unstoppable cards', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(getCard('grab'))
-  player1.hand.push(getCard('a-gun'))
-  player2.hand.push(getCard('block'))
+  player1.hand = [getCard('grab'), getCard('a-gun')]
+  player2.hand = [getCard('block')]
 
-  game.play(player1.id, [getCard('grab'), getCard('a-gun')])
-  game.play(player2.id, [getCard('block')])
+  game.play(player1.id, player1.hand)
+  game.play(player2.id, player2.hand)
   t.is(player2.hp, player2.maxHp - 2)
   t.true(announceCallback.calledWith('player:counter-failed'))
   t.is(game.turns, 1)

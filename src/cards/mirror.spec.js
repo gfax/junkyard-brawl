@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should duplicate attacks', (t) => {
   const announceCallback = Sinon.spy()
@@ -12,11 +11,13 @@ Ava.test('should duplicate attacks', (t) => {
   game.start()
 
   const [player1, player2] = game.players
-  player1.hand.push(getCard('gut-punch'))
-  player2.hand.push(getCard('mirror'))
+  const gutPunch = getCard('gut-punch')
+  const mirror = getCard('mirror')
+  player1.hand.push(gutPunch)
+  player2.hand.push(mirror)
 
-  game.play(player1.id, getCard('gut-punch'))
-  game.play(player2.id, getCard('mirror'))
+  game.play(player1.id, gutPunch)
+  game.play(player2.id, mirror)
 
   t.true(announceCallback.calledWith('card:gut-punch:contact'))
   t.true(announceCallback.calledWith('card:mirror:counter'))
@@ -47,9 +48,9 @@ Ava.test('should duplicate unstoppable attacks', (t) => {
   t.is(player2.hp, player2.maxHp - 2)
   t.is(game.turns, 1)
   t.is(game.discardPile.length, 3)
-  t.truthy(find(game.discardPile, mirror))
-  t.truthy(find(game.discardPile, grab))
-  t.truthy(find(game.discardPile, aGun))
+  t.truthy(game.discardPile.find(el => el === mirror))
+  t.truthy(game.discardPile.find(el => el === grab))
+  t.truthy(game.discardPile.find(el => el === aGun))
 })
 
 Ava.test('should duplicate support', (t) => {
@@ -75,9 +76,9 @@ Ava.test('should duplicate support', (t) => {
   t.is(player1.hp, player1.maxHp + 5)
   t.is(player2.hp, player2.maxHp + 5)
   t.is(game.discardPile.length, 3)
-  t.truthy(find(game.discardPile, mirror))
-  t.truthy(find(game.discardPile, grab))
-  t.truthy(find(game.discardPile, armor))
+  t.truthy(game.discardPile.find(el => el === mirror))
+  t.truthy(game.discardPile.find(el => el === grab))
+  t.truthy(game.discardPile.find(el => el === armor))
 })
 
 Ava.test('should work with Deflector', (t) => {

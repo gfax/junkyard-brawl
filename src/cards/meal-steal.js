@@ -1,4 +1,4 @@
-const { find, removeOnce } = require('../util')
+const { find, remove } = require('../util')
 
 const card = module.exports = {
   id: 'meal-steal',
@@ -12,7 +12,7 @@ const card = module.exports = {
     const totalHp = stolenCards.reduce((hp, _card) => {
       return hp + _card.hp
     }, 0)
-    stolenCards.forEach(_card => removeOnce(target.hand, _card))
+    stolenCards.forEach(_card => remove(target.hand, el => el === _card))
     if (player.hp < player.maxHp) {
       player.hp = Math.min(player.hp + totalHp, player.maxHp)
     }

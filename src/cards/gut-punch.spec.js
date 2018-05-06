@@ -2,19 +2,19 @@ const Ava = require('ava')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should be playable', (t) => {
   const game = new Junkyard('player1', 'Jay')
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player, target] = game.players
-  player.hand.push(getCard('gut-punch'))
+  const gutPunch = getCard('gut-punch')
+  player.hand.push(gutPunch)
 
-  game.play(player.id, [getCard('gut-punch')])
+  game.play(player.id, [gutPunch])
   game.pass(target.id)
   t.is(target.hp, 8)
-  t.truthy(find(game.discardPile, { id: 'gut-punch' }))
+  t.truthy(game.discardPile.find(el => el === gutPunch))
   t.is(game.discardPile.length, 1)
 })
 

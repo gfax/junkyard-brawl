@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should make a player miss a turn', (t) => {
   const announceCallback = Sinon.spy()
@@ -11,9 +10,9 @@ Ava.test('should make a player miss a turn', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(getCard('acid-coffee'))
+  player1.hand = [getCard('acid-coffee')]
 
-  game.play(player1.id, [getCard('acid-coffee')])
+  game.play(player1.id, ['acid-coffee'])
   game.pass(player2.id)
   t.is(player2.hp, player2.maxHp - 3)
   t.is(game.turns, 2)
@@ -25,10 +24,10 @@ Ava.test('should delay discarding', (t) => {
   game.addPlayer('player3', 'Jimbo')
   game.start()
   const [player1, , player3] = game.players
-  player1.hand.push(getCard('acid-coffee'))
+  player1.hand = [getCard('acid-coffee')]
 
-  game.play(player1.id, [getCard('acid-coffee')], player3.id)
-  t.is(player1.hand.length, player1.maxHand)
+  game.play(player1.id, 'acid-coffee', player3.id)
+  t.is(player1.hand.length, 0)
 
   game.pass(player3.id)
   t.is(game.discardPile.length, 0)
@@ -42,19 +41,22 @@ Ava.test('should discard even in the event of death', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(getCard('acid-coffee'))
+  const acidCoffee = getCard('acid-coffee')
+  player1.hand = [acidCoffee]
   player2.hp = 3
 
-  game.play(player1.id, [getCard('acid-coffee')])
-  t.is(player1.hand.length, player1.maxHand)
+  game.play(player1.id, acidCoffee.id)
+  t.is(player1.hand.length, 0)
 
   game.pass(player2.id)
   t.truthy(game.stopped)
   t.is(game.discardPile.length, player2.maxHand + 1)
-  t.truthy(find(game.discardPile, getCard('acid-coffee')))
+  t.truthy(
+    game.discardPile.find(card => card.uid === acidCoffee.uid)
+  )
 })
 
-Ava.test('should returns valid plays', (t) => {
+Ava.test('should return valid plays', (t) => {
   const game = new Junkyard('player1', 'Jay')
   game.addPlayer('player2', 'Kevin')
   game.start()

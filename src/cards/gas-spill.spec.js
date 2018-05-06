@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should cause a player to miss 2 turns.', (t) => {
   const announceCallback = Sinon.spy()
@@ -11,9 +10,10 @@ Ava.test('should cause a player to miss 2 turns.', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(getCard('gas-spill'))
+  const gasSpill = getCard('gas-spill')
+  player1.hand = [gasSpill]
 
-  game.play(player1.id, [getCard('gas-spill')])
+  game.play(player1.id, player1.hand)
   t.true(announceCallback.calledWith('card:gas-spill:contact'))
   t.is(player1.beforeTurn.length + player2.beforeTurn.length, 1)
   t.is(player1.missTurns + player2.missTurns, 2)
@@ -55,15 +55,16 @@ Ava.test('should discard when the affected player is removed', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.addPlayer('player3', 'Jimbo')
   game.start()
+  const [player1] = game.players
   const gasSpill = getCard('gas-spill')
-  game.players[0].hand.push(gasSpill)
-  game.play(game.players[0].id, [gasSpill])
+  player1.hand.push(gasSpill)
+  game.play(player1.id, [gasSpill])
 
   t.is(game.discardPile.length, 0)
-  const player = find(game.players, plyr => plyr.beforeTurn.length === 1)
+  const player = game.players.find(plyr => plyr.beforeTurn.length === 1)
   game.removePlayer(player.id)
   t.is(game.discardPile.length, player.maxHand + 1)
-  t.truthy(find(game.discardPile, gasSpill))
+  t.truthy(game.discardPile.find(card => card.uid === gasSpill.uid))
 })
 
 Ava.test('should have a weight proportional to the number of players', (t) => {

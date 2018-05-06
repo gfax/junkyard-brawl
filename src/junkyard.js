@@ -7,7 +7,7 @@ const {
   clone,
   find,
   merge,
-  removeOnce,
+  remove,
   shuffle,
   times
 } = require('./util')
@@ -185,12 +185,12 @@ module.exports = class Junkyard {
       this.whisper(player, 'player:not-turn')
       return
     }
-    let cards = clone(Deck.parseCards(player, cardRequest, true))
+    let cards = Deck.parseCards(player, cardRequest, true)
     if (!cards.length) {
-      cards = clone(player.hand)
+      cards = player.hand
     }
     cards.forEach((card) => {
-      removeOnce(player.hand, card)
+      remove(player.hand, el => el === card)
       this.discardPile.push(card)
     })
     this.announce('player:discard', {
@@ -402,7 +402,9 @@ module.exports = class Junkyard {
       () => {
         this.target = target
         player.discard = cards
-        cards.forEach(card => removeOnce(player.hand, { id: card.id }))
+        player.hand = player.hand.filter(
+          el => !cards.find(card => el.uid === card.uid)
+        )
         cards[0].play(player, target, cards, this)
       }
     ].reduce((bool, fn) => bool && fn(), true)
@@ -417,7 +419,7 @@ module.exports = class Junkyard {
       throw new Error(`Cannot remove invalid player: ${id}`)
     }
     const wasTurnPlayer = player === this.players[0]
-    removeOnce(this.players, player)
+    remove(this.players, el => el === player)
     // Announce what cards the player had
     if (player.hand.length) {
       announceDiscard(player, this)
@@ -573,7 +575,7 @@ function playCounter(player, cards, game) {
   }
   // Take the cards out of the player's hand and put
   // any previous discard into the main discard pile
-  cards.forEach(card => removeOnce(player.hand, card))
+  cards.forEach(card => remove(player.hand, el => el === card))
   // player.discard.forEach(card => game.discardPile.push(card))
   player.discard = cards
   // Discard any cards returned. Some cards aren't discarded
@@ -583,7 +585,7 @@ function playCounter(player, cards, game) {
 }
 
 function playDisaster(player, cards, game) {
-  cards.forEach(card => removeOnce(player.hand, card))
+  cards.forEach(card => remove(player.hand, el => el === card))
   // Discard any cards returned. Some cards aren't discarded
   // when played so we only discard what we're given back.
   const discard = cards[0].disaster(player, cards, game) || []
@@ -598,7 +600,7 @@ function playSupport(player, cards, game) {
       return
     }
   }
-  cards.forEach(card => removeOnce(player.hand, card))
+  cards.forEach(card => remove(player.hand, el => el === card))
   // Discard any cards returned. Some cards aren't discarded
   // when played so we only discard what we're given back.
   const discard = game.contact(player, player, cards) || []

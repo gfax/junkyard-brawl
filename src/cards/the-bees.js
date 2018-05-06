@@ -1,4 +1,4 @@
-const { removeOnce, sample } = require('../util')
+const { remove, sample } = require('../util')
 
 const card = module.exports = {
   id: 'the-bees',
@@ -7,9 +7,10 @@ const card = module.exports = {
   filter: () => [],
   afterContact: (player, target, cards, game) => {
     if (cards[0].type === 'support') {
-      removeOnce(player.beforeTurn, () => card.beforeTurn)
-      removeOnce(player.afterContact, () => card.afterContact)
-      removeOnce(player.conditionCards, card)
+      const cardInstance = player.conditionCards.find(el => el.id === card.id)
+      remove(player.beforeTurn, el => el === cardInstance.beforeTurn)
+      remove(player.afterContact, el => el === cardInstance.afterContact)
+      remove(player.conditionCards, el => el === cardInstance)
       // Relinquish the card from the player
       game.discardPile.push(card)
       game.announce('card:the-bees:healed', { player })

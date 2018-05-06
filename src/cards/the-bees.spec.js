@@ -3,7 +3,6 @@ const Sinon = require('sinon')
 
 const { getCard } = require('../deck')
 const Junkyard = require('../junkyard')
-const { find } = require('../util')
 
 Ava.test('should be playable', (t) => {
   const announceCallback = Sinon.spy()
@@ -11,9 +10,10 @@ Ava.test('should be playable', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(getCard('the-bees'))
+  const theBees = getCard('the-bees')
+  player1.hand.push(theBees)
 
-  game.play(player1.id, [getCard('the-bees')])
+  game.play(player1.id, [theBees])
 
   t.true(announceCallback.calledWith('card:the-bees:play'))
   t.true(player1.beforeTurn.length + player2.beforeTurn.length === 1)
@@ -25,9 +25,10 @@ Ava.test('should sting a player each turn', (t) => {
   game.addPlayer('player2', 'Kevin')
   game.start()
   const [player1, player2] = game.players
-  player1.hand.push(getCard('the-bees'))
+  const theBees = getCard('the-bees')
+  player1.hand.push(theBees)
 
-  game.play(player1.id, [getCard('the-bees')])
+  game.play(player1.id, theBees)
   game.incrementTurn()
   game.incrementTurn()
 
@@ -40,12 +41,13 @@ Ava.test('should sting a player to death', (t) => {
   const game = new Junkyard('player1', 'Jay', announceCallback)
   game.addPlayer('player2', 'Kevin')
   const [player1, player2] = game.players
+  const theBees = getCard('the-bees')
   player1.hp = 2
   player2.hp = 2
 
   game.start()
-  game.players[0].hand.push(getCard('the-bees'))
-  game.play(game.players[0].id, [getCard('the-bees')])
+  game.players[0].hand.push(theBees)
+  game.play(game.players[0].id, theBees)
   game.incrementTurn()
   game.incrementTurn()
   game.incrementTurn()
@@ -55,7 +57,7 @@ Ava.test('should sting a player to death', (t) => {
   t.is(game.players.length, 1)
   t.truthy(game.stopped)
   t.truthy(
-    find(game.discardPile, getCard('the-bees')),
+    game.discardPile.find(el => el === theBees),
     'it should be cycled back into the game when the player dies'
   )
   t.is(game.discardPile.length, player2.maxHand + 1)
